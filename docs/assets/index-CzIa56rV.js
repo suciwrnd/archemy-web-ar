@@ -4124,7 +4124,7 @@ void main() {
         <div class="webar-scan-overlay" id="webarScanOverlay">
           <div class="scan-phone-icon"></div>
           <div class="webar-scan-title">Pindai Bidang Datar</div>
-          <div class="webar-scan-desc">Arahkan kamera ke meja/lantai secara perlahan hingga labu Erlenmeyer muncul.</div>
+          <div class="webar-scan-desc">Arahkan kamera ke meja/lantai hingga ring biru muncul, lalu <b>KETUK</b> layar untuk meletakkan labu.</div>
         </div>
 
         <button class="webar-keluar" id="webarKeluar" aria-label="Keluar dari mode AR">

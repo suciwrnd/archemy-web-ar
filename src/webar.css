@@ -74,7 +74,7 @@
   position: absolute;
   top: 14px;
   left: 14px;
-  z-index: 20;
+  z-index: 60;
   padding: 8px 16px;
   border-radius: 20px;
   background: #e11d48;
@@ -255,7 +255,7 @@ body.colorblind-mode .webar-legend-color.produk { background: #3b82f6; } /* Blue
   position: absolute;
   top: 14px;
   right: 14px;
-  z-index: 20;
+  z-index: 60;
   padding: 8px 12px;
   border-radius: 20px;
   background: rgba(25, 25, 35, 0.85);
@@ -289,6 +289,7 @@ body.colorblind-mode .webar-colorblind-btn {
   padding: 24px;
   backdrop-filter: blur(4px);
   transition: opacity 0.5s ease;
+  pointer-events: none; /* Biarkan tap/klik menembus ke canvas/XR */
 }
 .scan-phone-icon {
   width: 60px;
