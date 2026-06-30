@@ -395,8 +395,8 @@ function renderStudentResult() {
    ========================================================================== */
 function renderStudentWebARPage() {
   if (!state.webarMisiAktif) {
-    pageWrap(`${header()}`, { noNav: true });
-    const container = app.querySelector('.screen');
+    pageWrap(`${header({ back: true, titleBackPage: 'studentDashboard', coins: false })}<div id="webarContainer"></div>`, { noNav: true });
+    const container = document.getElementById('webarContainer');
     renderPilihMisi(container, (misiId) => {
       state.webarMisiAktif = misiId;
       saveState();

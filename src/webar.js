@@ -1,5 +1,49 @@
 import * as THREE from 'three';
 
+const DEFAULT_WARN_WARNA = 0xffa500; // Reaktan
+const DEFAULT_SUKSES_WARNA = 0x3b82f6; // Produk
+
+export const sensorData = {
+  gX: 0,
+  gY: -0.001,
+  gZ: 0,
+  shake: 0,
+  isSpilled: false,
+  spillCallback: null
+};
+
+window.addEventListener('deviceorientation', (e) => {
+  if (sensorData.isSpilled) return;
+  const beta = e.beta || 0;
+  const gamma = e.gamma || 0;
+  sensorData.gX = gamma * 0.00008;
+  sensorData.gZ = (beta - 45) * 0.00008;
+  if (Math.abs(beta) > 95 || Math.abs(gamma) > 90) {
+    sensorData.isSpilled = true;
+    if (sensorData.spillCallback) sensorData.spillCallback();
+  }
+});
+
+let lastShakeTime = 0;
+window.addEventListener('devicemotion', (e) => {
+  if (sensorData.isSpilled) return;
+  const acc = e.acceleration || { x:0, y:0, z:0 };
+  const force = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
+  if (force > 12) {
+    sensorData.shake = force * 0.0002;
+    lastShakeTime = performance.now();
+  }
+  if (performance.now() - lastShakeTime > 500) sensorData.shake *= 0.9;
+});
+
+export function requestSensorPermission() {
+  sensorData.isSpilled = false;
+  sensorData.shake = 0;
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission().catch(() => {});
+  }
+}
+
 export const MISI_DATA = {
   misi1: {
     judul: 'Misi 1: Gas Iodin Reversibel',
@@ -102,10 +146,13 @@ export function buatGeometryErlenmeyer() {
 }
 
 export function buatMaterialKaca() {
-  return new THREE.MeshPhysicalMaterial({
-    color: 0xffffff, transparent: true, opacity: 0.25,
-    roughness: 0.02, metalness: 0.1, transmission: 0.9,
-    thickness: 0.2, clearcoat: 1.0, side: THREE.DoubleSide
+  return new THREE.MeshPhongMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.25,
+    shininess: 100,
+    specular: 0xffffff,
+    side: THREE.DoubleSide
   });
 }
 
@@ -221,15 +268,46 @@ export class SistemPartikel {
     return 0.17 - (t * 0.135);
   }
   perbarui(faktorKecepatan = 1) {
+    if (sensorData.shake > 0.0001) {
+      faktorKecepatan += (sensorData.shake * 100);
+      sensorData.shake *= 0.95;
+    }
+
     this.partikel.forEach((p) => {
+      // Apply gravity/tilt
+      if (!sensorData.isSpilled) {
+        p.kecepatan.x += sensorData.gX;
+        p.kecepatan.z += sensorData.gZ;
+        p.kecepatan.y += sensorData.gY;
+      } else {
+        // Spilled! Gravity heavily downwards and outwards
+        p.kecepatan.y -= 0.005;
+        p.kecepatan.x *= 1.02;
+        p.kecepatan.z *= 1.02;
+      }
+      
+      // Apply drag
+      p.kecepatan.multiplyScalar(0.98);
+
       const pos = p.mesh.position;
       pos.x += p.kecepatan.x * faktorKecepatan;
       pos.y += p.kecepatan.y * faktorKecepatan;
       pos.z += p.kecepatan.z * faktorKecepatan;
-      const rLimit = this._radiusPadaTinggi(pos.y);
-      const rSekarang = Math.sqrt(pos.x * pos.x + pos.z * pos.z);
-      if (rSekarang > rLimit) { p.kecepatan.x *= -1; p.kecepatan.z *= -1; }
-      if (pos.y > 0.38 || pos.y < -0.28) p.kecepatan.y *= -1;
+
+      if (!sensorData.isSpilled) {
+        const rLimit = this._radiusPadaTinggi(pos.y);
+        const rSekarang = Math.sqrt(pos.x * pos.x + pos.z * pos.z);
+        if (rSekarang > rLimit) { 
+          p.kecepatan.x *= -0.5; p.kecepatan.z *= -0.5;
+          if (rSekarang > 0) {
+            const scale = rLimit / rSekarang;
+            pos.x *= scale; pos.z *= scale;
+          }
+        }
+        if (pos.y < -0.28) { pos.y = -0.28; p.kecepatan.y *= -0.5; }
+        if (pos.y > 0.38) { pos.y = 0.38; p.kecepatan.y *= -0.5; }
+      }
+      
       p.mesh.rotation.y += p.rotasiKecepatan * faktorKecepatan;
       p.mesh.rotation.x += 0.01 * faktorKecepatan;
     });
@@ -253,7 +331,7 @@ export function buatSceneDasar() {
 
   // Cairan pelarut semi-transparan di dasar labu
   const fluidGeo = new THREE.CylinderGeometry(0.21, 0.24, 0.15, 32);
-  const fluidMat = new THREE.MeshPhysicalMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.2, transmission: 0.9, roughness: 0.1 });
+  const fluidMat = new THREE.MeshPhongMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.4, shininess: 80, specular: 0xffffff, side: THREE.DoubleSide });
   const fluid = new THREE.Mesh(fluidGeo, fluidMat);
   fluid.position.y = -0.24;
   scene.add(fluid);

@@ -8,7 +8,9 @@ import {
   deteksiModeAR,
   mulaiSesiWebXR,
   mulaiSesiARjs,
-  perbaruiVisualMisi
+  perbaruiVisualMisi,
+  requestSensorPermission,
+  sensorData
 } from './webar.js';
 import './webar.css';
 
@@ -47,6 +49,12 @@ export function renderPilihMisi(container, onPilihMisi) {
 export async function renderHalamanAR(container, misiId, onKeluar) {
   const misi = MISI_DATA[misiId];
   if (!misi) return;
+
+  requestSensorPermission();
+  sensorData.spillCallback = () => {
+    const storyText = document.getElementById('webarStoryText');
+    if (storyText) storyText.innerHTML = `<b>Yah tumpahh!</b> Reaksi berantakan karena tabung terbalik.<br><br><button onclick="window.go('studentDashboard')" style="margin-top:8px; padding:6px 12px; background:#e11d48; color:#fff; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">🔄 Ulangi Misi</button>`;
+  };
 
   container.innerHTML = `
     <div class="webar-stage">
