@@ -54,17 +54,41 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
       <div class="webar-viewport">
         <video id="webarVideo" playsinline muted style="display:none"></video>
         <canvas id="webarCanvas"></canvas>
+
+        <div class="webar-scan-overlay" id="webarScanOverlay">
+          <div class="scan-phone-icon"></div>
+          <div class="webar-scan-title">Pindai Bidang Datar</div>
+          <div class="webar-scan-desc">Arahkan kamera ke meja/lantai secara perlahan hingga labu Erlenmeyer muncul.</div>
+        </div>
+
+        <button class="webar-keluar" id="webarKeluar" aria-label="Keluar dari mode AR">
+          ⬅️ Kembali
+        </button>
+        <button class="webar-colorblind-btn" id="webarColorblindBtn">
+          👁️ Mode Buta Warna
+        </button>
+
         <div class="webar-hud-top">
           <span class="webar-misi-label">${misi.judul}</span>
           <code class="webar-eq-label">${misi.persamaan}</code>
+          
+          <div class="webar-legend">
+            <div class="webar-legend-item">
+              <span class="webar-legend-color reaktan"></span>
+              <span>Reaktan</span>
+            </div>
+            <div class="webar-legend-item">
+              <span class="webar-legend-color produk"></span>
+              <span>Produk</span>
+            </div>
+          </div>
+
           <div class="webar-story-box" id="webarStoryBox">
             <div class="story-avatar">🤖</div>
             <div class="story-text" id="webarStoryText">Memuat...</div>
           </div>
         </div>
-        <button class="webar-keluar" id="webarKeluar" aria-label="Keluar dari mode AR">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M18 6L6 18M6 6l12 12"></path></svg>
-        </button>
+
         <div class="webar-tap-hint" id="webarTapHint" style="display:none">
           Ketuk layar/permukaan datar untuk memunculkan labu
         </div>
@@ -77,10 +101,19 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   const videoEl = container.querySelector('#webarVideo');
   const tapHint = container.querySelector('#webarTapHint');
   const controlsEl = container.querySelector('#webarControls');
+  const scanOverlay = container.querySelector('#webarScanOverlay');
+  const colorblindBtn = container.querySelector('#webarColorblindBtn');
 
   container.querySelector('#webarKeluar').addEventListener('click', () => {
+    document.body.classList.remove('colorblind-mode');
     hentikanSesiAR();
     onKeluar();
+  });
+
+  colorblindBtn.addEventListener('click', () => {
+    document.body.classList.toggle('colorblind-mode');
+    // Memicu rendering ulang bentuk senyawa di webar.js jika sesi aktif
+    if (window._toggleColorblindMode) window._toggleColorblindMode(document.body.classList.contains('colorblind-mode'));
   });
 
   modeARTerdeteksi = await deteksiModeAR();
@@ -104,10 +137,14 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
       tapHint.style.display = 'block';
       sesiARAktif = await mulaiSesiWebXR(canvas, misiId, () => {
         tapHint.style.display = 'none';
+        scanOverlay.style.opacity = '0';
+        setTimeout(() => scanOverlay.style.display = 'none', 500);
       }, getSpeedFactor);
     } else {
       statusEl.textContent = 'Mode kamera sederhana aktif (perangkat tidak mendukung AR penuh).';
       videoEl.style.display = 'block';
+      scanOverlay.style.opacity = '0';
+      setTimeout(() => scanOverlay.style.display = 'none', 500);
       sesiARAktif = await mulaiSesiARjs(canvas, videoEl, misiId, getSpeedFactor);
     }
     setTimeout(() => {
@@ -149,6 +186,9 @@ function renderKontrolMisi(container, misiId) {
   let slidersHTML = `<div class="webar-sliders-container">`;
   indikators.forEach((ind, i) => {
     const rentang = misi.rentang[ind.id];
+    let isTarget = (ind.id === misi.parameterKunci);
+    let targetHtml = isTarget ? `<div class="webar-target-info">🎯 Target: ${misi.targetTercapai[0]} ${rentang[4]}</div>` : '';
+
     slidersHTML += `
       <div class="webar-slider-panel ${i===0?'active':''}" id="panel-${ind.id}">
         <div class="control-head">
@@ -156,6 +196,7 @@ function renderKontrolMisi(container, misiId) {
           <span id="val-${ind.id}">${rentang[3].toFixed(rentang[2] < 1 ? 1 : 0)} ${rentang[4]}</span>
         </div>
         <input type="range" id="slider-${ind.id}" min="${rentang[0]}" max="${rentang[1]}" step="${rentang[2]}" value="${rentang[3]}">
+        ${targetHtml}
       </div>
     `;
   });
