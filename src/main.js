@@ -407,7 +407,7 @@ function renderStudentWebARPage() {
     renderHalamanAR(app, state.webarMisiAktif, () => {
       state.webarMisiAktif = null;
       saveState();
-      go('studentDashboard');
+      render();
     });
   }
 }

@@ -134,11 +134,27 @@ export async function deteksiModeAR() {
 
 export function buatGeometryErlenmeyer() {
   const profil = [
-    new THREE.Vector2(0.0, -0.32), new THREE.Vector2(0.26, -0.32),
-    new THREE.Vector2(0.26, -0.24), new THREE.Vector2(0.22, -0.05),
-    new THREE.Vector2(0.16, 0.12), new THREE.Vector2(0.08, 0.24),
-    new THREE.Vector2(0.07, 0.42), new THREE.Vector2(0.08, 0.44),
-    new THREE.Vector2(0.07, 0.44)
+    // Outer wall
+    new THREE.Vector2(0.0, -0.32),
+    new THREE.Vector2(0.26, -0.32),
+    new THREE.Vector2(0.26, -0.24),
+    new THREE.Vector2(0.22, -0.05),
+    new THREE.Vector2(0.16, 0.12),
+    new THREE.Vector2(0.08, 0.24),
+    new THREE.Vector2(0.07, 0.42),
+    // Rim
+    new THREE.Vector2(0.09, 0.44),
+    new THREE.Vector2(0.09, 0.45),
+    new THREE.Vector2(0.07, 0.46),
+    new THREE.Vector2(0.06, 0.45),
+    // Inner wall
+    new THREE.Vector2(0.06, 0.42),
+    new THREE.Vector2(0.07, 0.24),
+    new THREE.Vector2(0.15, 0.12),
+    new THREE.Vector2(0.21, -0.05),
+    new THREE.Vector2(0.25, -0.24),
+    new THREE.Vector2(0.25, -0.31),
+    new THREE.Vector2(0.0, -0.31)
   ];
   const geometry = new THREE.LatheGeometry(profil, 48);
   geometry.computeVertexNormals();
@@ -195,6 +211,22 @@ const RESEP_MOLEKUL = {
   H2CO3: { atoms: ['C', 'O', 'O', 'O'], kompleks: true },
   HCO3: { atoms: ['C', 'O', 'O'], kompleks: true }
 };
+function buatLabelTeks(text) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128; canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgba(0,0,0,0)'; ctx.fillRect(0,0,128,64);
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 32px sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'black'; ctx.shadowBlur = 4;
+  ctx.fillText(text, 64, 32);
+  const tex = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(0.12, 0.06, 1);
+  return sprite;
+}
 
 export function buatMolekul(jenis) {
   const resep = RESEP_MOLEKUL[jenis]; if (!resep) return new THREE.Group();
@@ -235,6 +267,11 @@ export function buatMolekul(jenis) {
       grup.add(o, ik);
     }
   }
+  
+  const label = buatLabelTeks(jenis);
+  label.position.y = 0.09;
+  grup.add(label);
+
   grup.userData.jenis = jenis; return grup;
 }
 
@@ -310,7 +347,31 @@ export class SistemPartikel {
       
       p.mesh.rotation.y += p.rotasiKecepatan * faktorKecepatan;
       p.mesh.rotation.x += 0.01 * faktorKecepatan;
+      
+      // Make sprites always face camera
+      p.mesh.children.forEach(c => {
+        if (c.isSprite) c.quaternion.copy(p.mesh.quaternion).invert();
+      });
     });
+
+    // Collision logic for reactions
+    for (let i = 0; i < this.partikel.length; i++) {
+      for (let j = i + 1; j < this.partikel.length; j++) {
+        const pA = this.partikel[i];
+        const pB = this.partikel[j];
+        const dist = pA.mesh.position.distanceTo(pB.mesh.position);
+        if (dist < 0.08) {
+          const dir = new THREE.Vector3().subVectors(pA.mesh.position, pB.mesh.position).normalize();
+          pA.kecepatan.add(dir.clone().multiplyScalar(0.001));
+          pB.kecepatan.sub(dir.clone().multiplyScalar(0.001));
+          
+          if (Math.random() < 0.05) {
+            pA.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(0xffffff); setTimeout(() => c.material.emissive.setHex(0), 100); }});
+            pB.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(0xffffff); setTimeout(() => c.material.emissive.setHex(0), 100); }});
+          }
+        }
+      }
+    }
   }
 }
 
@@ -410,7 +471,7 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
   return { session, renderer, scene, labu, partikel, hentikan: () => { renderer.setAnimationLoop(null); session.end(); } };
 }
 
-export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc) {
+export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, onLabuDitempatkan) {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
     videoEl.srcObject = stream; await videoEl.play();
@@ -433,19 +494,22 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc) {
   const fakeReticle = new THREE.Mesh(reticleGeo, reticleMat);
   fakeReticle.rotation.x = -Math.PI / 2;
   fakeReticle.position.set(0, -0.3, 0); // Positioned slightly down to simulate floor
+  fakeReticle.visible = false; // Hide until scan simulation finishes
   scene.add(fakeReticle);
+  
+  setTimeout(() => {
+    if (!sudahDitempatkan) fakeReticle.visible = true;
+  }, 2500);
 
   window.addEventListener('pointerdown', function onFirstTap() {
-    if (sudahDitempatkan) return;
+    if (sudahDitempatkan || !fakeReticle.visible) return;
     sudahDitempatkan = true;
     fakeReticle.visible = false; // Hide reticle after placing
     labu.visible = true;
     labu.position.copy(fakeReticle.position); // Spawn exactly at reticle
     labu.scale.set(0, 0, 0);
     labu.userData.spawnTime = performance.now();
-    // Simulate placing event
-    const tapHint = document.getElementById('webarTapHint');
-    if (tapHint) tapHint.style.display = 'none';
+    if (onLabuDitempatkan) onLabuDitempatkan();
   });
 
   function loop() {

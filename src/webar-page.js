@@ -151,9 +151,18 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     } else {
       statusEl.textContent = 'Mode kamera sederhana aktif (perangkat tidak mendukung AR penuh).';
       videoEl.style.display = 'block';
-      scanOverlay.style.opacity = '0';
-      setTimeout(() => scanOverlay.style.display = 'none', 500);
-      sesiARAktif = await mulaiSesiARjs(canvas, videoEl, misiId, getSpeedFactor);
+      
+      const scanDesc = scanOverlay.querySelector('.webar-scan-desc');
+      if (scanDesc) scanDesc.innerHTML = `Mensimulasikan pelacakan bidang datar... Mohon tunggu.`;
+      
+      setTimeout(() => {
+        if (scanDesc) scanDesc.innerHTML = `Bidang ditemukan! <br>Arahkan ring biru, lalu <b>KETUK</b> layar untuk meletakkan labu.`;
+      }, 2500);
+
+      sesiARAktif = await mulaiSesiARjs(canvas, videoEl, misiId, getSpeedFactor, () => {
+        scanOverlay.style.opacity = '0';
+        setTimeout(() => scanOverlay.style.display = 'none', 500);
+      });
     }
     setTimeout(() => {
       if (statusEl) statusEl.style.opacity = '0';
