@@ -168,7 +168,8 @@ export function buatMaterialKaca() {
     opacity: 0.25,
     shininess: 100,
     specular: 0xffffff,
-    side: THREE.DoubleSide
+    side: THREE.DoubleSide,
+    depthWrite: false
   });
 }
 

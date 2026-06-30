@@ -204,7 +204,7 @@ function renderKontrolMisi(container, misiId) {
   indikators.forEach((ind, i) => {
     const rentang = misi.rentang[ind.id];
     let isTarget = (ind.id === misi.parameterKunci);
-    let targetHtml = isTarget ? `<div class="webar-target-info">🎯 Target: ${misi.targetTercapai[0]} ${rentang[4]}</div>` : '';
+    let targetHtml = isTarget ? `<div class="webar-target-info">🎯 Target: ${misi.nilaiTarget} ${rentang[4]}</div>` : '';
 
     slidersHTML += `
       <div class="webar-slider-panel ${i===0?'active':''}" id="panel-${ind.id}">
