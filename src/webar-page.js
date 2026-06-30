@@ -10,6 +10,7 @@ import {
   mulaiSesiARjs,
   perbaruiVisualMisi
 } from './webar.js';
+import './webar.css';
 
 let sesiARAktif = null;
 let modeARTerdeteksi = null;
@@ -56,12 +57,16 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         <div class="webar-hud-top">
           <span class="webar-misi-label">${misi.judul}</span>
           <code class="webar-eq-label">${misi.persamaan}</code>
+          <div class="webar-story-box" id="webarStoryBox">
+            <div class="story-avatar">🤖</div>
+            <div class="story-text" id="webarStoryText">Memuat...</div>
+          </div>
         </div>
         <button class="webar-keluar" id="webarKeluar" aria-label="Keluar dari mode AR">
-          <i class="ti ti-x"></i>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M18 6L6 18M6 6l12 12"></path></svg>
         </button>
         <div class="webar-tap-hint" id="webarTapHint" style="display:none">
-          Ketuk layar untuk menempatkan labu di permukaan datar
+          Ketuk layar/permukaan datar untuk memunculkan labu
         </div>
       </div>
       <div class="webar-controls" id="webarControls"></div>
@@ -87,17 +92,23 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 
   resizeCanvasKeViewport(canvas);
 
+  const getSpeedFactor = () => {
+    const slider = document.getElementById('slider-suhu');
+    if (!slider) return 1;
+    return Number(slider.value) / 40;
+  };
+
   try {
     if (modeARTerdeteksi === 'webxr') {
       statusEl.textContent = 'Mode AR penuh aktif — arahkan ke permukaan datar.';
       tapHint.style.display = 'block';
       sesiARAktif = await mulaiSesiWebXR(canvas, misiId, () => {
         tapHint.style.display = 'none';
-      });
+      }, getSpeedFactor);
     } else {
       statusEl.textContent = 'Mode kamera sederhana aktif (perangkat tidak mendukung AR penuh).';
       videoEl.style.display = 'block';
-      sesiARAktif = await mulaiSesiARjs(canvas, videoEl, misiId);
+      sesiARAktif = await mulaiSesiARjs(canvas, videoEl, misiId, getSpeedFactor);
     }
     setTimeout(() => {
       if (statusEl) statusEl.style.opacity = '0';
@@ -122,35 +133,76 @@ function resizeCanvasKeViewport(canvas) {
    -------------------------------------------------------------------------- */
 function renderKontrolMisi(container, misiId) {
   const misi = MISI_DATA[misiId];
-  const [min, max, step] = misi.rentang;
-  const nilaiAwal = min + (max - min) / 3;
+  const indikators = [
+    { id: 'suhu', icon: '🌡️', label: 'Suhu' },
+    { id: 'volume', icon: '📦', label: 'Volume' },
+    { id: 'tekanan', icon: '🗜️', label: 'Tekanan' },
+    { id: 'konsentrasi', icon: '🧪', label: 'Konsentrasi' }
+  ];
 
-  container.innerHTML = `
-    <div class="webar-control-card">
-      <div class="control-head">
-        <b>${labelParameter(misi.parameterKunci)}</b>
-        <span id="webarNilai">${nilaiAwal.toFixed(step < 1 ? 1 : 0)} ${misi.satuan}</span>
+  let tabHTML = `<div class="webar-tabs">`;
+  indikators.forEach((ind, i) => {
+    tabHTML += `<button class="webar-tab-btn ${i===0?'active':''}" data-tab="${ind.id}">${ind.icon} ${ind.label}</button>`;
+  });
+  tabHTML += `</div>`;
+
+  let slidersHTML = `<div class="webar-sliders-container">`;
+  indikators.forEach((ind, i) => {
+    const rentang = misi.rentang[ind.id];
+    slidersHTML += `
+      <div class="webar-slider-panel ${i===0?'active':''}" id="panel-${ind.id}">
+        <div class="control-head">
+          <b>${ind.label}</b>
+          <span id="val-${ind.id}">${rentang[3].toFixed(rentang[2] < 1 ? 1 : 0)} ${rentang[4]}</span>
+        </div>
+        <input type="range" id="slider-${ind.id}" min="${rentang[0]}" max="${rentang[1]}" step="${rentang[2]}" value="${rentang[3]}">
       </div>
-      <input type="range" id="webarSlider" min="${min}" max="${max}" step="${step}" value="${nilaiAwal}">
-    </div>
-    <div class="webar-feedback" id="webarFeedback"></div>`;
+    `;
+  });
+  slidersHTML += `</div>`;
 
-  const slider = container.querySelector('#webarSlider');
-  const nilaiEl = container.querySelector('#webarNilai');
-  const feedbackEl = container.querySelector('#webarFeedback');
+  container.innerHTML = tabHTML + slidersHTML;
 
-  slider.addEventListener('input', () => {
-    const nilai = Number(slider.value);
-    nilaiEl.textContent = `${nilai.toFixed(misi.rentang[2] < 1 ? 1 : 0)} ${misi.satuan}`;
+  const storyText = document.getElementById('webarStoryText');
+  if (storyText) storyText.textContent = misi.ceritaAwal;
 
-    const tercapai = perbaruiVisualMisi(sesiARAktif, misiId, nilai);
-    feedbackEl.textContent = tercapai
-      ? 'Kesetimbangan tercapai — perhatikan komposisi molekul di dalam labu.'
-      : `Sesuaikan ${labelParameter(misi.parameterKunci).toLowerCase()} mendekati ${misi.nilaiTarget} ${misi.satuan}.`;
-    feedbackEl.classList.toggle('sukses', tercapai);
+  const tabBtns = container.querySelectorAll('.webar-tab-btn');
+  const panels = container.querySelectorAll('.webar-slider-panel');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      container.querySelector('#panel-' + btn.dataset.tab).classList.add('active');
+    });
   });
 
-  slider.dispatchEvent(new Event('input'));
+  indikators.forEach(ind => {
+    const slider = container.querySelector('#slider-' + ind.id);
+    const valEl = container.querySelector('#val-' + ind.id);
+    const rentang = misi.rentang[ind.id];
+
+    slider.addEventListener('input', () => {
+      const nilai = Number(slider.value);
+      valEl.textContent = `${nilai.toFixed(rentang[2] < 1 ? 1 : 0)} ${rentang[4]}`;
+      
+      const valVolume = Number(container.querySelector('#slider-volume').value);
+      const valKunci = Number(container.querySelector('#slider-' + misi.parameterKunci).value);
+      const tercapai = perbaruiVisualMisi(sesiARAktif, misiId, valKunci, valVolume);
+
+      if (ind.id === misi.parameterKunci) {
+        if (tercapai) {
+          if (storyText) storyText.textContent = misi.ceritaSukses;
+          document.querySelector('.webar-hud-top').classList.add('sukses');
+        } else {
+          document.querySelector('.webar-hud-top').classList.remove('sukses');
+          if (storyText) storyText.textContent = `Arahkan ${ind.label} mendekati target agar tercapai!`;
+        }
+      } else {
+        if (storyText) storyText.textContent = `Hmm... Mengubah ${ind.label} sepertinya tidak berpengaruh pada misi ini. Fokus pada ${labelParameter(misi.parameterKunci)}!`;
+      }
+    });
+  });
 }
 
 function labelParameter(kunci) {

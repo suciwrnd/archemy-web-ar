@@ -102,36 +102,6 @@
   padding: 14px 16px 18px;
 }
 
-.webar-control-card {
-  background: #1a1828;
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-
-.webar-control-card .control-head {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 12px;
-  color: #c4b5fd;
-}
-
-.webar-control-card input[type='range'] {
-  width: 100%;
-  accent-color: #7f77dd;
-}
-
-.webar-feedback {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #9d9bc4;
-  line-height: 1.5;
-}
-
-.webar-feedback.sukses {
-  color: #5dcaa5;
-}
-
 .webar-pilih-misi {
   padding: 16px;
 }
@@ -162,4 +132,78 @@
   font-size: 12px;
   color: #534ab7;
   font-family: var(--font-mono, monospace);
+}
+
+/* --- Storytelling & Multi-Tab UI --- */
+.webar-story-box {
+  margin-top: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  color: #1a1828;
+  font-size: 11px;
+  width: 250px;
+  border-left: 4px solid #534ab7;
+  animation: slideIn 0.3s ease-out;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.webar-hud-top.sukses .webar-story-box {
+  border-left-color: #5dcaa5;
+}
+.story-avatar { font-size: 16px; margin-top: 2px; }
+.story-text { line-height: 1.35; font-weight: 500; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.webar-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.webar-tabs::-webkit-scrollbar { display: none; }
+.webar-tab-btn {
+  background: #1a1828;
+  border: 1px solid #2a273f;
+  color: #9d9bc4;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.webar-tab-btn.active {
+  background: #534ab7;
+  color: #fff;
+  border-color: #7f77dd;
+}
+
+.webar-sliders-container { position: relative; }
+.webar-slider-panel {
+  display: none;
+  background: #1a1828;
+  border-radius: 12px;
+  padding: 14px 16px;
+  animation: slideIn 0.2s ease-out;
+}
+.webar-slider-panel.active { display: block; }
+.webar-slider-panel .control-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #c4b5fd;
+}
+.webar-slider-panel input[type='range'] {
+  width: 100%;
+  accent-color: #7f77dd;
 }
