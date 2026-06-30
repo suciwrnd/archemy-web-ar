@@ -1,0 +1,165 @@
+/* ==========================================================================
+   ARCHEMY WEBAR STYLES
+   Tambahkan import file ini di stylesheet utama, atau salin ke style.css
+   ========================================================================== */
+
+.webar-stage {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+}
+
+.webar-viewport {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.webar-viewport video,
+.webar-viewport canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.webar-status {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  z-index: 20;
+  transition: opacity 0.6s ease;
+  white-space: nowrap;
+}
+
+.webar-hud-top {
+  position: absolute;
+  top: 60px;
+  left: 14px;
+  z-index: 15;
+  background: rgba(15, 14, 22, 0.7);
+  padding: 8px 12px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.webar-misi-label {
+  font-size: 11px;
+  color: #c4b5fd;
+  font-weight: 500;
+}
+
+.webar-eq-label {
+  font-size: 12px;
+  color: #fff;
+  font-family: var(--font-mono, monospace);
+}
+
+.webar-keluar {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 20;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.webar-tap-hint {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(83, 74, 183, 0.85);
+  color: #fff;
+  font-size: 12px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  z-index: 20;
+}
+
+.webar-controls {
+  background: #0f0e16;
+  padding: 14px 16px 18px;
+}
+
+.webar-control-card {
+  background: #1a1828;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.webar-control-card .control-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #c4b5fd;
+}
+
+.webar-control-card input[type='range'] {
+  width: 100%;
+  accent-color: #7f77dd;
+}
+
+.webar-feedback {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #9d9bc4;
+  line-height: 1.5;
+}
+
+.webar-feedback.sukses {
+  color: #5dcaa5;
+}
+
+.webar-pilih-misi {
+  padding: 16px;
+}
+
+.misi-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.misi-card {
+  background: var(--color-background-primary, #fff);
+  border: 0.5px solid var(--color-border-secondary, #e2e0f0);
+  border-radius: 14px;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.misi-judul {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0 0 6px;
+  color: var(--color-text-primary, #1a1828);
+}
+
+.misi-persamaan {
+  font-size: 12px;
+  color: #534ab7;
+  font-family: var(--font-mono, monospace);
+}

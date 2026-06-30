@@ -2,6 +2,8 @@
    ARCHEMY MAIN ENGINE - VITE COMPATIBLE SINGLE PAGE APPLICATION (SPA)
    ========================================================================== */
 
+import { renderPilihMisi, renderHalamanAR, hentikanSesiAR } from './webar-page.js';
+
 const ICONS = {
   bell: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.7 2.7 0 0 0 2.65-2.15h-5.3A2.7 2.7 0 0 0 12 22Zm7-6.4-1.45-1.95V9.2A5.56 5.56 0 0 0 13 3.75V2h-2v1.75A5.56 5.56 0 0 0 6.45 9.2v4.45L5 15.6V18h14v-2.4Z"/></svg>`,
   user: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.7-4.2 5-6 8-6s6.3 1.8 8 6"/></svg>`,
@@ -118,9 +120,29 @@ const defaultQuestions = quizBank.flatMap(s => [
   { id:s.id+'_t3', tier:3, type:s.topic, question:s.tier3.question, options:s.tier3.options, answer:s.tier3.answer, reason:'' }
 ]);
 
+/* --------------------------------------------------------------------------
+   ROUTING MISI: dipakai saveAndNext() untuk menentukan soal/tier berikutnya
+   setelah satu set topik selesai dijawab. Ini hilang di kode lama (referensi
+   TOPIC_ROUTING tidak pernah didefinisikan), jadi disusun ulang di sini
+   berdasarkan urutan logis topik kesetimbangan kimia.
+   -------------------------------------------------------------------------- */
+const TOPIC_ROUTING = {
+  'Konsep Dasar Kesetimbangan':       { nextOnSuccess: 'Kesetimbangan Dinamis',        nextOnFail: 'Kesetimbangan Dinamis' },
+  'Kesetimbangan Dinamis':            { nextOnSuccess: 'Pengaruh Konsentrasi',         nextOnFail: 'Pengaruh Konsentrasi' },
+  'Pengaruh Konsentrasi':             { nextOnSuccess: 'Pengaruh Tekanan dan Volume',  nextOnFail: 'Pengaruh Tekanan dan Volume' },
+  'Pengaruh Tekanan dan Volume':      { nextOnSuccess: 'Pengaruh Suhu',                nextOnFail: 'Pengaruh Suhu' },
+  'Pengaruh Suhu':                    { nextOnSuccess: 'Peran Katalis',                nextOnFail: 'Peran Katalis' },
+  'Peran Katalis':                    { nextOnSuccess: 'Tetapan Kesetimbangan Kc',     nextOnFail: 'Tetapan Kesetimbangan Kc' },
+  'Tetapan Kesetimbangan Kc':         { nextOnSuccess: 'Hubungan Kp dan Kc',           nextOnFail: 'Hubungan Kp dan Kc' },
+  'Hubungan Kp dan Kc':               { nextOnSuccess: 'Kesetimbangan Heterogen',      nextOnFail: 'Kesetimbangan Heterogen' },
+  'Kesetimbangan Heterogen':          { nextOnSuccess: 'Aplikasi Industri (Proses Haber)', nextOnFail: 'Aplikasi Industri (Proses Haber)' },
+  'Aplikasi Industri (Proses Haber)': { nextOnSuccess: 'END', nextOnFail: 'END' }
+};
+
 const defaultState = {
   role:'siswa', page:'login', joinedClass:false, selectedClassIndex:0,
-  activeModuleFilter:'all', activeModule:null, arStage:'pilih_misi', activeMission:'misi1',
+  activeModuleFilter:'all', activeModule:null,
+  webarMisiAktif:null,
   currentSetIndex:0, currentTier:1, quizResults:[], selectedOption:null, confidence:null,
   quizTimeLeft:600, quizTimerActive:false, colorblind:false,
   profile:{
@@ -128,13 +150,13 @@ const defaultState = {
     guru:{ name:'Ibu Misnawati S.Pd', email:'misnawati@guru.archemy.id', school:'SMA Negeri 1 Kimia', className:'Guru Kimia', password:'123456' }
   },
   modules: defaultModules, questions: defaultQuestions, classes: defaultClasses,
-  teacherEditingQuestionId:null, ar:{ suhu:25, tekanan:2.2, konsentrasi:0.8, volume:2.0 }
+  teacherEditingQuestionId:null
 };
 
 let state = loadState();
 const app = document.getElementById('app');
 const toastEl = document.getElementById('toast');
-let toastTimer, quizInterval = null, arParticles = [];
+let toastTimer, quizInterval = null;
 
 function loadState() {
   try {
@@ -149,8 +171,7 @@ function loadState() {
       profile:{ ...structuredClone(defaultState.profile), ...(saved.profile||{}) },
       modules: saved.modules?.length ? saved.modules : structuredClone(defaultModules),
       questions: saved.questions?.length ? saved.questions : structuredClone(defaultQuestions),
-      classes: saved.classes?.length ? saved.classes : structuredClone(defaultClasses),
-      ar:{ ...structuredClone(defaultState.ar), ...(saved.ar||{}) }
+      classes: saved.classes?.length ? saved.classes : structuredClone(defaultClasses)
     };
   } catch { return structuredClone(defaultState); }
 }
@@ -159,6 +180,7 @@ function saveState() { localStorage.setItem('archemyState', JSON.stringify(state
 function toast(msg) { clearTimeout(toastTimer); toastEl.textContent=msg; toastEl.classList.add('show'); toastTimer=setTimeout(()=>toastEl.classList.remove('show'),2200); }
 function setRole(r) { state.role=r; saveState(); render(); }
 function go(page) {
+  if (state.page === 'studentWebAR' && page !== 'studentWebAR') hentikanSesiAR();
   state.page=page;
   if (!['studentQuiz', 'studentQuizPage'].includes(page)) { state.selectedOption=null; state.confidence=null; }
   saveState(); render();
@@ -166,7 +188,7 @@ function go(page) {
 }
 function profile() { return state.profile[state.role]; }
 function activeClass() { return state.classes[state.selectedClassIndex]||state.classes[0]; }
-function hasBottomNav() { return !['login','register','joinClass','teacherClasses'].includes(state.page); }
+function hasBottomNav() { return !['login','register','joinClass','teacherClasses'].includes(state.page) && state.page !== 'studentWebAR'; }
 function goHome() { if (state.role==='siswa') go(state.joinedClass?'studentDashboard':'joinClass'); else go('teacherClasses'); }
 function previousPage() { return state.role==='siswa'?'studentDashboard':'teacherClasses'; }
 
@@ -337,14 +359,22 @@ function saveAndNext() {
   state.selectedOption = null; state.confidence = null;
   if (tier < 4) { state.currentTier = tier + 1; saveState(); render(); } else {
     if (result.category === 'Miskonsepsi') {
-      saveState(); let reqMisi = currentSet.topic === 'Pengaruh Tekanan dan Volume' ? 'misi2' : 'misi1';
-      openModal('🚨 Diagnosis AI: Deteksi Miskonsepsi!', `<p style="font-size:13px; line-height:1.5;">Sistem mendeteksi kamu mengalami <b>Miskonsepsi Sejati</b> pada topik ${escapeHtml(currentSet.topic)}.</p>`, `<button class="btn full" onclick="window.closeModal(); state.arStage='mulai_ar'; state.activeMission='${reqMisi}'; window.saveState(); window.go('studentWebAR');">📱 Pergi ke Lab WebAR</button><button class="btn ghost full" onclick="window.closeModal(); window.jalankanLompatanAdaptif('${currentSet.topic}', false);">Lewati & Lanjut</button>`);
+      saveState();
+      const reqMisi = currentSet.topic === 'Pengaruh Tekanan dan Volume' ? 'misi2' : 'misi1';
+      openModal(
+        '🚨 Diagnosis AI: Deteksi Miskonsepsi!',
+        `<p style="font-size:13px; line-height:1.5;">Sistem mendeteksi kamu mengalami <b>Miskonsepsi Sejati</b> pada topik ${escapeHtml(currentSet.topic)}.</p>`,
+        `<button class="btn full" onclick="window.closeModal(); state.webarMisiAktif='${reqMisi}'; window.saveState(); window.go('studentWebAR');">📱 Pergi ke Lab WebAR</button>
+         <button class="btn ghost full" onclick="window.closeModal(); window.jalankanLompatanAdaptif('${currentSet.topic}', false);">Lewati & Lanjut</button>`
+      );
     } else { jalankanLompatanAdaptif(currentSet.topic, true); }
   }
 }
 
 function jalankanLompatanAdaptif(currentTopic, isSuccess) {
-  const routing = TOPIC_ROUTING[currentTopic]; const nextTopicTarget = isSuccess ? routing.nextOnSuccess : routing.nextOnFail;
+  const routing = TOPIC_ROUTING[currentTopic];
+  if (!routing) return executeQuizEnd();
+  const nextTopicTarget = isSuccess ? routing.nextOnSuccess : routing.nextOnFail;
   if (nextTopicTarget === 'END') { executeQuizEnd(); } else { const nextTargetIdx = quizBank.findIndex(q => q.topic === nextTopicTarget); if (nextTargetIdx >= 0) { state.currentSetIndex = nextTargetIdx; state.currentTier = 1; saveState(); render(); } else { executeQuizEnd(); } }
 }
 function executeQuizEnd() { clearInterval(quizInterval); quizInterval = null; state.quizTimerActive = false; saveState(); go('studentResult'); }
@@ -356,389 +386,29 @@ function renderStudentResult() {
   pageWrap(`${header({ back: true })}<h1 class="page-title">Hasil Kuis 4-Tier</h1><div class="glass-card" style="border-radius:26px; text-align:center; margin-bottom:14px; padding: 15px;"><div class="score-circle-wrap" style="position:relative; width:100px; height:100px; margin:0 auto 10px;"><svg viewBox="0 0 100 100" style="transform: rotate(-90deg); width:100%; height:100%;"><circle cx="50" cy="50" r="45" fill="none" stroke="#eee" stroke-width="8"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--purple)" stroke-width="8" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/></svg><div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:22px; font-weight:bold;">${score}%</div></div></div><div style="background:#1e1b4b; padding: 16px; border-radius: 20px; color: white; margin-bottom: 14px;"><h4 style="margin:0 0 6px; color: #00E5FF;">${aiPayload.title}</h4><p style="font-size:12px; opacity:0.9;">${aiPayload.text}</p><button class="btn full" style="margin-top:10px;" onclick="window.go('studentWebAR')">${aiPayload.actionText}</button></div><div class="actions-row"><button class="btn" onclick="window.resetQuiz()">Ulangi Kuis</button></div>`);
 }
 
-/* ========== LABORATORIUM WEBAR 4 QUEST INTERAKTIF ========== */
 /* ==========================================================================
-   🎮 GAME QUEST ENGINE: SIMPLE & FUN FOR HIGH SCHOOL STUDENTS (ANGKA BULAT)
+   LABORATORIUM WEBAR
+   Diganti total — kode lama (A-Frame + cone/cylinder kasar + kamera tidak
+   pernah di-stop + AR palsu yang tidak benar-benar mengunci ke bidang nyata)
+   dipindah ke webar.js & webar-page.js, pakai Three.js + hybrid WebXR/AR.js.
+   Bagian ini hanya wrapper tipis yang menyambungkan state SPA ke modul AR.
    ========================================================================== */
-function evaluasiSkenarioMisi() {
-  const ar = state.ar;
-  let title = ""; let story = ""; let feedback = ""; let statusColor = "#ff4a4a";
-
-  switch (state.activeMission) {
-    case 'misi1':
-      title = "🧪 Misi 1: Menyetarakan Reaksi Gas Iodin (H₂ + I₂ ⇌ 2HI)";
-      if (ar.suhu === 50) {
-        story = "<b>🎉 KEREN! KAMU BERHASIL MENCAPAI TITIK SETIMBANG!</b><br>Laju pembentukan produk bening dan penguraian reaktan ungu sudah sama cepat.";
-        feedback = "🎯 <b>Status:</b> Pada suhu pas 50°C, partikel H₂ and I₂ menyatu kaku membentuk gas HI secara konstan. Warna ungu memudar stabil, tandanya sistem seimbang!";
-        statusColor = "#06d6a0"; // Hijau Sukses
-      } else if (ar.suhu < 50) {
-        story = "<b>Tantangan:</b> Tabung terlalu dingin! Reaksi lambat and gas masih berwarna ungu pekat.<br>🎯 <b>Tugas:</b> Geser slider Suhu naik secara perlahan sampai **tepat di angka 50°C**.";
-        feedback = "⏳ Gas HI gagal terbentuk karena molekul kekurangan energi panas untuk saling bertumbukan.";
-        statusColor = "#ff4a4a"; // Merah Gagal
-      } else {
-        story = "<b>⚠️ ALERT: REAKTOR OVERHEAT (KELEBIHAN PANAS)!</b><br>Suhu terlalu tinggi merusak kestabilan produk.";
-        feedback = "📢 Panas berlebih membuat molekul HI pecah kembali jadi gas reaktan. Turunkan slider lagi ke **50°C**!";
-        statusColor = "#ffb703"; // Kuning Warning
-      }
-      break;
-
-    case 'misi2':
-      title = "🏭 Misi 2: Redam Kabut Polusi Cokelat (2NO₂ ⇌ N₂O₄)";
-      if (ar.volume === 2.0) {
-        story = "<b>🎉 BERHASIL! KABUT COKELAT BERHASIL DIREDAM!</b><br>Tekanan ruang menyempit memaksa partikel berpasangan.";
-        feedback = "🎯 <b>Status:</b> Volume sempit (2.0 L) menaikkan tekanan reaktor. Sesuai hukum kimia, molekul NO₂ cokelat berpasangan menjadi N₂O₄ yang jernih!";
-        statusColor = "#06d6a0";
-      } else {
-        story = "<b>Tantangan:</b> Ruangan reaktor terlalu longgar! Gas polusi cokelat menyebar bebas.<br>🎯 <b>Tugas:</b> Perkecil boks reaktor dengan menggeser slider Volume **pas ke angka 2.0 L**.";
-        feedback = "⏳ Tekanan terlalu rendah membiarkan gas polutan NO₂ bergerak bebas mengotori udara kota virtual.";
-        statusColor = "#ff4a4a";
-      }
-      break;
-
-    case 'misi3':
-      title = "🌋 Misi 3: Pabrik Pupuk Amonia Maksimal (N₂ + 3H₂ ⇌ 2NH₃)";
-      if (ar.konsentrasi === 1.0) {
-        story = "<b>🎉 MANTAP! PRODUKSI PUPUK MENCAPAI TITIK PUNCAK!</b><br>Suntikan konsentrasi bahan baku berada di posisi seimbang.";
-        feedback = "🎯 <b>Status:</b> Kadar reaktan menyentuh 1.0 M mendorong kesetimbangan bergeser maju ke arah kanan (produk amonia) secara kontinu and efisien!";
-        statusColor = "#06d6a0";
-      } else {
-        story = "<b>Tantangan:</b> Pabrik pupuk mogok karena pasokan gas hidrogen menipis.<br>🎯 <b>Tugas:</b> Tambahkan pasokan gas reaktan dengan menggeser slider Konsentrasi **ke angka 1.0 M**.";
-        feedback = "⏳ Yield amonia merah hambar karena peluang molekul untuk saling bertumbukan terlalu sedikit.";
-        statusColor = "#ff4a4a";
-      }
-      break;
-
-    case 'misi4':
-      title = "🩸 Misi 4: Menyetabilkan Sel Buffer Darah Tubuh";
-      if (ar.tekanan === 3.0) {
-        story = "<b>🎉 HOMEOSTASIS TERCAPAI! pH DARAH KEMBALI NORMAL (7.4)!</b><br>Sistem buffer bikarbonat sukses mengunci keseimbangan darah.";
-        feedback = "🎯 <b>Status:</b> Tekanan skala 3.0 atm mengunci laju asam karbonat and ion penetralnya berjalan seimbang, melindungi tubuh dari asidosis klinis.";
-        statusColor = "#06d6a0";
-      } else {
-        story = "<b>Tantangan:</b> Tubuh kekurangan oksigen and membuang gas CO₂ berlebih (Alkalosis).<br>🎯 <b>Tugas:</b> Atur ritme napas dengan memosisikan slider Tekanan **pas di angka 3.0 atm**.";
-        feedback = "⏳ Kondisi kritis! Kadar asam darah anjlok drastis membuat sistem pertahanan tubuh virtual tidak stabil.";
-        statusColor = "#ff4a4a";
-      }
-      break;
-  }
-  return { title, story, feedback, statusColor };
-}
-
-/* ==========================================================================
-   📱 PREMIUM VIEWPORT: FULL SCREEN CAMERA, ERLENMEYER 3D, LASER GRID HOLOGRAM
-   ========================================================================== */
-/* ==========================================================================
-   📱 RENDER WEBAR PREMIUM: FULL-SCREEN CAMERA, SCI-FI BOOM TRANSITION & HUD
-   ========================================================================== */
-function renderStudentWebAR() {
-  if (!state.arStage || state.page !== 'studentWebAR') { state.arStage = 'pilih_misi'; }
-  const ar = state.ar; 
-  const narasi = evaluasiSkenarioMisi();
-
-  if (state.arStage === 'pilih_misi') {
-    pageWrap(`${header()}
-      <h1 class="page-title">Laboratorium WebAR</h1>
-      <p class="page-subtitle">Pilih skenario simulasi sub-mikroskopik kesetimbangan kimia.</p>
-      <div class="mission-selector-grid" style="display:grid; gap:14px; margin-top:16px;">
-        <div class="card" style="border-left: 6px solid #ff4a4a; cursor:pointer; padding:16px;" onclick="window.pilihMisiAr('misi1')">
-          <h3 style="margin:0 0 6px; font-size:14px;">🧪 Misi 1: Gas Iodin Reversibel</h3>
-          <p class="small muted" style="margin:0;">Faktor suhu pada reaksi H₂ + I₂ ⇌ 2HI.</p>
-        </div>
-        <div class="card" style="border-left: 6px solid #9d4edd; cursor:pointer; padding:16px;" onclick="window.pilihMisiAr('misi2')">
-          <h3 style="margin:0 0 6px; font-size:14px;">🏭 Misi 2: Operasi Smog Kota</h3>
-          <p class="small muted" style="margin:0;">Faktor tekanan ruang pada reaksi 2NO₂ ⇌ N₂O₄.</p>
-        </div>
-      </div>`);
-  } 
-  else if (state.arStage === 'mulai_ar') {
-    pageWrap(`${header({back: true, titleBackPage: 'studentWebAR'})}
-      
-      <div id="boom-flash-overlay" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#00e5ff; z-index:99999; opacity:0; pointer-events:none; transition: opacity 0.15s ease-out;"></div>
-      
-      <div class="ar-viewport-container" style="position:relative; width:100%; height:460px; border-radius:28px; overflow:hidden; background:#000; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom:12px;">
-        
-        <video id="ar-camera-feed" autoplay playsinline style="position:absolute; width:100%; height:100%; object-fit:cover; z-index:1; pointer-events:none;"></video>
-        
-        <div style="position:absolute; top:12px; left:12px; z-index:99; background:rgba(15,23,42,0.85); backdrop-filter:blur(8px); padding:8px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-          <span style="font-size:9px; color:#00e5ff; font-weight:800; text-transform:uppercase; display:block; margin-bottom:2px;">Persamaan Reaksi Spasial</span>
-          <code id="hud-chemical-equation" style="font-size:12px; font-weight:bold; color:#fff; font-family:monospace;">
-            ${state.activeMission==='misi1' ? 'H₂ + I₂ ⇌ 2HI' : '2NO₂ ⇌ N₂O₄'}
-          </code>
-        </div>
-
-        <div style="position:absolute; top:12px; right:12px; z-index:99; background:rgba(255,255,255,0.92); backdrop-filter:blur(8px); padding:8px 12px; border-radius:12px; font-size:10px; display:flex; flex-direction:column; gap:4px; box-shadow:0 8px 24px rgba(0,0,0,0.25); min-width:105px;">
-          <span style="font-weight:800; color:var(--purple); font-size:9px; text-transform:uppercase; margin-bottom:2px;">🔑 Legenda Zat</span>
-          <div style="display:flex; align-items:center; gap:6px;"><span style="width:8px; height:8px; background:#ffffff; border:1px solid #94a3b8; border-radius:50%;"></span><span><b>H₂</b> (Reaktan)</span></div>
-          <div style="display:flex; align-items:center; gap:6px;"><span style="width:8px; height:8px; background:#a78bfa; border-radius:50%;"></span><span><b>I₂</b> (Reaktan)</span></div>
-          <div style="display:flex; align-items:center; gap:6px;"><span style="width:8px; height:8px; background:linear-gradient(90deg, #fff 50%, #a78bfa 50%); border-radius:50%;"></span><span><b>HI</b> (Produk)</span></div>
-        </div>
-
-        <a-scene embedded vr-mode-ui="enabled: false" renderer="alpha: true; antialias: true; colorManagement: true;" style="position:absolute; width:100%; height:100%; z-index:2;">
-          <a-entity camera position="0 0 0"></a-entity>
-          
-          <a-entity light="type: ambient; intensity: 0.6;"></a-entity>
-          <a-entity light="type: directional; intensity: 0.8; position: 1 3 1;"></a-entity>
-          
-          <a-entity id="ar-world-anchor" position="0 -0.22 -0.8">
-            <a-ring color="#00e5ff" radius-inner="0.32" radius-outer="0.34" rotation="-90 0 0" position="0 -0.45 0" material="opacity:0.7; transparent:true; shader:flat;"></a-ring>
-            <a-circle color="#00e5ff" radius="0.33" rotation="-90 0 0" position="0 -0.44 0" material="wireframe:true; opacity:0.25; transparent:true; shader:flat;"></a-circle>
-
-            <a-cone id="visual-tabung-bawah" radius-bottom="0.32" radius-top="0.09" height="0.65" position="0 -0.12 0" color="${ar.suhu === 50 && state.activeMission==='misi1' ? '#f8fafc' : '#8a2be2'}" material="opacity: 0.25; transparent: true; roughness:0.05; metalness:0.4; side:double;"></a-cone>
-            <a-cylinder id="visual-tabung-atas" radius="0.09" height="0.3" position="0 0.25 0" color="${ar.suhu === 50 && state.activeMission==='misi1' ? '#f8fafc' : '#8a2be2'}" material="opacity: 0.25; transparent: true; roughness:0.05; metalness:0.4; side:double;"></a-cylinder>
-
-            <a-sphere id="ar-collision-flash" position="0 -0.1 0" radius="0.01" color="#ffff00" material="shader:flat; opacity:0; transparent:true;"></a-sphere>
-
-            <a-entity id="particle-cloud" position="0 -0.12 0"></a-entity>
-          </a-entity>
-        </a-scene>
-
-        <div id="live-feedback-box" style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 99; width: 92%; background: rgba(255, 255, 255, 0.95); padding: 12px; border-radius: 16px; border-left: 6px solid ${narasi.statusColor}; font-size: 11px; line-height: 1.4; color:#0f172a; box-shadow: 0 8px 25px rgba(0,0,0,0.3);">
-          <div id="live-feedback-text">${narasi.feedback}</div>
-        </div>
-      </div>
-
-      <h3 class="section-title" style="margin-top:4px; margin-bottom:8px; font-size:12px; text-transform:uppercase; color:var(--ink); letter-spacing:0.5px;">🎛️ Modifikasi Parameter Kesetimbangan</h3>
-      <div class="controls-layout" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%;">
-        ${control('suhu', '🌡️ Kalor (Suhu)', '°C', ar.suhu, 20, 100, 1)}
-        ${control('volume', '🧪 Vol Ruang', 'L', ar.volume, 1, 5, 0.1)}
-        ${control('tekanan', '🎛️ Kompresor', 'atm', ar.tekanan, 1, 5, 0.1)}
-        ${control('konsentrasi', '💧 Kadar Zat', 'M', ar.konsentrasi, 0.1, 2, 0.1)}
-      </div>
-      
-      <button class="btn ghost full" style="margin-top:14px" onclick="window.keluarMisiAr()">← Keluar Halaman Kamera</button>`);
-
-    initArCamera();
-    pemicuEfekBoomSciFi(); // Jalankan efek transisi kilatan saat pertama kali masuk portal kamera!
-    const sceneEl = document.querySelector('a-scene');
-    if (sceneEl) { if (sceneEl.hasLoaded) initArParticles(); else sceneEl.addEventListener('loaded', initArParticles); }
-  }
-}
-
-// 💥 FUNGSI EFEX BOOM TRANSISI HOLOGRAPHIC PORTAL
-function pemicuEfekBoomSciFi() {
-  const flash = document.getElementById('boom-flash-overlay');
-  if (!flash) return;
-  flash.style.opacity = '0.9';
-  setTimeout(() => { flash.style.opacity = '0'; }, 200);
-}
-
-function pilihMisiAr(idMisi) { state.arStage = 'mulai_ar'; state.activeMission = idMisi; saveState(); render(); }
-function keluarMisiAr() { state.arStage = 'pilih_misi'; saveState(); render(); }
-
-function initArCamera() {
-  const video = document.getElementById('ar-camera-feed'); if(!video) return;
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
-    .then(stream => { video.srcObject = stream; })
-    .catch(() => { navigator.mediaDevices.getUserMedia({ video: true }).then(s => video.srcObject = s).catch(()=>{}); });
-}
-
-function initArParticles() {
-  const cloud = document.getElementById('particle-cloud'); if (!cloud) return;
-  cloud.innerHTML = ''; arParticles = [];
-  const s = state.ar.suhu;
-  const v = state.ar.volume;
-  const k = state.ar.konsentrasi;
-  const p = state.ar.tekanan;
-
-  if (state.activeMission === 'misi1') {
-    if (s < 45) {
-      buatKlusterMolekulKaku(cloud, 'H2'); buatKlusterMolekulKaku(cloud, 'H2'); buatKlusterMolekulKaku(cloud, 'H2');
-      buatKlusterMolekulKaku(cloud, 'I2'); buatKlusterMolekulKaku(cloud, 'I2'); buatKlusterMolekulKaku(cloud, 'I2');
-      buatKlusterMolekulKaku(cloud, 'HI');
-    } else if (s === 45) {
-      buatKlusterMolekulKaku(cloud, 'H2'); buatKlusterMolekulKaku(cloud, 'I2');
-      buatKlusterMolekulKaku(cloud, 'HI'); buatKlusterMolekulKaku(cloud, 'HI'); buatKlusterMolekulKaku(cloud, 'HI'); buatKlusterMolekulKaku(cloud, 'HI');
-    } else {
-      buatKlusterMolekulKaku(cloud, 'H2'); buatKlusterMolekulKaku(cloud, 'I2');
-      buatKlusterMolekulKaku(cloud, 'HI'); buatKlusterMolekulKaku(cloud, 'HI'); buatKlusterMolekulKaku(cloud, 'HI'); buatKlusterMolekulKaku(cloud, 'HI'); buatKlusterMolekulKaku(cloud, 'HI');
-    }
-  } else if (state.activeMission === 'misi2') {
-    if (v > 2.0) {
-      buatKlusterMolekulKaku(cloud, 'N2'); buatKlusterMolekulKaku(cloud, 'N2');
-      buatKlusterMolekulKaku(cloud, 'H2'); buatKlusterMolekulKaku(cloud, 'H2');
-      buatKlusterMolekulKaku(cloud, 'NH3');
-    } else {
-      buatKlusterMolekulKaku(cloud, 'N2');
-      buatKlusterMolekulKaku(cloud, 'NH3'); buatKlusterMolekulKaku(cloud, 'NH3'); buatKlusterMolekulKaku(cloud, 'NH3'); buatKlusterMolekulKaku(cloud, 'NH3');
-    }
-  } else if (state.activeMission === 'misi3') {
-    if (k < 0.8) {
-      buatKlusterMolekulKaku(cloud, 'SO2'); buatKlusterMolekulKaku(cloud, 'SO2');
-      buatKlusterMolekulKaku(cloud, 'O2'); buatKlusterMolekulKaku(cloud, 'O2');
-    } else {
-      buatKlusterMolekulKaku(cloud, 'SO2'); buatKlusterMolekulKaku(cloud, 'O2');
-      buatKlusterMolekulKaku(cloud, 'SO3'); buatKlusterMolekulKaku(cloud, 'SO3'); buatKlusterMolekulKaku(cloud, 'SO3');
-    }
-  } else if (state.activeMission === 'misi4') {
-    if (p < 3.0) {
-      buatKlusterMolekulKaku(cloud, 'H2CO3'); buatKlusterMolekulKaku(cloud, 'H2CO3');
-      buatKlusterMolekulKaku(cloud, 'HCO3');
-    } else {
-      buatKlusterMolekulKaku(cloud, 'H2CO3');
-      buatKlusterMolekulKaku(cloud, 'HCO3'); buatKlusterMolekulKaku(cloud, 'HCO3'); buatKlusterMolekulKaku(cloud, 'HCO3');
-    }
-  }
-
-  loopArSimulation();
-}
-
-function buatKlusterMolekulKaku(parent, jenis) {
-  const molekulInti = document.createElement('a-entity');
-  
-  // Sebaran koordinat dibatasi agar partikel rapi berkumpul di perut Erlenmeyer
-  const px = (Math.random() - 0.5) * 0.18; 
-  const py = (Math.random() - 0.5) * 0.35; 
-  const pz = (Math.random() - 0.5) * 0.18;
-  molekulInti.setAttribute('position', `${px} ${py} ${pz}`);
-  
-  // Rotasi lambat konstan biar juri bisa melihat struktur 3D dari segala sisi secara mewah
-  molekulInti.setAttribute('animation', 'property: rotation; to: 360 360 0; loop: true; dur: 7000; easing: linear');
-
-  if (jenis === 'H2') {
-    // Dua atom hidrogen putih kaku terikat stik abu-abu
-    tambahBolaAtom3D(molekulInti, '-0.035 0 0', '0.026', '#ffffff');
-    tambahBolaAtom3D(molekulInti, '0.035 0 0', '0.026', '#ffffff');
-    tambahIkatanStik3D(molekulInti, '0 0 0', '0 0 90', '0.07', '0.016', '#64748b'); 
-  } 
-  else if (jenis === 'I2') {
-    // Dua atom iodin besar ungu metalik terikat stik tebal
-    tambahBolaAtom3D(molekulInti, '-0.045 0 0', '0.044', '#a78bfa');
-    tambahBolaAtom3D(molekulInti, '0.045 0 0', '0.044', '#a78bfa');
-    tambahIkatanStik3D(molekulInti, '0 0 0', '0 0 90', '0.09', '0.022', '#475569');
-  } 
-  else if (jenis === 'HI') {
-    // 1 Putih + 1 Ungu menyatu kokoh menandakan produk senyawa baru
-    tambahBolaAtom3D(molekulInti, '-0.035 0 0', '0.026', '#ffffff');
-    tambahBolaAtom3D(molekulInti, '0.035 0 0', '0.044', '#a78bfa');
-    tambahIkatanStik3D(molekulInti, '0 0 0', '0 0 90', '0.07', '0.018', '#475569');
-  }
-
-  parent.appendChild(molekulInti);
-  arParticles.push({
-    el: molekulInti,
-    jenis: jenis,
-    vx: (Math.random() - 0.5) * 0.003,
-    vy: (Math.random() - 0.5) * 0.003,
-    vz: (Math.random() - 0.5) * 0.003
-  });
-}
-
-function tambahBolaAtom3D(parent, posisi, radius, warna) {
-  const atom = document.createElement('a-sphere');
-  atom.setAttribute('position', posisi); atom.setAttribute('radius', radius); atom.setAttribute('color', warna);
-  atom.setAttribute('material', 'roughness: 0.25; metalness: 0.1'); parent.appendChild(atom);
-}
-function tambahIkatanStik3D(parent, posisi, rotasi, panjang, radius, warna) {
-  const stick = document.createElement('a-cylinder');
-  stick.setAttribute('position', posisi); stick.setAttribute('rotation', rotasi); stick.setAttribute('height', panjang); stick.setAttribute('radius', radius); stick.setAttribute('color', warna);
-  stick.setAttribute('material', 'roughness: 0.5; metalness: 0.2'); parent.appendChild(stick);
-}
-
-/* ==========================================================================
-   🔬 QUANTUM VECTOR ENGINE: AUTOMATIC PARABOLIC ACCURATE WALL BOUNCING
-   ========================================================================== */
-/* ==========================================================================
-   🔬 QUANTUM VECTOR ENGINE: AUTOMATIC PARABOLIC ACCURATE WALL BOUNCING
-   ========================================================================== */
-function loopArSimulation() {
-  const cloud = document.getElementById('particle-cloud');
-  if(!cloud || state.page !== 'studentWebAR') return;
-  
-  const factorSuhu = 1 + (state.ar.suhu - 25) * 0.05;
-  
-  arParticles.forEach((p, idx) => {
-    let curr = p.el.getAttribute('position');
-    let nx = curr.x + (p.vx * factorSuhu);
-    let ny = curr.y + (p.vy * factorSuhu);
-    let nz = curr.z + (p.vz * factorSuhu);
-
-    // KONTROL DINDING PARABOLIK: Menghitung radius kerucut Erlenmeyer agar partikel tidak tembus keluar kaca
-    const heightPct = (ny - (-0.3)) / 0.6;
-    let currentRadiusLimit = 0.22 - (heightPct * 0.15);
-    
-    if (ny > 0.3) currentRadiusLimit = 0.07;
-    if (ny < -0.3) currentRadiusLimit = 0.23;
-
-    // Deteksi batas dinding miring
-    if (Math.abs(nx) > currentRadiusLimit) { p.vx *= -1; nx = Math.sign(nx) * currentRadiusLimit; }
-    if (Math.abs(nz) > currentRadiusLimit) { p.vz *= -1; nz = Math.sign(nz) * currentRadiusLimit; }
-    if (ny > 0.45 || ny < -0.3) p.vy *= -1;
-
-    p.el.setAttribute('position', `${nx} ${ny} ${nz}`);
-
-    // INTERAKSI REAL-TIME: Simulasi Tumbukan "BOOM" antar molekul acak
-    if (idx % 2 === 0 && Math.random() < 0.015 && state.ar.suhu > 20) {
-      const flash = document.getElementById('ar-collision-flash');
-      if (flash) {
-        // Posisikan kilatan kuning di koordinat partikel yang sedang bertabrakan
-        flash.setAttribute('position', `${nx} ${ny} ${nz}`);
-        flash.setAttribute('material', 'opacity: 0.9');
-        // Skala denyut partikel membesar instan menandakan reaksi kaku terjadi
-        p.el.setAttribute('scale', '1.3 1.3 1.3');
-        
-        setTimeout(() => {
-          if(flash) flash.setAttribute('material', 'opacity: 0');
-          if(p.el) p.el.setAttribute('scale', '1 1 1');
-        }, 80);
-      }
-    }
-  });
-  
-  requestAnimationFrame(loopArSimulation);
-}
-
-function control(key, label, unit, value, min, max, step = 1) {
-  const isLockedM1 = (state.activeMission === 'misi1' && state.ar.suhu === 45 && key === 'suhu');
-  const isLockedM2 = (state.activeMission === 'misi2' && state.ar.volume === 2.0 && key === 'volume');
-  const isLockedM3 = (state.activeMission === 'misi3' && state.ar.konsentrasi === 0.8 && key === 'konsentrasi');
-  const isLockedM4 = (state.activeMission === 'misi4' && state.ar.tekanan === 3.0 && key === 'tekanan');
-  const disabledAttr = (isLockedM1 || isLockedM2 || isLockedM3 || isLockedM4) ? 'disabled' : '';
-
-  return `<div class="card control-card" style="padding:14px 16px; width: 100%; box-sizing: border-box; display: block; margin-bottom: 4px; opacity: ${disabledAttr?'0.75':'1'}">
-    <div class="control-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-      <b style="font-size:13px; color:var(--ink);">${label}</b>
-      <span id="${key}Val" style="font-size:13px; font-weight:bold; color:var(--purple); background:rgba(107,54,207,0.08); padding:3px 10px; border-radius:8px;">${value} ${unit} ${disabledAttr?'🔒 SETIMBANG':''}</span>
-    </div>
-    <div class="range-wrap" style="width: 100%; display: block;">
-      <input type="range" min="${min}" max="${max}" step="${step}" value="${value}" ${disabledAttr} oninput="window.updateAr('${key}',this.value,'${unit}')" style="width: 100%; display: block; margin: 0; padding: 0; cursor: pointer;">
-    </div>
-  </div>`;
-}
-
-function updateAr(key, value, unit) {
-  const n = Number(value); state.ar[key] = Number.isInteger(n) ? n : Number(n.toFixed(1));
-  const el = document.getElementById(`${key}Val`); if (el) el.textContent = `${state.ar[key]} ${unit}`; saveState();
-  
-  const narasi = evaluasiSkenarioMisi();
-  const storyTxt = document.getElementById('live-story-text'); const fbBox = document.getElementById('live-feedback-box'); const fbTxt = document.getElementById('live-feedback-text'); const tabung = document.getElementById('visual-tabung');
-  if (storyTxt) storyTxt.innerHTML = narasi.story; if (fbTxt) fbTxt.innerHTML = narasi.feedback; if (fbBox) fbBox.style.borderLeftColor = narasi.statusColor;
-  
-  if (tabung) {
-    if (state.activeMission === 'misi1') {
-      tabung.setAttribute('color', state.ar.suhu > 45 ? '#e0e9f5' : '#8a2be2');
-      tabung.setAttribute('material', `opacity: ${state.ar.suhu > 45 ? '0.12' : '0.25'}; transparent: true;`);
-    } else if (state.activeMission === 'misi2') {
-      tabung.setAttribute('color', state.ar.volume === 2.0 ? '#06d6a0' : '#4cc3c3');
-    } else if (state.activeMission === 'misi3') {
-      tabung.setAttribute('color', state.ar.konsentrasi === 0.8 ? '#06d6a0' : '#f59e0b');
-    } else if (state.activeMission === 'misi4') {
-      tabung.setAttribute('color', state.ar.tekanan === 3.0 ? '#06d6a0' : '#ef4444');
-    }
-  }
-
-  if (state.activeMission === 'misi1' && state.ar.suhu === 45) {
-    render();
-    openModal('🔬 AI Post-Lab Debriefing: Misi 1 Sukses!', `<div style="font-size:12px; line-height:1.5; color:#334155; text-align:left;"><p><b>Selamat, Eksperimenmu Berhasil!</b> Ini analisis ilmiah tiga level representasi kimianya:</p><ul style="padding-left:16px; margin:8px 0;"><li><b>Makroskopis (Warna):</b> Gas Iodin (I₂) ungu pekat memudar jernih stabil karena reaksi pembentukan HI menyerap panas (Endoterm) saat diatur ke 45°C.</li><li><b>Sub-Mikroskopis (Partikel):</b> Molekul reaktan H₂ dan I₂ pecah menabrak satu sama lain secara efektif, menyusun ikatan kaku baru berbentuk produk HI.</li><li><b>Dinamis Kesetimbangan:</b> Di titik ini, jumlah reaktan yang berubah menjadi produk sama cepatnya dengan produk yang kembali pecah terurai menjadi reaktan!</li></ul></div>`, `<button class="btn full" onclick="window.closeModal(); window.go('studentDashboard');">🎮 Kembali ke Beranda Game</button>`);
-  } else if (state.activeMission === 'misi2' && state.ar.volume === 2.0) {
-    render();
-    openModal('🔬 AI Post-Lab Debriefing: Misi 2 Sukses!', `<div style="font-size:12px; line-height:1.5; color:#334155; text-align:left;"><p><b>Boom! Gas Amonia Berhasil Di-Sintesis!</b> Ini ringkasan teorinya:</p><ul style="padding-left:16px; margin:8px 0;"><li><b>Faktor Tekanan:</b> Memperkecil Volume ke 2.0 L memicu tekanan reaktor melonjak. Sesuai hukum Le Chatelier, sistem geser ke arah total mol terkecil.</li><li><b>Pergeseran:</b> Sisi reaktan punya 4 mol (N₂ + 3H₂) dan sisi produk cuma punya 2 mol (NH₃). Kesetimbangan bergeser maju drastis ke kanan memproduksi amonia.</li></ul></div>`, `<button class="btn full" onclick="window.closeModal(); window.go('studentDashboard');">🎮 Kembali ke Beranda Game</button>`);
-  } else if (state.activeMission === 'misi3' && state.ar.konsentrasi === 0.8) {
-    render();
-    openModal('🔬 AI Post-Lab Debriefing: Misi 3 Sukses!', `<div style="font-size:12px; line-height:1.5; color:#334155; text-align:left;"><p><b>Katalis & Konsentrasi Berhasil Disetarakan!</b></p><ul style="padding-left:16px; margin:8px 0;"><li><b>Hukum Kadar Zat:</b> Saat reaktan disuntik melimpah ke skala 0.8 M, sistem terdorong bergerak menjauhi area penumpukan tersebut (geser maju ke produk SO₃).</li></ul></div>`, `<button class="btn full" onclick="window.closeModal(); window.go('studentDashboard');">🎮 Kembali ke Beranda Game</button>`);
-  } else if (state.activeMission === 'misi4' && state.ar.tekanan === 3.0) {
-    render();
-    openModal('🔬 AI Post-Lab Debriefing: Misi 4 Sukses!', `<div style="font-size:12px; line-height:1.5; color:#334155; text-align:left;"><p><b>Homeostasis Buffer Tubuh Stabil!</b></p><ul style="padding-left:16px; margin:8px 0;"><li><b>Buffer Bikarbonat:</b> Kestabilan laju ion karbonat terkunci kaku, mengamankan kadar asam-basa dari ancaman asidosis maupun alkalosis klinis.</li></ul></div>`, `<button class="btn full" onclick="window.closeModal(); window.go('studentDashboard');">🎮 Kembali ke Beranda Game</button>`);
+function renderStudentWebARPage() {
+  if (!state.webarMisiAktif) {
+    pageWrap(`${header()}`, { noNav: true });
+    const container = app.querySelector('.screen');
+    renderPilihMisi(container, (misiId) => {
+      state.webarMisiAktif = misiId;
+      saveState();
+      render();
+    });
+  } else {
+    app.innerHTML = '';
+    renderHalamanAR(app, state.webarMisiAktif, () => {
+      state.webarMisiAktif = null;
+      saveState();
+      go('studentDashboard');
+    });
   }
 }
 
@@ -851,7 +521,11 @@ function renderProfile() {
   const p=profile();
   pageWrap(`${header({back:true,titleBackPage:state.role==='siswa'?'studentDashboard':'teacherDashboard',coins:state.role==='siswa'})}<div class="glass-card profile-hero" style="text-align:center;"><h2>${escapeHtml(p.name)}</h2><p>${state.role==='siswa'?'Siswa':'Guru'} • ${escapeHtml(p.school)}</p></div><div class="card info-list" style="margin-top:14px;"><div class="info-row"><b>Email</b><span>${escapeHtml(p.email)}</span></div><div class="info-row"><b>Instansi</b><span>${escapeHtml(p.school)}</span></div></div><div class="actions-row" style="margin-top:14px;"><button class="btn danger full" onclick="window.logout()">Logout Akun</button></div>`);
 }
-function logout() { state.page='login'; state.joinedClass=false; state.arStage='pilih_misi'; clearInterval(quizInterval); saveState(); render(); toast('Keluar akun sukses'); }
+function logout() {
+  hentikanSesiAR();
+  state.page='login'; state.joinedClass=false; state.webarMisiAktif=null;
+  clearInterval(quizInterval); saveState(); render(); toast('Keluar akun sukses');
+}
 
 /* ========== ENGINE RUNNERS & UTILITIES ========== */
 function firstName(name) { return (name||'').split(' ')[0]||'User'; }
@@ -861,7 +535,8 @@ function render() {
   const routes = {
     login:renderLogin, register:renderRegister, joinClass:renderJoinClass,
     studentDashboard:renderStudentDashboard, studentModules:renderStudentModules,
-    studentQuiz:renderStudentQuiz, studentQuizPage:renderStudentQuizPage, studentResult:renderStudentResult, studentWebAR:renderStudentWebAR,
+    studentQuiz:renderStudentQuiz, studentQuizPage:renderStudentQuizPage, studentResult:renderStudentResult,
+    studentWebAR:renderStudentWebARPage,
     teacherClasses:renderTeacherClasses, teacherDashboard:renderTeacherDashboard,
     teacherModules:renderTeacherModules, teacherQuiz:renderTeacherQuiz,
     teacherEditQuiz:renderTeacherEditQuiz, teacherAnalysis:renderTeacherAnalysis, profile:renderProfile,
@@ -874,7 +549,7 @@ function render() {
    BULLETPROOF BRIDGE ENGINE: MENGIKAT SELURUH SISTEM KE GLOBAL WINDOW
    ========================================================================== */
 if (typeof window !== 'undefined') {
-  window.state = state; window.saveState = saveState; window.toast = toast; window.go = go; window.goHome = goHome; window.setRole = setRole; window.logout = logout; window.closeModal = closeModal; window.submitLogin = submitLogin; window.submitRegister = submitRegister; window.fillCode = fillCode; window.joinClass = joinClass; window.setModuleFilter = setModuleFilter; window.openModule = openModule; window.closeModule = closeModule; window.startQuiz = startQuiz; window.selectOption = selectOption; window.selectConfidence = selectConfidence; window.saveAndNext = saveAndNext; window.resetQuiz = resetQuiz; window.jalankanLompatanAdaptif = jalankanLompatanAdaptif; window.executeQuizEnd = executeQuizEnd; window.pilihMisiAr = pilihMisiAr; window.keluarMisiAr = keluarMisiAr; window.updateAr = updateAr; window.toggleColorblind = toggleColorblind; window.moveCoverflow = moveCoverflow; window.selectCoverflowClass = selectCoverflowClass; window.showAddClassModal = showAddClassModal; window.addClass = addClass; window.addModule = addModule; window.newQuestion = newQuestion; window.saveQuestion = saveQuestion; window.eksporLaporanPDF = eksporLaporanPDF; window.editQuestion = editQuestion;
+  window.state = state; window.saveState = saveState; window.toast = toast; window.go = go; window.goHome = goHome; window.setRole = setRole; window.logout = logout; window.closeModal = closeModal; window.submitLogin = submitLogin; window.submitRegister = submitRegister; window.fillCode = fillCode; window.joinClass = joinClass; window.setModuleFilter = setModuleFilter; window.openModule = openModule; window.closeModule = closeModule; window.startQuiz = startQuiz; window.selectOption = selectOption; window.selectConfidence = selectConfidence; window.saveAndNext = saveAndNext; window.resetQuiz = resetQuiz; window.jalankanLompatanAdaptif = jalankanLompatanAdaptif; window.executeQuizEnd = executeQuizEnd; window.toggleColorblind = toggleColorblind; window.moveCoverflow = moveCoverflow; window.selectCoverflowClass = selectCoverflowClass; window.showAddClassModal = showAddClassModal; window.addClass = addClass; window.addModule = addModule; window.newQuestion = newQuestion; window.saveQuestion = saveQuestion; window.eksporLaporanPDF = eksporLaporanPDF; window.editQuestion = editQuestion;
 }
 
 render();
