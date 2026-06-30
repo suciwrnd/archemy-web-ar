@@ -427,91 +427,99 @@ function evaluasiSkenarioMisi() {
 /* ==========================================================================
    📱 PREMIUM VIEWPORT: FULL SCREEN CAMERA, ERLENMEYER 3D, LASER GRID HOLOGRAM
    ========================================================================== */
+/* ==========================================================================
+   📱 RENDER WEBAR PREMIUM: FULL-SCREEN CAMERA, SCI-FI BOOM TRANSITION & HUD
+   ========================================================================== */
 function renderStudentWebAR() {
   if (!state.arStage || state.page !== 'studentWebAR') { state.arStage = 'pilih_misi'; }
-  const ar = state.ar; const narasi = evaluasiSkenarioMisi();
+  const ar = state.ar; 
+  const narasi = evaluasiSkenarioMisi();
 
   if (state.arStage === 'pilih_misi') {
     pageWrap(`${header()}
       <h1 class="page-title">Laboratorium WebAR</h1>
-      <p class="page-subtitle">Mainkan 4 tantangan kasus kesetimbangan kimia untuk menyelamatkan laboratorium virtual!</p>
+      <p class="page-subtitle">Pilih skenario simulasi sub-mikroskopik kesetimbangan kimia.</p>
       <div class="mission-selector-grid" style="display:grid; gap:14px; margin-top:16px;">
         <div class="card" style="border-left: 6px solid #ff4a4a; cursor:pointer; padding:16px;" onclick="window.pilihMisiAr('misi1')">
-          <h3 style="margin:0 0 6px; font-size:14px;">🧪 Tantangan 1: Gas Iodin Reversibel</h3>
-          <p class="small muted" style="margin:0;">Atur parameter kalor suhu termal pada pembentukan gas HI.</p>
+          <h3 style="margin:0 0 6px; font-size:14px;">🧪 Misi 1: Gas Iodin Reversibel</h3>
+          <p class="small muted" style="margin:0;">Faktor suhu pada reaksi H₂ + I₂ ⇌ 2HI.</p>
         </div>
         <div class="card" style="border-left: 6px solid #9d4edd; cursor:pointer; padding:16px;" onclick="window.pilihMisiAr('misi2')">
-          <h3 style="margin:0 0 6px; font-size:14px;">🏭 Tantangan 2: Operasi Smog Kota</h3>
-          <p class="small muted" style="margin:0;">Manipulasi tekanan ruang volume untuk melenyapkan gas cokelat pekat polusi.</p>
-        </div>
-        <div class="card" style="border-left: 6px solid #3a86ff; cursor:pointer; padding:16px;" onclick="window.pilihMisiAr('misi3')">
-          <h3 style="margin:0 0 6px; font-size:14px;">🌾 Tantangan 3: Reaktor Amonia Petani</h3>
-          <p class="small muted" style="margin:0;">Suntikkan kadar konsentrasi reaktan untuk memanen amonia secara melimpah.</p>
-        </div>
-        <div class="card" style="border-left: 6px solid #06d6a0; cursor:pointer; padding:16px;" onclick="window.pilihMisiAr('misi4')">
-          <h3 style="margin:0 0 6px; font-size:14px;">🩸 Tantangan 4: Penyeimbang Buffer Darah</h3>
-          <p class="small muted" style="margin:0;">Kunci homeostasis gas paru-paru untuk menyelamatkan pH sel darah.</p>
+          <h3 style="margin:0 0 6px; font-size:14px;">🏭 Misi 2: Operasi Smog Kota</h3>
+          <p class="small muted" style="margin:0;">Faktor tekanan ruang pada reaksi 2NO₂ ⇌ N₂O₄.</p>
         </div>
       </div>`);
   } 
   else if (state.arStage === 'mulai_ar') {
     pageWrap(`${header({back: true, titleBackPage: 'studentWebAR'})}
-      <div class="card" style="background:var(--soft); border-color:var(--purple); margin-bottom:12px; padding:12px; font-size:12px; line-height:1.45;">
-        <span id="live-story-title" style="font-weight:800; color:var(--purple); display:block; margin-bottom:4px; font-size:13px; text-transform:uppercase;">${narasi.title}</span>
-        <div id="live-story-text">${narasi.story}</div>
-      </div>
-
-      <div class="ar-viewport-container" style="position:relative; width:100%; height:420px; border-radius:26px; overflow:hidden; background:#000; margin-bottom:12px; box-shadow: inset 0 0 25px rgba(0,0,0,0.8);">
-        <video id="ar-camera-feed" autoplay playsinline style="position:absolute; width:100%; height:100%; object-fit:cover; z-index:1;"></video>
+      
+      <div id="boom-flash-overlay" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#00e5ff; z-index:99999; opacity:0; pointer-events:none; transition: opacity 0.15s ease-out;"></div>
+      
+      <div class="ar-viewport-container" style="position:relative; width:100%; height:460px; border-radius:28px; overflow:hidden; background:#000; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom:12px;">
         
-        <div id="ar-instruction-box" style="position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 99; width: 92%; background: rgba(15,23,42,0.85); color: #00e5ff; padding: 8px; border-radius: 12px; text-align: center; font-size: 10px; font-weight:bold; border: 1px solid rgba(0,229,255,0.3);">
-          🤖 ARChemy Quantum Engine v3.0 • Spasial Hologram Holo-Lens Aktif
+        <video id="ar-camera-feed" autoplay playsinline style="position:absolute; width:100%; height:100%; object-fit:cover; z-index:1; pointer-events:none;"></video>
+        
+        <div style="position:absolute; top:12px; left:12px; z-index:99; background:rgba(15,23,42,0.85); backdrop-filter:blur(8px); padding:8px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+          <span style="font-size:9px; color:#00e5ff; font-weight:800; text-transform:uppercase; display:block; margin-bottom:2px;">Persamaan Reaksi Spasial</span>
+          <code id="hud-chemical-equation" style="font-size:12px; font-weight:bold; color:#fff; font-family:monospace;">
+            ${state.activeMission==='misi1' ? 'H₂ + I₂ ⇌ 2HI' : '2NO₂ ⇌ N₂O₄'}
+          </code>
         </div>
 
-        <div class="ar-legend-hud" style="position: absolute; top: 55px; left: 12px; z-index: 99; background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); padding: 8px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.4); font-size: 10px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); min-width: 130px;">
-          <span style="font-weight: 800; color: var(--purple); font-size: 9px; text-transform: uppercase; margin-bottom: 2px;">🔑 Indikator Atom</span>
-          <div style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 8px; height: 8px; background: #ffffff; border: 1px solid #94a3b8; border-radius: 50%;"></span><span><b>H / O</b> (Putih/Red)</span></div>
-          <div style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 8px; height: 8px; background: #8a2be2; border-radius: 50%;"></span><span><b>I / N / S</b> (Ungu/Biru)</span></div>
-          <div style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 8px; height: 8px; background: linear-gradient(90deg, #ffffff 50%, #8a2be2 50%); border-radius: 50%;"></span><span><b>Ikatan Campuran</b></span></div>
+        <div style="position:absolute; top:12px; right:12px; z-index:99; background:rgba(255,255,255,0.92); backdrop-filter:blur(8px); padding:8px 12px; border-radius:12px; font-size:10px; display:flex; flex-direction:column; gap:4px; box-shadow:0 8px 24px rgba(0,0,0,0.25); min-width:105px;">
+          <span style="font-weight:800; color:var(--purple); font-size:9px; text-transform:uppercase; margin-bottom:2px;">🔑 Legenda Zat</span>
+          <div style="display:flex; align-items:center; gap:6px;"><span style="width:8px; height:8px; background:#ffffff; border:1px solid #94a3b8; border-radius:50%;"></span><span><b>H₂</b> (Reaktan)</span></div>
+          <div style="display:flex; align-items:center; gap:6px;"><span style="width:8px; height:8px; background:#a78bfa; border-radius:50%;"></span><span><b>I₂</b> (Reaktan)</span></div>
+          <div style="display:flex; align-items:center; gap:6px;"><span style="width:8px; height:8px; background:linear-gradient(90deg, #fff 50%, #a78bfa 50%); border-radius:50%;"></span><span><b>HI</b> (Produk)</span></div>
         </div>
 
         <a-scene embedded vr-mode-ui="enabled: false" renderer="alpha: true; antialias: true; colorManagement: true;" style="position:absolute; width:100%; height:100%; z-index:2;">
-          <a-entity camera look-controls></a-entity>
+          <a-entity camera position="0 0 0"></a-entity>
           
-          <a-entity light="type: ambient; intensity: 0.7;"></a-entity>
-          <a-entity light="type: directional; intensity: 0.8; castShadow: true; position: 1 3 1;"></a-entity>
+          <a-entity light="type: ambient; intensity: 0.6;"></a-entity>
+          <a-entity light="type: directional; intensity: 0.8; position: 1 3 1;"></a-entity>
           
-          <a-entity id="ar-world-anchor" position="0 -0.25 -0.85">
-            <a-ring color="#00e5ff" radius-inner="0.33" radius-outer="0.35" rotation="-90 0 0" position="0 -0.5 0" material="opacity:0.7; transparent:true; shader:flat;"></a-ring>
-            <a-circle color="#00e5ff" radius="0.34" rotation="-90 0 0" position="0 -0.49 0" material="wireframe:true; opacity:0.3; transparent:true; shader:flat;"></a-circle>
+          <a-entity id="ar-world-anchor" position="0 -0.22 -0.8">
+            <a-ring color="#00e5ff" radius-inner="0.32" radius-outer="0.34" rotation="-90 0 0" position="0 -0.45 0" material="opacity:0.7; transparent:true; shader:flat;"></a-ring>
+            <a-circle color="#00e5ff" radius="0.33" rotation="-90 0 0" position="0 -0.44 0" material="wireframe:true; opacity:0.25; transparent:true; shader:flat;"></a-circle>
 
-            <a-cone id="visual-tabung-bawah" radius-bottom="0.34" radius-top="0.1" height="0.7" position="0 -0.15 0" color="${ar.suhu > 45 && state.activeMission==='misi1' ? '#e2e8f0' : '#8a2be2'}" material="opacity: 0.28; transparent: true; roughness:0.05; metalness: 0.3; side:double; envMapAndZEquals:true;"></a-cone>
-            <a-cylinder id="visual-tabung-atas" radius="0.1" height="0.35" position="0 0.25 0" color="${ar.suhu > 45 && state.activeMission==='misi1' ? '#e2e8f0' : '#8a2be2'}" material="opacity: 0.28; transparent: true; roughness:0.05; metalness: 0.3; side:double;"></a-cylinder>
+            <a-cone id="visual-tabung-bawah" radius-bottom="0.32" radius-top="0.09" height="0.65" position="0 -0.12 0" color="${ar.suhu === 50 && state.activeMission==='misi1' ? '#f8fafc' : '#8a2be2'}" material="opacity: 0.25; transparent: true; roughness:0.05; metalness:0.4; side:double;"></a-cone>
+            <a-cylinder id="visual-tabung-atas" radius="0.09" height="0.3" position="0 0.25 0" color="${ar.suhu === 50 && state.activeMission==='misi1' ? '#f8fafc' : '#8a2be2'}" material="opacity: 0.25; transparent: true; roughness:0.05; metalness:0.4; side:double;"></a-cylinder>
 
-            <a-entity id="particle-cloud" position="0 -0.15 0"></a-entity>
+            <a-sphere id="ar-collision-flash" position="0 -0.1 0" radius="0.01" color="#ffff00" material="shader:flat; opacity:0; transparent:true;"></a-sphere>
+
+            <a-entity id="particle-cloud" position="0 -0.12 0"></a-entity>
           </a-entity>
         </a-scene>
 
-        <div id="live-feedback-box" style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 99; width: 92%; background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(6px); padding: 12px; border-radius: 16px; border-left: 6px solid ${narasi.statusColor}; font-size: 11px; line-height: 1.4; color:#0f172a; box-shadow: 0 8px 25px rgba(0,0,0,0.3);">
+        <div id="live-feedback-box" style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 99; width: 92%; background: rgba(255, 255, 255, 0.95); padding: 12px; border-radius: 16px; border-left: 6px solid ${narasi.statusColor}; font-size: 11px; line-height: 1.4; color:#0f172a; box-shadow: 0 8px 25px rgba(0,0,0,0.3);">
           <div id="live-feedback-text">${narasi.feedback}</div>
         </div>
       </div>
 
-      <div class="card toggle-card" style="margin-bottom:12px; padding:10px 14px;"><div class="toggle-text" style="font-size:12px;"><b>Mode Inklusif Warna (Buta Warna)</b></div><button class="toggle ${state.colorblind?'':'off'}" onclick="window.toggleColorblind()"></button></div>
-
-      <h3 class="section-title" style="margin-top:12px; margin-bottom:6px; font-size:13px;">🎛️ Panel Kontrol Kesetimbangan</h3>
-      <div class="controls-layout" style="display:flex; flex-direction:column; gap:10px; width:100%;">
-        ${control('suhu', '🌡️ Atur Parameter Kalor Termal (Suhu)', '°C', ar.suhu, 20, 100, 1)}
-        ${control('volume', '🧪 Atur Kerapatan Ruang (Volume)', 'L', ar.volume, 1, 5, 0.1)}
-        ${control('tekanan', '🎛️ Atur Tekanan Kompresor Reaktor', 'atm', ar.tekanan, 1, 5, 0.1)}
-        ${control('konsentrasi', '💧 Atur Suntikan Kadar Konsentrasi', 'M', ar.konsentrasi, 0.1, 2, 0.1)}
+      <h3 class="section-title" style="margin-top:4px; margin-bottom:8px; font-size:12px; text-transform:uppercase; color:var(--ink); letter-spacing:0.5px;">🎛️ Modifikasi Parameter Kesetimbangan</h3>
+      <div class="controls-layout" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%;">
+        ${control('suhu', '🌡️ Kalor (Suhu)', '°C', ar.suhu, 20, 100, 1)}
+        ${control('volume', '🧪 Vol Ruang', 'L', ar.volume, 1, 5, 0.1)}
+        ${control('tekanan', '🎛️ Kompresor', 'atm', ar.tekanan, 1, 5, 0.1)}
+        ${control('konsentrasi', '💧 Kadar Zat', 'M', ar.konsentrasi, 0.1, 2, 0.1)}
       </div>
-      <button class="btn ghost full" style="margin-top:16px" onclick="window.keluarMisiAr()">← Keluar Halaman Kamera</button>`);
+      
+      <button class="btn ghost full" style="margin-top:14px" onclick="window.keluarMisiAr()">← Keluar Halaman Kamera</button>`);
 
     initArCamera();
+    pemicuEfekBoomSciFi(); // Jalankan efek transisi kilatan saat pertama kali masuk portal kamera!
     const sceneEl = document.querySelector('a-scene');
     if (sceneEl) { if (sceneEl.hasLoaded) initArParticles(); else sceneEl.addEventListener('loaded', initArParticles); }
   }
+}
+
+// 💥 FUNGSI EFEX BOOM TRANSISI HOLOGRAPHIC PORTAL
+function pemicuEfekBoomSciFi() {
+  const flash = document.getElementById('boom-flash-overlay');
+  if (!flash) return;
+  flash.style.opacity = '0.9';
+  setTimeout(() => { flash.style.opacity = '0'; }, 200);
 }
 
 function pilihMisiAr(idMisi) { state.arStage = 'mulai_ar'; state.activeMission = idMisi; saveState(); render(); }
@@ -578,51 +586,41 @@ function initArParticles() {
 function buatKlusterMolekulKaku(parent, jenis) {
   const molekulInti = document.createElement('a-entity');
   
-  // Set sebaran awal di area dasar Erlenmeyer yang lebar
-  const px = (Math.random() - 0.5) * 0.2; 
-  const py = (Math.random() - 0.5) * 0.4; 
-  const pz = (Math.random() - 0.5) * 0.2;
+  // Sebaran koordinat dibatasi agar partikel rapi berkumpul di perut Erlenmeyer
+  const px = (Math.random() - 0.5) * 0.18; 
+  const py = (Math.random() - 0.5) * 0.35; 
+  const pz = (Math.random() - 0.5) * 0.18;
   molekulInti.setAttribute('position', `${px} ${py} ${pz}`);
   
-  // ANIMASI ROTASI KINETIK: Berputar konstan di udara agar bentuk stiknya terlihat 3D mewah
-  molekulInti.setAttribute('animation', 'property: rotation; to: 360 360 360; loop: true; dur: 6000; easing: linear');
+  // Rotasi lambat konstan biar juri bisa melihat struktur 3D dari segala sisi secara mewah
+  molekulInti.setAttribute('animation', 'property: rotation; to: 360 360 0; loop: true; dur: 7000; easing: linear');
 
   if (jenis === 'H2') {
-    tambahBolaAtom3D(molekulInti, '-0.04 0 0', '0.026', '#ffffff');
-    tambahBolaAtom3D(molekulInti, '0.04 0 0', '0.026', '#ffffff');
-    tambahIkatanStik3D(molekulInti, '0 0 0', '0 0 90', '0.08', '0.018', '#64748b'); 
+    // Dua atom hidrogen putih kaku terikat stik abu-abu
+    tambahBolaAtom3D(molekulInti, '-0.035 0 0', '0.026', '#ffffff');
+    tambahBolaAtom3D(molekulInti, '0.035 0 0', '0.026', '#ffffff');
+    tambahIkatanStik3D(molekulInti, '0 0 0', '0 0 90', '0.07', '0.016', '#64748b'); 
   } 
   else if (jenis === 'I2') {
-    tambahBolaAtom3D(molekulInti, '-0.05 0 0', '0.048', '#a78bfa'); // Ungu metalik neon
-    tambahBolaAtom3D(molekulInti, '0.05 0 0', '0.048', '#a78bfa');
-    tambahIkatanStik3D(molekulInti, '0 0 0', '0 0 90', '0.1', '0.024', '#475569');
+    // Dua atom iodin besar ungu metalik terikat stik tebal
+    tambahBolaAtom3D(molekulInti, '-0.045 0 0', '0.044', '#a78bfa');
+    tambahBolaAtom3D(molekulInti, '0.045 0 0', '0.044', '#a78bfa');
+    tambahIkatanStik3D(molekulInti, '0 0 0', '0 0 90', '0.09', '0.022', '#475569');
   } 
   else if (jenis === 'HI') {
-    tambahBolaAtom3D(molekulInti, '-0.04 0 0', '0.026', '#ffffff');
-    tambahBolaAtom3D(molekulInti, '0.04 0 0', '0.048', '#a78bfa');
-    tambahIkatanStik3D(molekulInti, '0 0 0', '0 0 90', '0.08', '0.02', '#475569');
-  } 
-  else if (jenis === 'N2') {
-    tambahBolaAtom3D(molekulInti, '-0.04 0 0', '0.04', '#3b82f6');
-    tambahBolaAtom3D(molekulInti, '0.04 0 0', '0.04', '#3b82f6');
-    tambahIkatanStik3D(molekulInti, '0 0 0', '0 0 90', '0.08', '0.028', '#475569');
-  } 
-  else if (jenis === 'NH3') {
-    tambahBolaAtom3D(molekulInti, '0 0 0', '0.042', '#3b82f6');
-    tambahBolaAtom3D(molekulInti, '-0.05 -0.04 0', '0.02', '#ffffff');
-    tambahBolaAtom3D(molekulInti, '0.05 -0.04 0', '0.02', '#ffffff');
-    tambahBolaAtom3D(molekulInti, '0 0.04 0.05', '0.02', '#ffffff');
-    tambahIkatanStik3D(molekulInti, '-0.025 -0.02 0', '0 0 45', '0.06', '0.014', '#64748b');
-    tambahIkatanStik3D(molekulInti, '0.025 -0.02 0', '0 0 -45', '0.06', '0.014', '#64748b');
-    tambahIkatanStik3D(molekulInti, '0 0.02 0.025', '45 0 0', '0.06', '0.014', '#64748b');
+    // 1 Putih + 1 Ungu menyatu kokoh menandakan produk senyawa baru
+    tambahBolaAtom3D(molekulInti, '-0.035 0 0', '0.026', '#ffffff');
+    tambahBolaAtom3D(molekulInti, '0.035 0 0', '0.044', '#a78bfa');
+    tambahIkatanStik3D(molekulInti, '0 0 0', '0 0 90', '0.07', '0.018', '#475569');
   }
 
   parent.appendChild(molekulInti);
   arParticles.push({
     el: molekulInti,
-    vx: (Math.random() - 0.5) * 0.004,
-    vy: (Math.random() - 0.5) * 0.004,
-    vz: (Math.random() - 0.5) * 0.004
+    jenis: jenis,
+    vx: (Math.random() - 0.5) * 0.003,
+    vy: (Math.random() - 0.5) * 0.003,
+    vz: (Math.random() - 0.5) * 0.003
   });
 }
 
@@ -644,36 +642,47 @@ function tambahIkatanStik3D(parent, posisi, rotasi, panjang, radius, warna) {
    🔬 QUANTUM VECTOR ENGINE: AUTOMATIC PARABOLIC ACCURATE WALL BOUNCING
    ========================================================================== */
 function loopArSimulation() {
-  if(!document.getElementById('particle-cloud')) return;
+  const cloud = document.getElementById('particle-cloud');
+  if(!cloud || state.page !== 'studentWebAR') return;
   
-  // Efek Suhu mempercepat guncangan kinetik partikel kaku
-  const factorSuhu = 1 + (state.ar.suhu - 25) * 0.04;
+  const factorSuhu = 1 + (state.ar.suhu - 25) * 0.05;
   
-  arParticles.forEach(p => {
+  arParticles.forEach((p, idx) => {
     let curr = p.el.getAttribute('position');
     let nx = curr.x + (p.vx * factorSuhu);
     let ny = curr.y + (p.vy * factorSuhu);
     let nz = curr.z + (p.vz * factorSuhu);
 
-    // KUNCI PENTING: Menghitung radius dinding Erlenmeyer secara adaptif berdasarkan ketinggian (Sumbu Y)
-    // Labu Erlenmeyer makin ke atas (Y positif) dindingnya makin menyempit!
-    const heightPct = (ny - (-0.35)) / 0.7; // Kalkulasi rentang tinggi badan kerucut bawah
-    let currentRadiusLimit = 0.24 - (heightPct * 0.16);
+    // KONTROL DINDING PARABOLIK: Menghitung radius kerucut Erlenmeyer agar partikel tidak tembus keluar kaca
+    const heightPct = (ny - (-0.3)) / 0.6;
+    let currentRadiusLimit = 0.22 - (heightPct * 0.15);
     
-    // Jika partikel sudah naik masuk ke leher tabung atas
-    if (ny > 0.35) currentRadiusLimit = 0.07;
-    // Jika partikel tenggelam di dasar labu bawah
-    if (ny < -0.35) currentRadiusLimit = 0.25;
+    if (ny > 0.3) currentRadiusLimit = 0.07;
+    if (ny < -0.3) currentRadiusLimit = 0.23;
 
-    // Deteksi Tabrakan Sumbu Mendatar (X & Z) - Memantul Sempurna ke Dalam Kaca, Anti-Tembus!
+    // Deteksi batas dinding miring
     if (Math.abs(nx) > currentRadiusLimit) { p.vx *= -1; nx = Math.sign(nx) * currentRadiusLimit; }
     if (Math.abs(nz) > currentRadiusLimit) { p.vz *= -1; nz = Math.sign(nz) * currentRadiusLimit; }
-    
-    // Deteksi Tabrakan Sumbu Tegak (Y) - Batas bawah alas and batas atas tutup leher
-    if (ny > 0.52) { p.vy *= -1; ny = 0.52; }
-    if (ny < -0.32) { p.vy *= -1; ny = -32; }
+    if (ny > 0.45 || ny < -0.3) p.vy *= -1;
 
     p.el.setAttribute('position', `${nx} ${ny} ${nz}`);
+
+    // INTERAKSI REAL-TIME: Simulasi Tumbukan "BOOM" antar molekul acak
+    if (idx % 2 === 0 && Math.random() < 0.015 && state.ar.suhu > 20) {
+      const flash = document.getElementById('ar-collision-flash');
+      if (flash) {
+        // Posisikan kilatan kuning di koordinat partikel yang sedang bertabrakan
+        flash.setAttribute('position', `${nx} ${ny} ${nz}`);
+        flash.setAttribute('material', 'opacity: 0.9');
+        // Skala denyut partikel membesar instan menandakan reaksi kaku terjadi
+        p.el.setAttribute('scale', '1.3 1.3 1.3');
+        
+        setTimeout(() => {
+          if(flash) flash.setAttribute('material', 'opacity: 0');
+          if(p.el) p.el.setAttribute('scale', '1 1 1');
+        }, 80);
+      }
+    }
   });
   
   requestAnimationFrame(loopArSimulation);
