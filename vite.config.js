@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: '/archemy-web-ar/', // Mengunci jalur aset agar sesuai nama repo GitHub kamu
+  base: './', // Mengubah ke relative path agar tidak blank di GitHub Pages
 })
