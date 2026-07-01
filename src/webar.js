@@ -675,7 +675,9 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
 export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, onLabuDitempatkan) {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-    videoEl.srcObject = stream; await videoEl.play();
+    videoEl.srcObject = stream; 
+    // Do NOT await videoEl.play() because on iOS/Safari it might hang indefinitely if blocked by autoplay policies
+    videoEl.play().catch(e => console.warn("video.play() terblokir autoplay:", e));
   } catch (err) {
     console.warn("Kamera tidak tersedia, menjalankan mode 3D fallback saja.", err);
   }
@@ -716,6 +718,8 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   window.addEventListener('pointerdown', onFirstTap);
   window.addEventListener('touchstart', onFirstTap, { passive: true });
   window.addEventListener('click', onFirstTap);
+  document.body.addEventListener('click', onFirstTap); // iOS fallback
+  canvas.addEventListener('click', onFirstTap); // iOS fallback
 
   function loop() {
     if (!berjalan) return;
