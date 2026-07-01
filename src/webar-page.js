@@ -156,6 +156,28 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     return Number(slider.value) / 40;
   };
 
+  sensorData.spillCallback = () => {
+    const storyText = document.getElementById('webarStoryText');
+    if (storyText) {
+      storyText.innerHTML = `<span style="color:#ef4444"><b>Waduh, labunya tumpah!</b> Berdirikan kembali ponsel Anda untuk mereset reaksi.</span>`;
+    }
+    // Haptic feedback if supported
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  };
+
+  sensorData.unspillCallback = () => {
+    const storyText = document.getElementById('webarStoryText');
+    const misi = MISI_DATA[misiId];
+    if (storyText) storyText.textContent = misi.ceritaAwal;
+    
+    // Reset visual
+    if (sesiARAktif) {
+      const valVolume = Number(document.querySelector('#slider-volume')?.value || 3.0);
+      const valKunci = Number(document.querySelector('#slider-' + misi.parameterKunci)?.value || misi.nilaiTarget);
+      perbaruiVisualMisi(sesiARAktif, misiId, valKunci, valVolume);
+    }
+  };
+
   try {
     if (modeARTerdeteksi === 'webxr') {
       statusEl.textContent = 'Mode AR penuh aktif — arahkan ke permukaan datar.';

@@ -13,17 +13,19 @@ export const sensorData = {
 };
 
 window.addEventListener('deviceorientation', (e) => {
-  if (sensorData.isSpilled) return;
   const beta = e.beta || 0;
   const gamma = e.gamma || 0;
   // Map gravity realistically assuming default reading posture is ~60 degrees
   sensorData.gX = gamma * 0.00008;
   sensorData.gZ = (beta - 60) * 0.00008;
   
-  // Spill if tilted upside down (beta > 135 or beta < -45, or gamma rolled too much)
-  if (beta > 135 || beta < -45 || Math.abs(gamma) > 110) {
+  // Spill if tilted upside down (beta > 135 or beta < -20, or gamma rolled too much)
+  if (!sensorData.isSpilled && (beta > 135 || beta < -20 || Math.abs(gamma) > 90)) {
     sensorData.isSpilled = true;
     if (sensorData.spillCallback) sensorData.spillCallback();
+  } else if (sensorData.isSpilled && (beta > 30 && beta < 100 && Math.abs(gamma) < 40)) {
+    sensorData.isSpilled = false;
+    if (sensorData.unspillCallback) sensorData.unspillCallback();
   }
 });
 
@@ -537,14 +539,18 @@ export function buatSceneDasar() {
     );
   };
   
+  const labuGrup = new THREE.Group();
+  scene.add(labuGrup);
+
   const fluid = new THREE.Mesh(fluidGeo, fluidMat);
   fluid.userData.uniforms = fluidUniforms;
-  scene.add(fluid);
+  labuGrup.add(fluid);
 
-  const labu = new THREE.Mesh(buatGeometryErlenmeyer(), buatMaterialKaca()); scene.add(labu);
+  const labu = new THREE.Mesh(buatGeometryErlenmeyer(), buatMaterialKaca()); 
+  labuGrup.add(labu);
 
   // Global toggle function for colorblind mode
-  const partikelSys = new SistemPartikel(scene);
+  const partikelSys = new SistemPartikel(labuGrup);
   window._toggleColorblindMode = (isActive) => {
     // Re-fill the system using the currently active mission state
     if (window._currentMisiId) {
@@ -552,7 +558,7 @@ export function buatSceneDasar() {
     }
   };
 
-  return { scene, labu, partikel: partikelSys };
+  return { scene, labuGrup, labu, fluid, partikel: partikelSys };
 }
 
 function buatEfekMuncul(scene, posisi) {
@@ -602,7 +608,7 @@ function buatEfekMuncul(scene, posisi) {
 export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkanSuhuFunc) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.xr.enabled = true; renderer.setPixelRatio(window.devicePixelRatio);
-  const { scene, labu, partikel } = buatSceneDasar(); labu.visible = false;
+  const { scene, labuGrup, labu, partikel } = buatSceneDasar(); labuGrup.visible = false;
   const camera = new THREE.PerspectiveCamera(); partikel.isiDariMisi(misiId, false);
   let hitTestSource = null; let viewerSpace = null; let sudahDitempatkan = false;
 
@@ -621,12 +627,12 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
 
   session.addEventListener('select', () => {
     if (sudahDitempatkan || !reticle.visible) return;
-    labu.position.copy(reticle.position); 
-    labu.visible = true; 
+    labuGrup.position.copy(reticle.position); 
+    labuGrup.visible = true; 
     sudahDitempatkan = true;
-    labu.scale.set(0, 0, 0); // Reset for entrance animation
+    labuGrup.scale.set(0, 0, 0); // Reset for entrance animation
     labu.userData.spawnTime = performance.now();
-    buatEfekMuncul(scene, labu.position);
+    buatEfekMuncul(scene, labuGrup.position);
     if (onLabuDitempatkan) onLabuDitempatkan();
   });
 
@@ -643,11 +649,9 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
     if (sudahDitempatkan && labu.userData.spawnTime) {
       const elapsed = (performance.now() - labu.userData.spawnTime) / 1000;
       if (elapsed < 1.0) {
-        // Simple elastic formula
         const targetS = labu.userData.targetScale || 1.0;
-        const s = targetS * (1 - Math.pow(2, -10 * elapsed) * Math.cos(elapsed * 6.28 * 3));
-        labu.scale.set(s, s, s);
-        partikel.grup.scale.set(s, s, s);
+        const s = targetS * Math.min(1.0, (elapsed * 1.5) * (1.5 - elapsed * 0.5));
+        labuGrup.scale.set(s, s, s);
         if (elapsed < 0.2) labu.material.color.setHex(0x00e5ff); // flash cyan
         else if (elapsed < 0.25) labu.material.color.setHex(0xffffff);
       } else {
@@ -659,17 +663,19 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
     const speedFactor = dapatkanSuhuFunc ? dapatkanSuhuFunc() : 1;
     partikel.perbarui(speedFactor);
 
-    // Animate fluid
-    scene.children.forEach(c => {
+    // Animate fluid and apply spill shrink effect
+    labuGrup.children.forEach(c => {
       if (c.userData && c.userData.uniforms) {
         c.userData.uniforms.uTime.value = performance.now() / 1000;
+        if (sensorData.isSpilled) c.scale.y = Math.max(0.01, c.scale.y - 0.05);
+        else c.scale.y = Math.min(1.0, c.scale.y + 0.02);
       }
     });
 
     renderer.render(scene, camera);
   });
 
-  return { session, renderer, scene, labu, partikel, hentikan: () => { renderer.setAnimationLoop(null); session.end(); } };
+  return { session, renderer, scene, labuGrup, labu, partikel, hentikan: () => { renderer.setAnimationLoop(null); session.end(); } };
 }
 
 export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, onLabuDitempatkan) {
@@ -686,8 +692,8 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
 
   const camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.01, 20);
   camera.position.set(0, 0, 0.9);
-  const { scene, labu, partikel } = buatSceneDasar(); partikel.isiDariMisi(misiId, false);
-  labu.visible = false; // Hidden at first for tap-to-place
+  const { scene, labuGrup, labu, partikel } = buatSceneDasar(); partikel.isiDariMisi(misiId, false);
+  labuGrup.visible = false; // Hidden at first for tap-to-place
   let berjalan = true;
   let sudahDitempatkan = false;
 
@@ -708,11 +714,11 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
     if (sudahDitempatkan || !fakeReticle.visible) return;
     sudahDitempatkan = true;
     fakeReticle.visible = false; // Hide reticle after placing
-    labu.visible = true;
-    labu.position.copy(fakeReticle.position); // Spawn exactly at reticle
-    labu.scale.set(0, 0, 0);
+    labuGrup.visible = true;
+    labuGrup.position.copy(fakeReticle.position); // Spawn exactly at reticle
+    labuGrup.scale.set(0, 0, 0);
     labu.userData.spawnTime = performance.now();
-    buatEfekMuncul(scene, labu.position);
+    buatEfekMuncul(scene, labuGrup.position);
     if (onLabuDitempatkan) onLabuDitempatkan();
   }
   window.addEventListener('pointerdown', onFirstTap);
@@ -729,8 +735,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
       if (elapsed < 1.0) {
         const targetS = labu.userData.targetScale || 1.0;
         const s = targetS * (1 - Math.pow(2, -10 * elapsed) * Math.cos(elapsed * 6.28 * 3));
-        labu.scale.set(s, s, s);
-        partikel.grup.scale.set(s, s, s);
+        labuGrup.scale.set(s, s, s);
         if (elapsed < 0.2) labu.material.color.setHex(0x00e5ff);
         else if (elapsed < 0.25) labu.material.color.setHex(0xffffff);
       } else {
@@ -741,10 +746,12 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
     const speedFactor = dapatkanSuhuFunc ? dapatkanSuhuFunc() : 1;
     partikel.perbarui(speedFactor);
     
-    // Animate fluid
-    scene.children.forEach(c => {
+    // Animate fluid and apply spill shrink effect
+    labuGrup.children.forEach(c => {
       if (c.userData && c.userData.uniforms) {
         c.userData.uniforms.uTime.value = performance.now() / 1000;
+        if (sensorData.isSpilled) c.scale.y = Math.max(0.01, c.scale.y - 0.05);
+        else c.scale.y = Math.min(1.0, c.scale.y + 0.02);
       }
     });
 
@@ -760,7 +767,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   window.addEventListener('resize', urusResize);
 
   return {
-    renderer, scene, labu, partikel,
+    renderer, scene, labuGrup, labu, partikel,
     hentikan: () => { berjalan = false; window.removeEventListener('resize', urusResize); window.removeEventListener('pointerdown', onFirstTap); if (videoEl.srcObject) videoEl.srcObject.getTracks().forEach((t) => t.stop()); }
   };
 }
@@ -810,8 +817,7 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
   
   // If spawn animation has finished (or almost finished), scale immediately
   if (sesiAR.labu.userData.spawnTime && (performance.now() - sesiAR.labu.userData.spawnTime) > 800) {
-    sesiAR.labu.scale.set(scale, scale, scale);
-    sesiAR.partikel.grup.scale.set(scale, scale, scale);
+    if(sesiAR.labuGrup) sesiAR.labuGrup.scale.set(scale, scale, scale);
   }
 
   return sudahTarget;

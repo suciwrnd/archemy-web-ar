@@ -298,8 +298,8 @@ body.colorblind-mode .webar-colorblind-btn {
 .webar-scan-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(10, 9, 15, 0.3); /* Transparent enough to see the camera! */
-  z-index: 50;
+  background: rgba(10, 9, 15, 0.4); /* Transparent enough to see the camera! */
+  z-index: 10; /* Lower than UI (HUD is 15) */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -307,7 +307,6 @@ body.colorblind-mode .webar-colorblind-btn {
   color: #fff;
   text-align: center;
   padding: 24px;
-  backdrop-filter: blur(2px);
   transition: opacity 0.5s ease;
   pointer-events: none; /* Biarkan tap/klik menembus ke canvas/XR */
 }
