@@ -165,12 +165,17 @@ export function buatGeometryErlenmeyer() {
 }
 
 export function buatMaterialKaca() {
-  return new THREE.MeshPhongMaterial({
+  return new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
+    metalness: 0.1,
+    roughness: 0.02,
+    transmission: 1.0, // glass-like full transparency
+    ior: 1.5, // index of refraction for glass
+    thickness: 0.2, // volume refraction
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.05,
     transparent: true,
-    opacity: 0.25,
-    shininess: 100,
-    specular: 0xffffff,
+    opacity: 1.0,
     side: THREE.DoubleSide,
     depthWrite: false
   });
@@ -195,7 +200,13 @@ function buatAtom(simbol, jenisMol) {
     baseColor = isProduk ? 0x3b82f6 : 0xf59e0b; // Produk Biru, Reaktan Oranye
   }
 
-  const mat = new THREE.MeshStandardMaterial({ color: baseColor, roughness: 0.15, metalness: 0.2 });
+  const mat = new THREE.MeshPhysicalMaterial({ 
+    color: baseColor, 
+    roughness: 0.1, 
+    metalness: 0.1,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.1
+  });
   return new THREE.Mesh(geo, mat);
 }
 
@@ -203,6 +214,16 @@ function buatIkatan(panjang, radius = 0.012) {
   const geo = new THREE.CylinderGeometry(radius, radius, panjang, 8);
   const mat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.4, metalness: 0.1 });
   return new THREE.Mesh(geo, mat);
+}
+
+function buatIkatanKe(p1, p2, radius = 0.012) {
+  const distance = p1.distanceTo(p2);
+  const geo = new THREE.CylinderGeometry(radius, radius, distance, 12);
+  const mat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.4, metalness: 0.1 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(p1).lerp(p2, 0.5);
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), p2.clone().sub(p1).normalize());
+  return mesh;
 }
 
 const RESEP_MOLEKUL = {
@@ -238,37 +259,41 @@ export function buatMolekul(jenis) {
 
   if (resep.atoms.length === 2) {
     const atomA = buatAtom(resep.atoms[0], jenis); const atomB = buatAtom(resep.atoms[1], jenis);
-    atomA.position.x = -resep.jarak/2; atomB.position.x = resep.jarak/2;
-    const ikatan = buatIkatan(resep.jarak); ikatan.rotation.z = Math.PI/2;
-    grup.add(atomA, atomB, ikatan);
+    atomA.position.set(-resep.jarak/2, 0, 0); atomB.position.set(resep.jarak/2, 0, 0);
+    grup.add(atomA, atomB, buatIkatanKe(atomA.position, atomB.position));
   } else if (resep.sudut) {
+    // Bentuk V (Bent) untuk NO2
     const n = buatAtom('N', jenis); const o1 = buatAtom('O', jenis); const o2 = buatAtom('O', jenis);
-    o1.position.set(-0.05, 0.03, 0); o2.position.set(0.05, 0.03, 0);
-    const ik1 = buatIkatan(0.06); ik1.position.set(-0.025, 0.015, 0); ik1.rotation.z = Math.PI/3;
-    const ik2 = buatIkatan(0.06); ik2.position.set(0.025, 0.015, 0); ik2.rotation.z = -Math.PI/3;
-    grup.add(n, o1, o2, ik1, ik2);
+    n.position.set(0, 0, 0);
+    o1.position.set(-0.04, 0.03, 0); o2.position.set(0.04, 0.03, 0);
+    grup.add(n, o1, o2, buatIkatanKe(n.position, o1.position), buatIkatanKe(n.position, o2.position));
   } else if (resep.dimer) {
-    const k1 = buatMolekul('NO2'); const k2 = buatMolekul('NO2');
-    k1.position.x = -0.05; k2.position.x = 0.05; k2.rotation.y = Math.PI;
-    const ik = buatIkatan(0.05); ik.rotation.z = Math.PI/2;
-    grup.add(k1, k2, ik);
+    // Planar N2O4
+    const n1 = buatAtom('N', jenis); const n2 = buatAtom('N', jenis);
+    n1.position.set(-0.03, 0, 0); n2.position.set(0.03, 0, 0);
+    const o1 = buatAtom('O', jenis); const o2 = buatAtom('O', jenis);
+    const o3 = buatAtom('O', jenis); const o4 = buatAtom('O', jenis);
+    o1.position.set(-0.06, 0.04, 0); o2.position.set(-0.06, -0.04, 0);
+    o3.position.set(0.06, 0.04, 0); o4.position.set(0.06, -0.04, 0);
+    grup.add(n1, n2, o1, o2, o3, o4);
+    grup.add(buatIkatanKe(n1.position, n2.position));
+    grup.add(buatIkatanKe(n1.position, o1.position), buatIkatanKe(n1.position, o2.position));
+    grup.add(buatIkatanKe(n2.position, o3.position), buatIkatanKe(n2.position, o4.position));
   } else if (resep.piramida) {
-    const n = buatAtom('N', jenis); grup.add(n);
+    // Trigonal Pyramidal untuk NH3
+    const n = buatAtom('N', jenis); n.position.set(0, 0.02, 0); grup.add(n);
     for(let i=0; i<3; i++) {
       const h = buatAtom('H', jenis); const angle = (i * Math.PI * 2) / 3;
-      h.position.set(Math.cos(angle)*0.05, -0.03, Math.sin(angle)*0.05);
-      const ik = buatIkatan(0.06); ik.position.set(Math.cos(angle)*0.025, -0.015, Math.sin(angle)*0.025);
-      ik.rotation.x = angle; ik.rotation.z = Math.PI/4;
-      grup.add(h, ik);
+      h.position.set(Math.cos(angle)*0.04, -0.02, Math.sin(angle)*0.04);
+      grup.add(h, buatIkatanKe(n.position, h.position));
     }
   } else if (resep.kompleks) {
-    const c = buatAtom('C', jenis); grup.add(c);
+    // Planar segitiga untuk karbonat
+    const c = buatAtom('C', jenis); c.position.set(0, 0, 0); grup.add(c);
     for(let i=0; i<resep.atoms.length-1; i++) {
       const o = buatAtom('O', jenis); const angle = (i * Math.PI * 2) / 3;
-      o.position.set(Math.cos(angle)*0.06, Math.sin(angle)*0.06, 0);
-      const ik = buatIkatan(0.06); ik.position.set(Math.cos(angle)*0.03, Math.sin(angle)*0.03, 0);
-      ik.rotation.z = angle + Math.PI/2;
-      grup.add(o, ik);
+      o.position.set(Math.cos(angle)*0.05, Math.sin(angle)*0.05, 0);
+      grup.add(o, buatIkatanKe(c.position, o.position));
     }
   }
   
@@ -394,12 +419,15 @@ export class SistemPartikel {
           
           if (Math.random() < 0.05) {
             // Flash effect
-            pA.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(0xffffff); setTimeout(() => c.material.emissive.setHex(0), 100); }});
-            pB.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(0xffffff); setTimeout(() => c.material.emissive.setHex(0), 100); }});
+            const flashColor = 0xffffff;
+            pA.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(flashColor); setTimeout(() => c.material.emissive.setHex(0), 150); }});
+            pB.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(flashColor); setTimeout(() => c.material.emissive.setHex(0), 150); }});
             
+            // Scale bounce effect
+            pA.mesh.scale.set(1.3, 1.3, 1.3); setTimeout(() => pA.mesh.scale.set(1, 1, 1), 150);
+            pB.mesh.scale.set(1.3, 1.3, 1.3); setTimeout(() => pB.mesh.scale.set(1, 1, 1), 150);
+
             // Dynamic Equilibrium Simulation: Identity Swap!
-            // To maintain exact macroscopic ratios but show microscopic changes,
-            // we swap the identity (mesh) of a colliding particle with a random distant particle of a different type.
             const pC_index = Math.floor(Math.random() * this.partikel.length);
             const pC = this.partikel[pC_index];
             if (pC !== pA && pC !== pB && pC.mesh.userData.jenis !== pA.mesh.userData.jenis) {
@@ -412,6 +440,10 @@ export class SistemPartikel {
               const tempPos = meshA.position.clone();
               meshA.position.copy(meshC.position);
               meshC.position.copy(tempPos);
+              
+              // Add flash to the swapped distant particle to show it reacted too
+              pC.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(flashColor); setTimeout(() => c.material.emissive.setHex(0), 150); }});
+              pC.mesh.scale.set(1.3, 1.3, 1.3); setTimeout(() => pC.mesh.scale.set(1, 1, 1), 150);
             }
           }
         }
@@ -425,10 +457,51 @@ export function buatSceneDasar() {
   scene.add(new THREE.AmbientLight(0xffffff, 0.75));
   const light = new THREE.DirectionalLight(0xffffff, 0.9); light.position.set(1, 3, 1); scene.add(light);
   
+  // Procedural Environment Map for realistic glass reflections
+  const envCanvas = document.createElement('canvas');
+  envCanvas.width = 512; envCanvas.height = 512;
+  const envCtx = envCanvas.getContext('2d');
+  const gradient = envCtx.createLinearGradient(0, 0, 0, 512);
+  gradient.addColorStop(0, '#1a202c');
+  gradient.addColorStop(1, '#2d3748');
+  envCtx.fillStyle = gradient; envCtx.fillRect(0, 0, 512, 512);
+  // Add some bright "studio lights" windows
+  envCtx.fillStyle = '#ffffff';
+  envCtx.shadowColor = '#ffffff';
+  envCtx.shadowBlur = 20;
+  envCtx.fillRect(100, 100, 100, 200);
+  envCtx.fillRect(350, 150, 80, 150);
+  const envTex = new THREE.CanvasTexture(envCanvas);
+  envTex.mapping = THREE.EquirectangularReflectionMapping;
+  scene.environment = envTex;
+  
   // PointLight dari dalam labu agar menyatu
   const innerLight = new THREE.PointLight(0x00e5ff, 0.5, 1.0);
   innerLight.position.set(0, -0.1, 0);
   scene.add(innerLight);
+
+  // Soft shadow plane di bawah labu
+  const shadowGeo = new THREE.PlaneGeometry(0.8, 0.8);
+  const shadowMat = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+    transparent: true,
+    opacity: 0.3,
+    depthWrite: false
+  });
+  // Create a soft radial gradient for the shadow
+  const shadowCanvas = document.createElement('canvas');
+  shadowCanvas.width = 128; shadowCanvas.height = 128;
+  const shadowCtx = shadowCanvas.getContext('2d');
+  const shadowGrad = shadowCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  shadowGrad.addColorStop(0.2, 'rgba(0,0,0,1)');
+  shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  shadowCtx.fillStyle = shadowGrad; shadowCtx.fillRect(0, 0, 128, 128);
+  shadowMat.map = new THREE.CanvasTexture(shadowCanvas);
+  
+  const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
+  shadowPlane.rotation.x = -Math.PI / 2;
+  shadowPlane.position.y = -0.31; // Just below the flask base
+  scene.add(shadowPlane);
 
   // Pendaran Grid Ring Neon Sian di Dasar Tabung
   const ringGeo = new THREE.RingGeometry(0.24, 0.26, 32);

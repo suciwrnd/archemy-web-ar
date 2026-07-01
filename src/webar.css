@@ -48,14 +48,17 @@
   left: 10px;
   right: 10px;
   z-index: 15;
-  background: rgba(15, 14, 22, 0.65);
-  padding: 8px 10px;
-  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   max-width: 400px;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .webar-misi-label {
@@ -188,29 +191,35 @@
 }
 .webar-tabs::-webkit-scrollbar { display: none; }
 .webar-tab-btn {
-  background: #1a1828;
-  border: 1px solid #2a273f;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: #9d9bc4;
   padding: 8px 14px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
 }
 .webar-tab-btn.active {
-  background: #534ab7;
+  background: rgba(83, 74, 183, 0.6);
   color: #fff;
-  border-color: #7f77dd;
+  border-color: rgba(127, 119, 221, 0.5);
+  box-shadow: 0 0 10px rgba(83, 74, 183, 0.4);
 }
 
 .webar-sliders-container { position: relative; }
 .webar-slider-panel {
   display: none;
-  background: #1a1828;
-  border-radius: 12px;
-  padding: 14px 16px;
-  animation: slideIn 0.2s ease-out;
+  background: linear-gradient(135deg, rgba(25, 24, 40, 0.7), rgba(25, 24, 40, 0.4));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 16px 18px;
+  animation: slideIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 .webar-slider-panel.active { display: block; }
 .webar-slider-panel .control-head {
