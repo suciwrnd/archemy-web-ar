@@ -765,9 +765,9 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   };
 }
 
-export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang) {
+export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
   const data = MISI_DATA[misiId]; if (!data || !sesiAR) return false;
-  const sudahTarget = Math.abs(nilaiSekarang - data.nilaiTarget) < (data.rentang[2] / 2);
+  const sudahTarget = Math.abs(nilaiSekarang - data.nilaiTarget) < 0.01;
   
   // Track for colorblind toggle rebuild
   window._currentMisiId = misiId;
@@ -803,13 +803,15 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang) {
     }
   }
 
-  if (data.parameterKunci === 'volume') {
-    const scale = Math.max(0.3, nilaiSekarang / 2.0);
-    sesiAR.labu.userData.targetScale = scale; // Saved for spawn animation
-    if (!sesiAR.labu.userData.spawnTime) {
-      sesiAR.labu.scale.set(scale, scale, scale);
-      sesiAR.partikel.grup.scale.set(scale, scale, scale);
-    }
+  // Dynamic Volume Scaling
+  const targetVolume = (nilaiVolume !== undefined) ? nilaiVolume : (data.parameterKunci === 'volume' ? nilaiSekarang : 3.0);
+  const scale = Math.max(0.3, targetVolume / 3.0);
+  sesiAR.labu.userData.targetScale = scale; // Saved for spawn animation
+  
+  // If spawn animation has finished (or almost finished), scale immediately
+  if (sesiAR.labu.userData.spawnTime && (performance.now() - sesiAR.labu.userData.spawnTime) > 800) {
+    sesiAR.labu.scale.set(scale, scale, scale);
+    sesiAR.partikel.grup.scale.set(scale, scale, scale);
   }
 
   return sudahTarget;
