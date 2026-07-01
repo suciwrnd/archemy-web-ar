@@ -536,7 +536,11 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
   const reticle = new THREE.Mesh(new THREE.RingGeometry(0.06, 0.08, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
   reticle.visible = false; scene.add(reticle);
 
-  const session = await navigator.xr.requestSession('immersive-ar', { requiredFeatures: ['hit-test'] });
+  const session = await navigator.xr.requestSession('immersive-ar', { 
+    requiredFeatures: ['hit-test'],
+    optionalFeatures: ['dom-overlay'],
+    domOverlay: { root: document.getElementById('webarApp') || document.body }
+  });
   await renderer.xr.setSession(session);
   const referenceSpace = await session.requestReferenceSpace('local');
   viewerSpace = await session.requestReferenceSpace('viewer');
@@ -637,6 +641,8 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
     if (onLabuDitempatkan) onLabuDitempatkan();
   }
   window.addEventListener('pointerdown', onFirstTap);
+  window.addEventListener('touchstart', onFirstTap, { passive: true });
+  window.addEventListener('click', onFirstTap);
 
   function loop() {
     if (!berjalan) return;

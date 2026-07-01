@@ -160,10 +160,9 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     if (modeARTerdeteksi === 'webxr') {
       statusEl.textContent = 'Mode AR penuh aktif — arahkan ke permukaan datar.';
       tapHint.style.display = 'block';
+      scanOverlay.style.display = 'none'; // Sembunyikan overlay besar di WebXR
       sesiARAktif = await mulaiSesiWebXR(canvas, misiId, () => {
         tapHint.style.display = 'none';
-        scanOverlay.style.opacity = '0';
-        setTimeout(() => scanOverlay.style.display = 'none', 500);
       }, getSpeedFactor);
     } else {
       statusEl.textContent = 'Mode kamera sederhana aktif (perangkat tidak mendukung AR penuh).';
