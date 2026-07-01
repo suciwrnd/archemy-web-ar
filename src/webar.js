@@ -353,10 +353,11 @@ export class SistemPartikel {
     });
   }
   _radiusPadaTinggi(y) {
-    if (y < -0.24) return 0.17; 
-    if (y > 0.20) return 0.035;
+    if (y < -0.24) return 0.19; 
+    if (y > 0.20) return 0.01;
+    // Linear interpolation from y=-0.24 (r=0.19) to y=0.20 (r=0.01)
     const t = (y + 0.24) / 0.44; 
-    return 0.17 - (t * 0.135);
+    return 0.19 - (t * 0.18);
   }
   perbarui(faktorKecepatan = 1) {
     if (sensorData.shake > 0.0001) {
@@ -806,7 +807,7 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
   });
   
   if (count > 0) {
-    const fluid = sesiAR.scene.children.find(c => c.userData && c.userData.uniforms);
+    const fluid = sesiAR.labuGrup ? sesiAR.labuGrup.children.find(c => c.userData && c.userData.uniforms) : null;
     if (fluid) {
       fluid.material.color.setRGB(r/count, g/count, b/count);
       // Celebration glow when target reached
@@ -820,7 +821,8 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
 
   // Dynamic Volume Scaling
   const targetVolume = (nilaiVolume !== undefined) ? nilaiVolume : (data.parameterKunci === 'volume' ? nilaiSekarang : 3.0);
-  const scale = Math.max(0.3, targetVolume / 3.0);
+  const baseScale = 3.5; // Make it significantly larger by default
+  const scale = Math.max(0.3, targetVolume / 3.0) * baseScale;
   sesiAR.labu.userData.targetScale = scale; // Saved for spawn animation
   
   // If spawn animation has finished (or almost finished), scale immediately
