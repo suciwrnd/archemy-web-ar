@@ -120,13 +120,6 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
       storyBox.classList.toggle('minimized');
       storyToggleBtn.textContent = storyBox.classList.contains('minimized') ? '▲' : '▼';
     });
-    // Auto minimize after 10 seconds to free up view
-    setTimeout(() => {
-      if (storyBox && !storyBox.classList.contains('minimized')) {
-        storyBox.classList.add('minimized');
-        storyToggleBtn.textContent = '▲';
-      }
-    }, 10000);
   }
 
   container.querySelector('#webarKeluar').addEventListener('click', () => {

@@ -19,11 +19,11 @@ window.addEventListener('deviceorientation', (e) => {
   sensorData.gX = gamma * 0.00008;
   sensorData.gZ = (beta - 60) * 0.00008;
   
-  // Spill if tilted upside down (beta > 135 or beta < -20, or gamma rolled too much)
-  if (!sensorData.isSpilled && (beta > 135 || beta < -20 || Math.abs(gamma) > 90)) {
+  // Spill if tilted severely upside down (beta > 150 or beta < -80, or gamma rolled too much)
+  if (!sensorData.isSpilled && (beta > 150 || beta < -80 || Math.abs(gamma) > 130)) {
     sensorData.isSpilled = true;
     if (sensorData.spillCallback) sensorData.spillCallback();
-  } else if (sensorData.isSpilled && (beta > 30 && beta < 100 && Math.abs(gamma) < 40)) {
+  } else if (sensorData.isSpilled && (beta > 20 && beta < 120 && Math.abs(gamma) < 60)) {
     sensorData.isSpilled = false;
     if (sensorData.unspillCallback) sensorData.unspillCallback();
   }
@@ -663,12 +663,16 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
     const speedFactor = dapatkanSuhuFunc ? dapatkanSuhuFunc() : 1;
     partikel.perbarui(speedFactor);
 
-    // Animate fluid and apply spill shrink effect
+    // Animate fluid and apply spill visibility
     labuGrup.children.forEach(c => {
       if (c.userData && c.userData.uniforms) {
         c.userData.uniforms.uTime.value = performance.now() / 1000;
-        if (sensorData.isSpilled) c.scale.y = Math.max(0.01, c.scale.y - 0.05);
-        else c.scale.y = Math.min(1.0, c.scale.y + 0.02);
+        if (sensorData.isSpilled) {
+          c.visible = false;
+        } else {
+          c.visible = true;
+          c.scale.y = 1.0;
+        }
       }
     });
 
@@ -746,12 +750,16 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
     const speedFactor = dapatkanSuhuFunc ? dapatkanSuhuFunc() : 1;
     partikel.perbarui(speedFactor);
     
-    // Animate fluid and apply spill shrink effect
+    // Animate fluid and apply spill visibility
     labuGrup.children.forEach(c => {
       if (c.userData && c.userData.uniforms) {
         c.userData.uniforms.uTime.value = performance.now() / 1000;
-        if (sensorData.isSpilled) c.scale.y = Math.max(0.01, c.scale.y - 0.05);
-        else c.scale.y = Math.min(1.0, c.scale.y + 0.02);
+        if (sensorData.isSpilled) {
+          c.visible = false;
+        } else {
+          c.visible = true;
+          c.scale.y = 1.0;
+        }
       }
     });
 
