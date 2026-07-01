@@ -571,46 +571,35 @@ export function buatSceneDasar() {
   return { scene, labuGrup, labu, fluid, partikel: partikelSys };
 }
 
-function buatEfekMuncul(scene, posisi) {
-  const geo = new THREE.BufferGeometry();
-  const count = 40;
-  const positions = new Float32Array(count * 3);
-  const velocities = [];
-  for(let i=0; i<count; i++) {
-    positions[i*3] = posisi.x;
-    positions[i*3+1] = posisi.y + 0.1;
-    positions[i*3+2] = posisi.z;
-    velocities.push(new THREE.Vector3((Math.random()-0.5)*0.03, Math.random()*0.05, (Math.random()-0.5)*0.03));
-  }
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+function buatEfekMuncul(objekGrup, labuMesh) {
+  const targetS = labuMesh && labuMesh.userData.targetScale ? labuMesh.userData.targetScale : 1.0;
+  objekGrup.scale.set(0, 0, 0);
   
-  const canvas = document.createElement('canvas'); canvas.width = 32; canvas.height = 32;
-  const ctx = canvas.getContext('2d');
-  const grad = ctx.createRadialGradient(16,16,0,16,16,16);
-  grad.addColorStop(0, 'rgba(255,255,255,1)');
-  grad.addColorStop(0.2, 'rgba(0,229,255,0.8)');
-  grad.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = grad; ctx.fillRect(0,0,32,32);
-  
-  const mat = new THREE.PointsMaterial({ size: 0.06, map: new THREE.CanvasTexture(canvas), transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false });
-  const points = new THREE.Points(geo, mat);
-  scene.add(points);
   let rafId;
-  
   const startTime = performance.now();
   function animate() {
     const elapsed = (performance.now() - startTime) / 1000;
-    if (elapsed > 1.5) { scene.remove(points); geo.dispose(); mat.dispose(); return; }
-    
-    const posAttr = geo.attributes.position;
-    for(let i=0; i<count; i++) {
-      posAttr.array[i*3] += velocities[i].x;
-      posAttr.array[i*3+1] += velocities[i].y;
-      posAttr.array[i*3+2] += velocities[i].z;
-      velocities[i].y -= 0.001; // subtle gravity
+    if (elapsed > 1.2) { 
+      objekGrup.scale.set(targetS, targetS, targetS);
+      objekGrup.rotation.y = 0;
+      if (labuMesh && labuMesh.material) labuMesh.material.color.setHex(0xffffff);
+      return; 
     }
-    posAttr.needsUpdate = true;
-    mat.opacity = 1.0 - (elapsed / 1.5);
+    
+    // Elastic scale
+    const s = targetS * (1 - Math.pow(2, -10 * elapsed) * Math.cos(elapsed * 6.28 * 2.5));
+    objekGrup.scale.set(s, s, s);
+    
+    // Rotation spin
+    const easeOut = 1 - Math.pow(1 - (elapsed/1.2), 3);
+    objekGrup.rotation.y = (1 - easeOut) * Math.PI * 4; // spin 2 times
+    
+    // Color flash
+    if (labuMesh && labuMesh.material) {
+      if (elapsed < 0.2) labuMesh.material.color.setHex(0x00e5ff);
+      else if (elapsed < 0.25) labuMesh.material.color.setHex(0xffffff);
+    }
+    
     rafId = requestAnimationFrame(animate);
   }
   animate();
@@ -641,9 +630,8 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
     labuGrup.position.copy(reticle.position); 
     labuGrup.visible = true; 
     sudahDitempatkan = true;
-    labuGrup.scale.set(0, 0, 0); // Reset for entrance animation
-    labu.userData.spawnTime = performance.now();
-    buatEfekMuncul(scene, labuGrup.position);
+    labuGrup.scale.set(0, 0, 0);
+    buatEfekMuncul(labuGrup, labu);
     if (onLabuDitempatkan) onLabuDitempatkan();
   });
 
@@ -656,19 +644,7 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
       } else { reticle.visible = false; }
     }
     
-    // Entrance Animation (Elastic scale)
-    if (sudahDitempatkan && labu.userData.spawnTime) {
-      const elapsed = (performance.now() - labu.userData.spawnTime) / 1000;
-      if (elapsed < 1.0) {
-        const targetS = labu.userData.targetScale || 1.0;
-        const s = targetS * Math.min(1.0, (elapsed * 1.5) * (1.5 - elapsed * 0.5));
-        labuGrup.scale.set(s, s, s);
-        if (elapsed < 0.2) labu.material.color.setHex(0x00e5ff); // flash cyan
-        else if (elapsed < 0.25) labu.material.color.setHex(0xffffff);
-      } else {
-        labu.userData.spawnTime = null;
-      }
-    }
+    // Entrance Animation handled by buatEfekMuncul
 
     // Mengambil faktor kalor suhu termal secara real-time dari input slider
     const speedFactor = dapatkanSuhuFunc ? dapatkanSuhuFunc() : 1;
@@ -732,8 +708,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
     labuGrup.visible = true;
     labuGrup.position.copy(fakeReticle.position); // Spawn exactly at reticle
     labuGrup.scale.set(0, 0, 0);
-    labu.userData.spawnTime = performance.now();
-    buatEfekMuncul(scene, labuGrup.position);
+    buatEfekMuncul(labuGrup, labu);
     if (onLabuDitempatkan) onLabuDitempatkan();
   }
   window.addEventListener('pointerdown', onFirstTap);
@@ -745,18 +720,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   function loop() {
     if (!berjalan) return;
     
-    if (sudahDitempatkan && labu.userData.spawnTime) {
-      const elapsed = (performance.now() - labu.userData.spawnTime) / 1000;
-      if (elapsed < 1.0) {
-        const targetS = labu.userData.targetScale || 1.0;
-        const s = targetS * (1 - Math.pow(2, -10 * elapsed) * Math.cos(elapsed * 6.28 * 3));
-        labuGrup.scale.set(s, s, s);
-        if (elapsed < 0.2) labu.material.color.setHex(0x00e5ff);
-        else if (elapsed < 0.25) labu.material.color.setHex(0xffffff);
-      } else {
-        labu.userData.spawnTime = null;
-      }
-    }
+    // Entrance Animation handled by buatEfekMuncul
 
     const speedFactor = dapatkanSuhuFunc ? dapatkanSuhuFunc() : 1;
     partikel.perbarui(speedFactor);
