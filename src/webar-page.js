@@ -58,6 +58,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 
   container.innerHTML = `
     <div class="webar-stage">
+      <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: #00e5ff; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; z-index: 9999;">v700</div>
       <div class="webar-status" id="webarStatus">Memeriksa kemampuan perangkat…</div>
       <div class="webar-viewport">
         <video id="webarVideo" playsinline muted style="display:none"></video>

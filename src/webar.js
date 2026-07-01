@@ -829,7 +829,7 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
 
   // Dynamic Volume Scaling
   const targetVolume = (nilaiVolume !== undefined) ? nilaiVolume : (data.parameterKunci === 'volume' ? nilaiSekarang : 3.0);
-  const baseScale = 3.5; // Make it significantly larger by default
+  const baseScale = 10.0; // Make it MASSIVE just in case WebXR reference space is huge
   const scale = Math.max(0.3, targetVolume / 3.0) * baseScale;
   sesiAR.labu.userData.targetScale = scale; // Saved for spawn animation
   
