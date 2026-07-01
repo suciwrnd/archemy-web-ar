@@ -292,6 +292,13 @@ function renderKontrolMisi(container, misiId) {
       }
     });
   });
+
+  // Initialize visual state immediately so baseScale is applied before first tap
+  if (sesiARAktif) {
+    const valVolume = Number(container.querySelector('#slider-volume').value);
+    const valKunci = Number(container.querySelector('#slider-' + misi.parameterKunci).value);
+    perbaruiVisualMisi(sesiARAktif, misiId, valKunci, valVolume);
+  }
 }
 
 function labelParameter(kunci) {
