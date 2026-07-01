@@ -16,9 +16,12 @@ window.addEventListener('deviceorientation', (e) => {
   if (sensorData.isSpilled) return;
   const beta = e.beta || 0;
   const gamma = e.gamma || 0;
+  // Map gravity realistically assuming default reading posture is ~60 degrees
   sensorData.gX = gamma * 0.00008;
-  sensorData.gZ = (beta - 45) * 0.00008;
-  if (Math.abs(beta) > 95 || Math.abs(gamma) > 90) {
+  sensorData.gZ = (beta - 60) * 0.00008;
+  
+  // Spill if tilted upside down (beta > 135 or beta < -45, or gamma rolled too much)
+  if (beta > 135 || beta < -45 || Math.abs(gamma) > 110) {
     sensorData.isSpilled = true;
     if (sensorData.spillCallback) sensorData.spillCallback();
   }
@@ -270,8 +273,31 @@ export function buatMolekul(jenis) {
   }
   
   const label = buatLabelTeks(jenis);
-  label.position.y = 0.09;
+  label.position.set(0, 0.08, 0);
   grup.add(label);
+
+  // Add aura based on reactant/product and specific chemical properties
+  const isProduk = ['HI', 'N2O4', 'NH3', 'HCO3'].includes(jenis);
+  let auraColor = isProduk ? 0x3b82f6 : 0xe11d48; // Default: Blue for product, Red for reactant
+  if (jenis === 'I2') auraColor = 0xa78bfa; // Purple
+  if (jenis === 'NO2') auraColor = 0xf59e0b; // Orange/Brown
+  if (['HI', 'H2', 'N2O4'].includes(jenis)) auraColor = 0x94a3b8; // Colorless/White-ish
+  
+  // Custom aura sprite (soft glow)
+  const canvas = document.createElement('canvas');
+  canvas.width = 64; canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.2, `rgba(${(auraColor>>16)&255}, ${(auraColor>>8)&255}, ${auraColor&255}, 0.8)`);
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 64, 64);
+  const auraTex = new THREE.CanvasTexture(canvas);
+  const auraMat = new THREE.SpriteMaterial({ map: auraTex, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+  const auraSprite = new THREE.Sprite(auraMat);
+  auraSprite.scale.set(0.18, 0.18, 0.18);
+  grup.add(auraSprite);
 
   grup.userData.jenis = jenis; return grup;
 }
@@ -367,8 +393,26 @@ export class SistemPartikel {
           pB.kecepatan.sub(dir.clone().multiplyScalar(0.001));
           
           if (Math.random() < 0.05) {
+            // Flash effect
             pA.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(0xffffff); setTimeout(() => c.material.emissive.setHex(0), 100); }});
             pB.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(0xffffff); setTimeout(() => c.material.emissive.setHex(0), 100); }});
+            
+            // Dynamic Equilibrium Simulation: Identity Swap!
+            // To maintain exact macroscopic ratios but show microscopic changes,
+            // we swap the identity (mesh) of a colliding particle with a random distant particle of a different type.
+            const pC_index = Math.floor(Math.random() * this.partikel.length);
+            const pC = this.partikel[pC_index];
+            if (pC !== pA && pC !== pB && pC.mesh.userData.jenis !== pA.mesh.userData.jenis) {
+              const meshA = pA.mesh;
+              const meshC = pC.mesh;
+              // Swap the references
+              pA.mesh = meshC;
+              pC.mesh = meshA;
+              // Swap their 3D positions so they don't teleport visually
+              const tempPos = meshA.position.clone();
+              meshA.position.copy(meshC.position);
+              meshC.position.copy(tempPos);
+            }
           }
         }
       }
@@ -391,11 +435,37 @@ export function buatSceneDasar() {
   const ringMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
   const ring = new THREE.Mesh(ringGeo, ringMat); ring.rotation.x = Math.PI / 2; ring.position.y = -0.32; scene.add(ring);
 
-  // Cairan pelarut semi-transparan di dasar labu
-  const fluidGeo = new THREE.CylinderGeometry(0.21, 0.24, 0.15, 32);
-  const fluidMat = new THREE.MeshPhongMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.4, shininess: 80, specular: 0xffffff, side: THREE.DoubleSide });
+  // Cairan pelarut dengan bentuk mengikuti labu
+  const fluidPoints = [];
+  fluidPoints.push(new THREE.Vector2(0, -0.29)); // Bottom center
+  fluidPoints.push(new THREE.Vector2(0.24, -0.29)); // Bottom edge
+  fluidPoints.push(new THREE.Vector2(0.24, -0.2)); // Taper start
+  fluidPoints.push(new THREE.Vector2(0.16, 0.0)); // Taper end (surface)
+  fluidPoints.push(new THREE.Vector2(0, 0.0)); // Surface center
+  const fluidGeo = new THREE.LatheGeometry(fluidPoints, 32);
+  
+  const fluidMat = new THREE.MeshPhongMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.65, shininess: 90, specular: 0xffffff, side: THREE.DoubleSide });
+  // Add wave animation shader
+  const fluidUniforms = { uTime: { value: 0 } };
+  fluidMat.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = fluidUniforms.uTime;
+    shader.vertexShader = `
+      uniform float uTime;
+      ${shader.vertexShader}
+    `.replace(
+      `#include <begin_vertex>`,
+      `
+      #include <begin_vertex>
+      // Hanya gerakkan vertex yang ada di permukaan atas (y >= -0.01)
+      if (position.y >= -0.01) {
+        transformed.y += sin(position.x * 10.0 + uTime * 3.0) * 0.015 + cos(position.z * 10.0 + uTime * 2.5) * 0.015;
+      }
+      `
+    );
+  };
+  
   const fluid = new THREE.Mesh(fluidGeo, fluidMat);
-  fluid.position.y = -0.24;
+  fluid.userData.uniforms = fluidUniforms;
   scene.add(fluid);
 
   const labu = new THREE.Mesh(buatGeometryErlenmeyer(), buatMaterialKaca()); scene.add(labu);
@@ -466,6 +536,14 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
     // Mengambil faktor kalor suhu termal secara real-time dari input slider
     const speedFactor = dapatkanSuhuFunc ? dapatkanSuhuFunc() : 1;
     partikel.perbarui(speedFactor);
+
+    // Animate fluid
+    scene.children.forEach(c => {
+      if (c.userData && c.userData.uniforms) {
+        c.userData.uniforms.uTime.value = performance.now() / 1000;
+      }
+    });
+
     renderer.render(scene, camera);
   });
 
@@ -494,7 +572,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   const reticleMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, opacity: 0.7, transparent: true });
   const fakeReticle = new THREE.Mesh(reticleGeo, reticleMat);
   fakeReticle.rotation.x = -Math.PI / 2;
-  fakeReticle.position.set(0, -0.3, 0); // Positioned slightly down to simulate floor
+  fakeReticle.position.set(0, -0.05, 0); // Positioned slightly higher to not be occluded by bottom slider
   fakeReticle.visible = false; // Hide until scan simulation finishes
   scene.add(fakeReticle);
   
@@ -533,6 +611,14 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
 
     const speedFactor = dapatkanSuhuFunc ? dapatkanSuhuFunc() : 1;
     partikel.perbarui(speedFactor);
+    
+    // Animate fluid
+    scene.children.forEach(c => {
+      if (c.userData && c.userData.uniforms) {
+        c.userData.uniforms.uTime.value = performance.now() / 1000;
+      }
+    });
+
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
   }
@@ -560,9 +646,32 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang) {
 
   if (sesiAR.targetTerakhir !== sudahTarget) {
     sesiAR.partikel.isiDariMisi(misiId, sudahTarget);
-    sesiAR.labu.material.color.setHex(sudahTarget ? 0xd1fae5 : 0xffffff);
-    sesiAR.labu.material.opacity = sudahTarget ? 0.35 : 0.22;
     sesiAR.targetTerakhir = sudahTarget;
+  }
+
+  // Calculate average color from particles for fluid blending
+  let r = 0, g = 0, b = 0, count = 0;
+  sesiAR.partikel.partikel.forEach(p => {
+    const jenis = p.mesh.userData.jenis;
+    let col = new THREE.Color(0x94a3b8); // Default colorless/grey
+    if (jenis === 'I2') col.setHex(0xa78bfa); // Purple
+    else if (jenis === 'NO2') col.setHex(0xf59e0b); // Orange
+    else if (jenis === 'NH3' || jenis === 'HCO3') col.setHex(0x3b82f6); // Blue
+    
+    r += col.r; g += col.g; b += col.b; count++;
+  });
+  
+  if (count > 0) {
+    const fluid = sesiAR.scene.children.find(c => c.userData && c.userData.uniforms);
+    if (fluid) {
+      fluid.material.color.setRGB(r/count, g/count, b/count);
+      // Celebration glow when target reached
+      if (sudahTarget) {
+        fluid.material.emissive.setRGB((r/count)*0.4, (g/count)*0.4, (b/count)*0.4);
+      } else {
+        fluid.material.emissive.setHex(0x000000);
+      }
+    }
   }
 
   if (data.parameterKunci === 'volume') {

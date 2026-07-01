@@ -94,6 +94,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
           <div class="webar-story-box" id="webarStoryBox">
             <div class="story-avatar">🤖</div>
             <div class="story-text" id="webarStoryText">Memuat...</div>
+            <button class="story-toggle" id="webarStoryToggle" aria-label="Minimize">▼</button>
           </div>
         </div>
 
@@ -111,6 +112,22 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   const controlsEl = container.querySelector('#webarControls');
   const scanOverlay = container.querySelector('#webarScanOverlay');
   const colorblindBtn = container.querySelector('#webarColorblindBtn');
+  const storyToggleBtn = container.querySelector('#webarStoryToggle');
+  const storyBox = container.querySelector('#webarStoryBox');
+
+  if (storyToggleBtn) {
+    storyToggleBtn.addEventListener('click', () => {
+      storyBox.classList.toggle('minimized');
+      storyToggleBtn.textContent = storyBox.classList.contains('minimized') ? '▲' : '▼';
+    });
+    // Auto minimize after 10 seconds to free up view
+    setTimeout(() => {
+      if (storyBox && !storyBox.classList.contains('minimized')) {
+        storyBox.classList.add('minimized');
+        storyToggleBtn.textContent = '▲';
+      }
+    }, 10000);
+  }
 
   container.querySelector('#webarKeluar').addEventListener('click', () => {
     document.body.classList.remove('colorblind-mode');
