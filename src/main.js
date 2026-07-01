@@ -3,6 +3,7 @@
    ========================================================================== */
 
 import { renderPilihMisi, renderHalamanAR, hentikanSesiAR } from './webar-page.js';
+import { MISI_DATA } from './webar.js';
 
 const ICONS = {
   bell: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.7 2.7 0 0 0 2.65-2.15h-5.3A2.7 2.7 0 0 0 12 22Zm7-6.4-1.45-1.95V9.2A5.56 5.56 0 0 0 13 3.75V2h-2v1.75A5.56 5.56 0 0 0 6.45 9.2v4.45L5 15.6V18h14v-2.4Z"/></svg>`,
@@ -160,29 +161,25 @@ let toastTimer, quizInterval = null;
 
 function loadState() {
   try {
-    const savedState = localStorage.getItem('archemy_state');
-    if (savedState) {
-      Object.assign(state, JSON.parse(savedState));
-      // Jangan biarkan state.webarMisiAktif bertahan setelah refresh (menghindari user terjebak)
-      if (state.webarMisiAktif) {
-        state.webarMisiAktif = null;
-        state.page = 'studentDashboard'; // Kembali ke beranda
-        saveState();
-      }
-    }
     const saved = JSON.parse(localStorage.getItem('archemyState'));
     if (!saved) return structuredClone(defaultState);
     if (saved.classes && saved.classes.some(c => !c.roster)) {
       localStorage.removeItem('archemyState');
       return structuredClone(defaultState);
     }
-    return {
+    const merged = {
       ...structuredClone(defaultState), ...saved,
       profile:{ ...structuredClone(defaultState.profile), ...(saved.profile||{}) },
       modules: saved.modules?.length ? saved.modules : structuredClone(defaultModules),
       questions: saved.questions?.length ? saved.questions : structuredClone(defaultQuestions),
       classes: saved.classes?.length ? saved.classes : structuredClone(defaultClasses)
     };
+    // Jangan biarkan state.webarMisiAktif bertahan setelah refresh (menghindari user terjebak)
+    if (merged.webarMisiAktif) {
+      merged.webarMisiAktif = null;
+      merged.page = 'studentDashboard';
+    }
+    return merged;
   } catch { return structuredClone(defaultState); }
 }
 
@@ -240,7 +237,7 @@ function bottomNav() {
     : [['teacherDashboard',ICONS.home,'Dasbor'],['teacherQuiz',ICONS.checklist,'Kuis'],['teacherModules',ICONS.book,'Modul']];
   return `<nav class="bottom-nav ${state.role==='guru'?'three-items':''}">${items.map(([p,icon,label])=>`<button class="nav-item ${state.page===p?'active':''}" onclick="window.go('${p}')" aria-label="${label}">${icon}</button>`).join('')}</nav>`;
 }
-function pageWrap(content, opts={}) { app.innerHTML = `<section class="screen ${opts.noNav?'no-nav':''}">${content}</section>${bottomNav()}`; document.body.classList.toggle('colorblind', state.colorblind); }
+function pageWrap(content, opts={}) { app.innerHTML = `<section class="screen ${opts.noNav?'no-nav':''}">${content}</section>${bottomNav()}`; document.body.classList.toggle('colorblind-mode', state.colorblind); }
 
 /* ========== AUTH CONTEXT ========== */
 function renderLogin() {
@@ -299,11 +296,22 @@ function joinClass() {
 /* ========== STUDENT DASHBOARD ========== */
 function renderStudentDashboard() {
   const p=state.profile.siswa;
+  // Dynamic progress calculation
+  const viewedModules = state.modules.filter(m => state.activeModule === m.id || state.quizResults.some(r => r.topic)).length;
+  const modulPct = Math.round((viewedModules / Math.max(state.modules.length, 1)) * 100);
+  const kuisPct = Math.round((state.quizResults.length / Math.max(quizBank.length, 1)) * 100);
+  const totalMisi = Object.keys(MISI_DATA).length;
+  const webarPct = state.viewedMisi ? Math.round((state.viewedMisi.length / totalMisi) * 100) : 0;
+  // Capability calculation from quiz results
+  const paham = state.quizResults.filter(r => r.category === 'Paham Konsep').length;
+  const totalResults = state.quizResults.length || 1;
+  const pemahamanBaik = Math.round((paham / totalResults) * 100);
+  const pemahamanKurang = 100 - pemahamanBaik;
   pageWrap(`${header()}
     <h1 class="page-title">Halo ${firstName(p.name)}!</h1><p class="page-subtitle">Siap berpetualang bersama Chemy?</p>
     <div class="glass-card hero-topic"><span class="label">Topik Terakhir</span><h2>Kesetimbangan Kimia</h2><button class="hero-action" onclick="window.go('studentModules')">Lanjutkan</button></div>
-    <div class="card activity-card"><div class="flask"></div><div><h3 style="margin:0 0 12px">Progres Aktivitas</h3>${progressRow('Modul yang sudah dipelajari',20)}${progressRow('Kuis yang sudah dikerjakan',10)}${progressRow('WebAR yang sudah disimulasikan',40)}</div></div>
-    <div class="card activity-card"><div class="flask"></div><div><h3 style="margin:0 0 12px">Kemampuan</h3>${progressRow('Pemahaman baik',60)}${progressRow('Pemahaman kurang',40)}<button class="btn small-btn" style="float:right;margin-top:8px" onclick="window.go('studentResult')">Lihat detail</button></div></div>
+    <div class="card activity-card"><div class="flask"></div><div><h3 style="margin:0 0 12px">Progres Aktivitas</h3>${progressRow('Modul yang sudah dipelajari',modulPct)}${progressRow('Kuis yang sudah dikerjakan',kuisPct)}${progressRow('WebAR yang sudah disimulasikan',webarPct)}</div></div>
+    <div class="card activity-card"><div class="flask"></div><div><h3 style="margin:0 0 12px">Kemampuan</h3>${progressRow('Pemahaman baik',pemahamanBaik)}${progressRow('Pemahaman kurang',pemahamanKurang)}<button class="btn small-btn" style="float:right;margin-top:8px" onclick="window.go('studentResult')">Lihat detail</button></div></div>
     <section class="leaderboard-wrap"><div class="podium">${podiumUser('Tiara Yanti','first')}${podiumUser('Joshua Den','second')}${podiumUser('Ambar','third')}<div class="podium-number">1</div></div><div class="rank-list">${['Suci Ramadhani','Rafa Pratama','Nabila Putri','Dimas Arga','Intan Maulida'].map((n,i)=>`<div class="rank-row"><span>${i+4}.</span><span class="avatar-sm">${ICONS.user}</span><span>${n}</span></div>`).join('')}</div></section>`);
 }
 
@@ -344,7 +352,7 @@ function renderStudentQuiz() {
 }
 function renderStudentQuizPage() {
   const set = quizBank[state.currentSetIndex]; if(!set) return executeQuizEnd();
-  const tier = state.currentTier; const currentStep=(state.currentSetIndex*4)+(tier); const progress=Math.round((currentStep/40)*100); const m=Math.floor(state.quizTimeLeft/60); const s=state.quizTimeLeft%60; const tierClasses=[1,2,3,4].map(t=>{ if(t<tier) return 'done'; if(t===tier) return 'active'; return ''; });
+  const tier = state.currentTier; const currentStep=(state.currentSetIndex*4)+(tier-1); const progress=Math.round((currentStep/40)*100); const m=Math.floor(state.quizTimeLeft/60); const s=state.quizTimeLeft%60; const tierClasses=[1,2,3,4].map(t=>{ if(t<tier) return 'done'; if(t===tier) return 'active'; return ''; });
   let questionContent='';
   if (tier===1||tier===3) {
     const q=tier===1?set.tier1:set.tier3;
@@ -380,7 +388,7 @@ function saveAndNext() {
       openModal(
         '🚨 Diagnosis AI: Deteksi Miskonsepsi!',
         `<p style="font-size:13px; line-height:1.5;">Sistem mendeteksi kamu mengalami <b>Miskonsepsi Sejati</b> pada topik ${escapeHtml(currentSet.topic)}.</p>`,
-        `<button class="btn full" onclick="window.closeModal(); state.webarMisiAktif='${reqMisi}'; window.saveState(); window.go('studentWebAR');">📱 Pergi ke Lab WebAR</button>
+        `<button class="btn full" onclick="window.closeModal(); window.state.webarMisiAktif='${reqMisi}'; window.saveState(); window.go('studentWebAR');">📱 Pergi ke Lab WebAR</button>
          <button class="btn ghost full" onclick="window.closeModal(); window.jalankanLompatanAdaptif('${currentSet.topic}', false);">Lewati & Lanjut</button>`
       );
     } else { jalankanLompatanAdaptif(currentSet.topic, true); }
@@ -399,7 +407,19 @@ function resetQuiz() { clearInterval(quizInterval); quizInterval = null; state.c
 function generateAIDiagnosisPayload(results) { const miskonsepsiTopik = results.filter(r => r.category === 'Miskonsepsi').map(r => r.topic); if (miskonsepsiTopik.length > 0) return { title: "✦ Hasil Evaluasi Gemini AI", text: "Sistem mendeteksi struktur Miskonsepsi Sejati pada ingatan kognitif Anda.", actionText: "Sembuhkan Miskonsepsi via AR" }; return { title: "✦ Hasil Evaluasi Gemini AI", text: "Pemahaman konsep kesetimbangan kimia Anda sudah sangat kokoh dan bebas miskonsepsi.", actionText: "Eksplorasi Lab AR" }; }
 function renderStudentResult() {
   const results = state.quizResults; const total = results.length; const correct = results.filter(r => r.tier1Correct).length; const score = total ? Math.round((correct / total) * 100) : 0; const circumference = 2 * Math.PI * 45; const offset = circumference - (score / 100) * circumference; const aiPayload = generateAIDiagnosisPayload(results);
-  pageWrap(`${header({ back: true })}<h1 class="page-title">Hasil Kuis 4-Tier</h1><div class="glass-card" style="border-radius:26px; text-align:center; margin-bottom:14px; padding: 15px;"><div class="score-circle-wrap" style="position:relative; width:100px; height:100px; margin:0 auto 10px;"><svg viewBox="0 0 100 100" style="transform: rotate(-90deg); width:100%; height:100%;"><circle cx="50" cy="50" r="45" fill="none" stroke="#eee" stroke-width="8"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--purple)" stroke-width="8" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/></svg><div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:22px; font-weight:bold;">${score}%</div></div></div><div style="background:#1e1b4b; padding: 16px; border-radius: 20px; color: white; margin-bottom: 14px;"><h4 style="margin:0 0 6px; color: #00E5FF;">${aiPayload.title}</h4><p style="font-size:12px; opacity:0.9;">${aiPayload.text}</p><button class="btn full" style="margin-top:10px;" onclick="window.go('studentWebAR')">${aiPayload.actionText}</button></div><div class="actions-row"><button class="btn" onclick="window.resetQuiz()">Ulangi Kuis</button></div>`);
+  const totalTime = 600 - state.quizTimeLeft; const tMin = Math.floor(totalTime / 60); const tSec = totalTime % 60;
+  const catBadge = (cat) => { const m = {'Paham Konsep':'paham','Menebak':'menebak','Miskonsepsi':'miskonsepsi','Tidak Paham':'tidak-paham'}; return `<span class="badge ${m[cat]||''}" style="font-size:9px;padding:2px 6px;">${escapeHtml(cat||'-')}</span>`; };
+  const reviewHtml = results.map((r,i) => {
+    const set = quizBank[r.setIndex]; if(!set) return '';
+    return `<div class="card" style="padding:12px; margin-bottom:10px; border-radius:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><b style="font-size:12px;">${i+1}. ${escapeHtml(r.topic)}</b>${catBadge(r.category)}</div>
+      <div style="font-size:11px; color:var(--muted); line-height:1.5;">
+        <div>Tier 1: ${r.tier1Correct?'✅ Benar':'❌ Salah'} | Keyakinan: ${escapeHtml(r.tier2Confidence||'-')}</div>
+        <div>Tier 3: ${r.tier3Correct?'✅ Benar':'❌ Salah'} | Keyakinan: ${escapeHtml(r.tier4Confidence||'-')}</div>
+      </div>
+    </div>`;
+  }).join('');
+  pageWrap(`${header({ back: true })}<h1 class="page-title">Hasil Kuis 4-Tier</h1><div class="glass-card" style="border-radius:26px; text-align:center; margin-bottom:14px; padding: 15px;"><div class="score-circle-wrap" style="position:relative; width:100px; height:100px; margin:0 auto 10px;"><svg viewBox="0 0 100 100" style="transform: rotate(-90deg); width:100%; height:100%;"><circle cx="50" cy="50" r="45" fill="none" stroke="#eee" stroke-width="8"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--purple)" stroke-width="8" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/></svg><div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:22px; font-weight:bold;">${score}%</div></div><p class="small muted" style="margin:4px 0 0;">⏱ Waktu: ${tMin}m ${tSec}s | ${total} topik dinilai</p></div><div style="background:#1e1b4b; padding: 16px; border-radius: 20px; color: white; margin-bottom: 14px;"><h4 style="margin:0 0 6px; color: #00E5FF;">${aiPayload.title}</h4><p style="font-size:12px; opacity:0.9;">${aiPayload.text}</p><button class="btn full" style="margin-top:10px;" onclick="window.go('studentWebAR')">${aiPayload.actionText}</button></div><h3 class="section-title">Review Per Topik</h3>${reviewHtml}<div class="actions-row"><button class="btn" onclick="window.resetQuiz()">Ulangi Kuis</button></div>`);
 }
 
 /* ==========================================================================
@@ -415,6 +435,8 @@ function renderStudentWebARPage() {
     const container = document.getElementById('webarContainer');
     renderPilihMisi(container, (misiId) => {
       state.webarMisiAktif = misiId;
+      if (!state.viewedMisi) state.viewedMisi = [];
+      if (!state.viewedMisi.includes(misiId)) state.viewedMisi.push(misiId);
       saveState();
       render();
     });
@@ -428,7 +450,7 @@ function renderStudentWebARPage() {
   }
 }
 
-function toggleColorblind() { state.colorblind=!state.colorblind; saveState(); render(); }
+function toggleColorblind() { state.colorblind=!state.colorblind; document.body.classList.toggle('colorblind-mode', state.colorblind); saveState(); render(); }
 
 /* ========== GURU CONTEXT: MANAGEMENT KELAS ========== */
 function renderTeacherClasses() {
@@ -527,19 +549,29 @@ function saveQuestion() {
 
 function renderTeacherAnalysis() {
   const c = activeClass();
-  pageWrap(`${header({back:true,titleBackPage:'teacherDashboard',coins:false})}<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;"><div><h1 class="page-title" style="margin:0;">Analisis Kognitif</h1><p class="page-subtitle" style="margin:0;">${escapeHtml(c.name)} - Real-Time</p></div><button class="btn small-btn" style="background:#10b981;" onclick="window.eksporLaporanPDF()">📥 Cetak PDF</button></div><div id="area-cetak-laporan" style="padding:5px; background:#fff;"><div class="pdf-only-header" style="margin-bottom:15px; border-bottom:2px solid #6b36cf; padding-bottom:5px;"><h3 style="margin:0; color:#6b36cf;">ARChemy - Learning Analytics Report</h3><p style="margin:0; font-size:11px; color:#555;">Rapor Diagnosis Kombinasi Evaluasi Kuis 4-Tier Kelas ${escapeHtml(c.name)}</p></div><div class="card"><b>🚨 Capaian Rasio Salah Terbesar Kelas</b><br><br>${progressRow('Parameter Efek Kalor Suhu Termal',80,'red')}${progressRow('Mekanika Kerapatan Ruang Volume',40,'yellow')}</div><h3 class="section-title">Daftar Siswa Butuh Perhatian (Watchlist)</h3><div class="card">${studentAttention('Adi Wijaya', 40, 'Kritis')}${studentAttention('Syela Cantika', 55, 'Perhatian')}</div></div>`);
+  // Dynamic watchlist from roster data
+  const watchlist = c.roster.filter(s => s.status === 'Kritis' || s.status === 'Perhatian');
+  const watchlistHtml = watchlist.length > 0 ? watchlist.map(s => studentAttention(s.name, s.score, s.status)).join('') : '<p class="small muted" style="padding:8px;">Tidak ada siswa yang memerlukan perhatian khusus.</p>';
+  // Dynamic error ratio from roster
+  const kritisCount = c.roster.filter(s => s.status === 'Kritis').length;
+  const perhatianCount = c.roster.filter(s => s.status === 'Perhatian').length;
+  const rosterTotal = c.roster.length || 1;
+  const kritisPct = Math.round((kritisCount / rosterTotal) * 100);
+  const perhatianPct = Math.round((perhatianCount / rosterTotal) * 100);
+  pageWrap(`${header({back:true,titleBackPage:'teacherDashboard',coins:false})}<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;"><div><h1 class="page-title" style="margin:0;">Analisis Kognitif</h1><p class="page-subtitle" style="margin:0;">${escapeHtml(c.name)} - Real-Time</p></div><button class="btn small-btn" style="background:#10b981;" onclick="window.eksporLaporanPDF()">📥 Cetak PDF</button></div><div id="area-cetak-laporan" style="padding:5px; background:#fff;"><div class="pdf-only-header" style="margin-bottom:15px; border-bottom:2px solid #6b36cf; padding-bottom:5px;"><h3 style="margin:0; color:#6b36cf;">ARChemy - Learning Analytics Report</h3><p style="margin:0; font-size:11px; color:#555;">Rapor Diagnosis Kombinasi Evaluasi Kuis 4-Tier Kelas ${escapeHtml(c.name)}</p></div><div class="card"><b>🚨 Rasio Siswa Bermasalah</b><br><br>${progressRow('Miskonsepsi (Kritis)',kritisPct,'red')}${progressRow('Perlu Perhatian',perhatianPct,'yellow')}</div><h3 class="section-title">Daftar Siswa Butuh Perhatian (Watchlist)</h3><div class="card">${watchlistHtml}</div></div>`);
 }
-function studentAttention(name,score,status) { return `<div class="student-row" style="margin-bottom:8px; display:flex; justify-content:space-between; padding:8px; border:1px solid #eee; border-radius:10px;"><span><b>${name}</b> (${score}%)</span> <span class="badge ${status==='Kritis'?'miskonsepsi':'menebak'}">${status}</span></div>`; }
+function studentAttention(name,score,status) { return `<div class="student-row" style="margin-bottom:8px; display:flex; justify-content:space-between; padding:8px; border:1px solid #eee; border-radius:10px;"><span><b>${escapeHtml(name)}</b> (${score}%)</span> <span class="badge ${status==='Kritis'?'miskonsepsi':'menebak'}">${escapeHtml(status)}</span></div>`; }
 function eksporLaporanPDF() {
+  if (typeof html2pdf === 'undefined') { toast('✘ Library PDF belum dimuat. Coba refresh halaman.'); return; }
   const element = document.getElementById('area-cetak-laporan'); const nameKls = state.classes[state.selectedClassIndex]?.name || 'Kelas'; toast('⏳ Memproses draf cetak PDF...');
   const opsi = { margin: [15, 12, 15, 12], filename: `Laporan_ARChemy_${nameKls}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-  html2pdf().set(opsi).from(element).save().then(() => { toast('🎉 PDF Berhasil diunduh!'); }).catch(() => { toast('✘ Gagal ekspor PDF.'); });
+  try { html2pdf().set(opsi).from(element).save().then(() => { toast('🎉 PDF Berhasil diunduh!'); }).catch(() => { toast('✘ Gagal ekspor PDF.'); }); } catch(e) { toast('✘ Gagal ekspor PDF: ' + e.message); }
 }
 
 /* ========== PROFIL SYSTEM ========== */
 function renderProfile() {
   const p=profile();
-  pageWrap(`${header({back:true,titleBackPage:state.role==='siswa'?'studentDashboard':'teacherDashboard',coins:state.role==='siswa'})}<div class="glass-card profile-hero" style="text-align:center;"><h2>${escapeHtml(p.name)}</h2><p>${state.role==='siswa'?'Siswa':'Guru'} • ${escapeHtml(p.school)}</p></div><div class="card info-list" style="margin-top:14px;"><div class="info-row"><b>Email</b><span>${escapeHtml(p.email)}</span></div><div class="info-row"><b>Instansi</b><span>${escapeHtml(p.school)}</span></div></div><div class="actions-row" style="margin-top:14px;"><button class="btn danger full" onclick="window.logout()">Logout Akun</button></div>`);
+  pageWrap(`${header({back:true,titleBackPage:state.role==='siswa'?'studentDashboard':'teacherDashboard',coins:state.role==='siswa'})}<div class="glass-card profile-hero" style="text-align:center;"><h2>${escapeHtml(p.name)}</h2><p>${state.role==='siswa'?'Siswa':'Guru'} • ${escapeHtml(p.school)}</p></div><div class="card info-list" style="margin-top:14px;"><div class="info-row"><b>Email</b><span>${escapeHtml(p.email)}</span></div><div class="info-row"><b>Instansi</b><span>${escapeHtml(p.school)}</span></div><div class="info-row" style="cursor:pointer;" onclick="window.toggleColorblind()"><b>Mode Buta Warna</b><span>${state.colorblind?'✅ Aktif':'Nonaktif'}</span></div></div><div class="actions-row" style="margin-top:14px;"><button class="btn danger full" onclick="window.logout()">Logout Akun</button></div>`);
 }
 function logout() {
   hentikanSesiAR();
@@ -562,14 +594,19 @@ function render() {
     teacherEditQuiz:renderTeacherEditQuiz, teacherAnalysis:renderTeacherAnalysis, profile:renderProfile,
     teacherClassDetail: renderTeacherClassDetail,
   };
-  (routes[state.page]||renderLogin)();
+  try {
+    (routes[state.page]||renderLogin)();
+  } catch (err) {
+    console.error('[ARChemy Render Error]', err);
+    app.innerHTML = `<section class="screen" style="text-align:center;padding-top:80px;"><h2 style="color:var(--danger);">Terjadi Kesalahan</h2><p class="muted" style="font-size:13px;">${escapeHtml(err.message)}</p><button class="btn" style="margin-top:16px;" onclick="window.state.page='login';window.render();">Kembali ke Login</button><button class="btn ghost" style="margin-top:8px;" onclick="localStorage.removeItem('archemyState');location.reload();">Reset Data</button></section>`;
+  }
 }
 
 /* ==========================================================================
    BULLETPROOF BRIDGE ENGINE: MENGIKAT SELURUH SISTEM KE GLOBAL WINDOW
    ========================================================================== */
 if (typeof window !== 'undefined') {
-  window.state = state; window.saveState = saveState; window.toast = toast; window.go = go; window.goHome = goHome; window.setRole = setRole; window.logout = logout; window.closeModal = closeModal; window.submitLogin = submitLogin; window.submitRegister = submitRegister; window.fillCode = fillCode; window.joinClass = joinClass; window.setModuleFilter = setModuleFilter; window.openModule = openModule; window.closeModule = closeModule; window.startQuiz = startQuiz; window.selectOption = selectOption; window.selectConfidence = selectConfidence; window.saveAndNext = saveAndNext; window.resetQuiz = resetQuiz; window.jalankanLompatanAdaptif = jalankanLompatanAdaptif; window.executeQuizEnd = executeQuizEnd; window.toggleColorblind = toggleColorblind; window.moveCoverflow = moveCoverflow; window.selectCoverflowClass = selectCoverflowClass; window.showAddClassModal = showAddClassModal; window.addClass = addClass; window.addModule = addModule; window.newQuestion = newQuestion; window.saveQuestion = saveQuestion; window.eksporLaporanPDF = eksporLaporanPDF; window.editQuestion = editQuestion;
+  window.state = state; window.saveState = saveState; window.toast = toast; window.go = go; window.goHome = goHome; window.setRole = setRole; window.logout = logout; window.closeModal = closeModal; window.submitLogin = submitLogin; window.submitRegister = submitRegister; window.fillCode = fillCode; window.joinClass = joinClass; window.setModuleFilter = setModuleFilter; window.openModule = openModule; window.closeModule = closeModule; window.startQuiz = startQuiz; window.selectOption = selectOption; window.selectConfidence = selectConfidence; window.saveAndNext = saveAndNext; window.resetQuiz = resetQuiz; window.jalankanLompatanAdaptif = jalankanLompatanAdaptif; window.executeQuizEnd = executeQuizEnd; window.toggleColorblind = toggleColorblind; window.moveCoverflow = moveCoverflow; window.selectCoverflowClass = selectCoverflowClass; window.showAddClassModal = showAddClassModal; window.addClass = addClass; window.addModule = addModule; window.newQuestion = newQuestion; window.saveQuestion = saveQuestion; window.eksporLaporanPDF = eksporLaporanPDF; window.editQuestion = editQuestion; window.render = render;
 }
 
 render();

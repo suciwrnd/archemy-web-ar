@@ -9,7 +9,8 @@ export const sensorData = {
   gZ: 0,
   shake: 0,
   isSpilled: false,
-  spillCallback: null
+  spillCallback: null,
+  unspillCallback: null
 };
 
 window.addEventListener('deviceorientation', (e) => {
@@ -431,12 +432,12 @@ export class SistemPartikel {
           if (Math.random() < 0.05) {
             // Flash effect
             const flashColor = 0xffffff;
-            pA.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(flashColor); setTimeout(() => c.material.emissive.setHex(0), 150); }});
-            pB.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(flashColor); setTimeout(() => c.material.emissive.setHex(0), 150); }});
+            pA.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(flashColor); setTimeout(() => { if(c.material) c.material.emissive.setHex(0); }, 150); }});
+            pB.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(flashColor); setTimeout(() => { if(c.material) c.material.emissive.setHex(0); }, 150); }});
             
             // Scale bounce effect
-            pA.mesh.scale.set(1.3, 1.3, 1.3); setTimeout(() => pA.mesh.scale.set(1, 1, 1), 150);
-            pB.mesh.scale.set(1.3, 1.3, 1.3); setTimeout(() => pB.mesh.scale.set(1, 1, 1), 150);
+            pA.mesh.scale.set(1.3, 1.3, 1.3); setTimeout(() => { if(pA.mesh) pA.mesh.scale.set(1, 1, 1); }, 150);
+            pB.mesh.scale.set(1.3, 1.3, 1.3); setTimeout(() => { if(pB.mesh) pB.mesh.scale.set(1, 1, 1); }, 150);
 
             // Dynamic Equilibrium Simulation: Identity Swap!
             const pC_index = Math.floor(Math.random() * this.partikel.length);
@@ -453,8 +454,8 @@ export class SistemPartikel {
               meshC.position.copy(tempPos);
               
               // Add flash to the swapped distant particle to show it reacted too
-              pC.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(flashColor); setTimeout(() => c.material.emissive.setHex(0), 150); }});
-              pC.mesh.scale.set(1.3, 1.3, 1.3); setTimeout(() => pC.mesh.scale.set(1, 1, 1), 150);
+              pC.mesh.children.forEach(c => { if(c.isMesh) { c.material.emissive.setHex(flashColor); setTimeout(() => { if(c.material) c.material.emissive.setHex(0); }, 150); }});
+              pC.mesh.scale.set(1.3, 1.3, 1.3); setTimeout(() => { if(pC.mesh) pC.mesh.scale.set(1, 1, 1); }, 150);
             }
           }
         }
@@ -594,11 +595,12 @@ function buatEfekMuncul(scene, posisi) {
   const mat = new THREE.PointsMaterial({ size: 0.06, map: new THREE.CanvasTexture(canvas), transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false });
   const points = new THREE.Points(geo, mat);
   scene.add(points);
+  let rafId;
   
   const startTime = performance.now();
   function animate() {
     const elapsed = (performance.now() - startTime) / 1000;
-    if (elapsed > 1.5) { scene.remove(points); return; }
+    if (elapsed > 1.5) { scene.remove(points); geo.dispose(); mat.dispose(); return; }
     
     const posAttr = geo.attributes.position;
     for(let i=0; i<count; i++) {
@@ -609,7 +611,7 @@ function buatEfekMuncul(scene, posisi) {
     }
     posAttr.needsUpdate = true;
     mat.opacity = 1.0 - (elapsed / 1.5);
-    requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(animate);
   }
   animate();
 }
@@ -785,7 +787,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
 
   return {
     renderer, scene, labuGrup, labu, partikel,
-    hentikan: () => { berjalan = false; window.removeEventListener('resize', urusResize); window.removeEventListener('pointerdown', onFirstTap); if (videoEl.srcObject) videoEl.srcObject.getTracks().forEach((t) => t.stop()); }
+    hentikan: () => { berjalan = false; window.removeEventListener('resize', urusResize); window.removeEventListener('pointerdown', onFirstTap); window.removeEventListener('touchstart', onFirstTap); window.removeEventListener('click', onFirstTap); document.body.removeEventListener('click', onFirstTap); canvas.removeEventListener('click', onFirstTap); if (videoEl.srcObject) videoEl.srcObject.getTracks().forEach((t) => t.stop()); }
   };
 }
 

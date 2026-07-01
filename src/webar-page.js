@@ -51,14 +51,10 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   if (!misi) return;
 
   requestSensorPermission();
-  sensorData.spillCallback = () => {
-    const storyText = document.getElementById('webarStoryText');
-    if (storyText) storyText.innerHTML = `<b>Yah tumpahh!</b> Reaksi berantakan karena tabung terbalik.<br><br><button onclick="window.go('studentDashboard')" style="margin-top:8px; padding:6px 12px; background:#e11d48; color:#fff; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">🔄 Ulangi Misi</button>`;
-  };
 
   container.innerHTML = `
     <div class="webar-stage">
-      <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: #00e5ff; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; z-index: 9999;">v700</div>
+
       <div class="webar-status" id="webarStatus">Memeriksa kemampuan perangkat…</div>
       <div class="webar-viewport">
         <video id="webarVideo" playsinline muted style="display:none"></video>

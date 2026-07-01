@@ -432,6 +432,7 @@ button { cursor: pointer; border: 0; }
   font-size: 15px; line-height: 1.35; font-weight: 700;
   color: var(--ink); margin: 0 0 10px;
   display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; overflow: hidden;
 }
 /* Bottom row: type badge left, AI pill right */
 .module-meta {
@@ -651,15 +652,15 @@ button { cursor: pointer; border: 0; }
 input[type="range"] { width:100%; accent-color: var(--purple); }
 
 /* ===== COLORBLIND ===== */
-body.colorblind .glass-card,
-body.colorblind .btn,
-body.colorblind .bottom-nav,
-body.colorblind .quiz-card,
-body.colorblind .confidence-card {
+body.colorblind-mode .glass-card,
+body.colorblind-mode .btn,
+body.colorblind-mode .bottom-nav,
+body.colorblind-mode .quiz-card,
+body.colorblind-mode .confidence-card {
   background: linear-gradient(135deg, #214e9e, #46a19f 55%, #f8d56b 100%);
 }
-body.colorblind .btn { color: #fff !important; border-color: transparent !important; }
-body.colorblind .bar-fill { background: linear-gradient(90deg, #214e9e, #f8d56b); }
+body.colorblind-mode .btn { color: #fff !important; border-color: transparent !important; }
+body.colorblind-mode .bar-fill { background: linear-gradient(90deg, #214e9e, #f8d56b); }
 
 /* ===== TEACHER COVERFLOW ===== */
 .coverflow-wrap {
