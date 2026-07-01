@@ -15,9 +15,13 @@ export const sensorData = {
 window.addEventListener('deviceorientation', (e) => {
   const beta = e.beta || 0;
   const gamma = e.gamma || 0;
-  // Map gravity realistically assuming default reading posture is ~60 degrees
-  sensorData.gX = gamma * 0.00008;
-  sensorData.gZ = (beta - 60) * 0.00008;
+  const betaRad = beta * (Math.PI / 180);
+  const gammaRad = gamma * (Math.PI / 180);
+  
+  // Real physical gravity mapping to device axes
+  sensorData.gX = Math.sin(gammaRad) * 0.003;
+  sensorData.gY = -Math.sin(betaRad) * 0.003;
+  sensorData.gZ = -Math.cos(betaRad) * Math.cos(gammaRad) * 0.003;
   
   // Spill if tilted severely upside down (beta > 150 or beta < -80, or gamma rolled too much)
   if (!sensorData.isSpilled && (beta > 150 || beta < -80 || Math.abs(gamma) > 130)) {
@@ -372,10 +376,14 @@ export class SistemPartikel {
         p.kecepatan.z += sensorData.gZ;
         p.kecepatan.y += sensorData.gY;
       } else {
-        // Spilled! Gravity heavily downwards and outwards
-        p.kecepatan.y -= 0.005;
-        p.kecepatan.x *= 1.02;
-        p.kecepatan.z *= 1.02;
+        // Spilled! Let them fall out using real gravity towards the mouth
+        p.kecepatan.x += sensorData.gX * 2;
+        p.kecepatan.y += sensorData.gY * 2;
+        p.kecepatan.z += sensorData.gZ * 2;
+        
+        // Spread out slightly
+        p.kecepatan.x *= 1.01;
+        p.kecepatan.z *= 1.01;
       }
       
       // Apply drag
