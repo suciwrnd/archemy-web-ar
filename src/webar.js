@@ -482,6 +482,50 @@ export function buatSceneDasar() {
   return { scene, labu, partikel: partikelSys };
 }
 
+function buatEfekMuncul(scene, posisi) {
+  const geo = new THREE.BufferGeometry();
+  const count = 40;
+  const positions = new Float32Array(count * 3);
+  const velocities = [];
+  for(let i=0; i<count; i++) {
+    positions[i*3] = posisi.x;
+    positions[i*3+1] = posisi.y + 0.1;
+    positions[i*3+2] = posisi.z;
+    velocities.push(new THREE.Vector3((Math.random()-0.5)*0.03, Math.random()*0.05, (Math.random()-0.5)*0.03));
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  
+  const canvas = document.createElement('canvas'); canvas.width = 32; canvas.height = 32;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createRadialGradient(16,16,0,16,16,16);
+  grad.addColorStop(0, 'rgba(255,255,255,1)');
+  grad.addColorStop(0.2, 'rgba(0,229,255,0.8)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,32,32);
+  
+  const mat = new THREE.PointsMaterial({ size: 0.06, map: new THREE.CanvasTexture(canvas), transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false });
+  const points = new THREE.Points(geo, mat);
+  scene.add(points);
+  
+  const startTime = performance.now();
+  function animate() {
+    const elapsed = (performance.now() - startTime) / 1000;
+    if (elapsed > 1.5) { scene.remove(points); return; }
+    
+    const posAttr = geo.attributes.position;
+    for(let i=0; i<count; i++) {
+      posAttr.array[i*3] += velocities[i].x;
+      posAttr.array[i*3+1] += velocities[i].y;
+      posAttr.array[i*3+2] += velocities[i].z;
+      velocities[i].y -= 0.001; // subtle gravity
+    }
+    posAttr.needsUpdate = true;
+    mat.opacity = 1.0 - (elapsed / 1.5);
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+
 export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkanSuhuFunc) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.xr.enabled = true; renderer.setPixelRatio(window.devicePixelRatio);
@@ -505,6 +549,7 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
     sudahDitempatkan = true;
     labu.scale.set(0, 0, 0); // Reset for entrance animation
     labu.userData.spawnTime = performance.now();
+    buatEfekMuncul(scene, labu.position);
     if (onLabuDitempatkan) onLabuDitempatkan();
   });
 
@@ -588,6 +633,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
     labu.position.copy(fakeReticle.position); // Spawn exactly at reticle
     labu.scale.set(0, 0, 0);
     labu.userData.spawnTime = performance.now();
+    buatEfekMuncul(scene, labu.position);
     if (onLabuDitempatkan) onLabuDitempatkan();
   }
   window.addEventListener('pointerdown', onFirstTap);
