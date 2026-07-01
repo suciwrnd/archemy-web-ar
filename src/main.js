@@ -160,6 +160,16 @@ let toastTimer, quizInterval = null;
 
 function loadState() {
   try {
+    const savedState = localStorage.getItem('archemy_state');
+    if (savedState) {
+      Object.assign(state, JSON.parse(savedState));
+      // Jangan biarkan state.webarMisiAktif bertahan setelah refresh (menghindari user terjebak)
+      if (state.webarMisiAktif) {
+        state.webarMisiAktif = null;
+        state.page = 'studentDashboard'; // Kembali ke beranda
+        saveState();
+      }
+    }
     const saved = JSON.parse(localStorage.getItem('archemyState'));
     if (!saved) return structuredClone(defaultState);
     if (saved.classes && saved.classes.some(c => !c.roster)) {
