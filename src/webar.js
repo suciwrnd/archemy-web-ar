@@ -502,7 +502,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
     if (!sudahDitempatkan) fakeReticle.visible = true;
   }, 2500);
 
-  window.addEventListener('pointerdown', function onFirstTap() {
+  function onFirstTap() {
     if (sudahDitempatkan || !fakeReticle.visible) return;
     sudahDitempatkan = true;
     fakeReticle.visible = false; // Hide reticle after placing
@@ -511,7 +511,8 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
     labu.scale.set(0, 0, 0);
     labu.userData.spawnTime = performance.now();
     if (onLabuDitempatkan) onLabuDitempatkan();
-  });
+  }
+  window.addEventListener('pointerdown', onFirstTap);
 
   function loop() {
     if (!berjalan) return;
@@ -545,7 +546,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
 
   return {
     renderer, scene, labu, partikel,
-    hentikan: () => { berjalan = false; window.removeEventListener('resize', urusResize); if (videoEl.srcObject) videoEl.srcObject.getTracks().forEach((t) => t.stop()); }
+    hentikan: () => { berjalan = false; window.removeEventListener('resize', urusResize); window.removeEventListener('pointerdown', onFirstTap); if (videoEl.srcObject) videoEl.srcObject.getTracks().forEach((t) => t.stop()); }
   };
 }
 

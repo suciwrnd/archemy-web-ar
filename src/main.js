@@ -322,9 +322,15 @@ function moduleSheet(m) {
 function startQuiz() { state.currentSetIndex=0; state.currentTier=1; state.quizResults=[]; state.selectedOption=null; state.confidence=null; state.quizTimeLeft=600; state.quizTimerActive=true; saveState(); startTimer(); go('studentQuizPage'); }
 function startTimer() { clearInterval(quizInterval); quizInterval = setInterval(()=>{ if (state.quizTimeLeft<=0) { executeQuizEnd(); return; } state.quizTimeLeft--; const el=document.getElementById('quizTimer'); if (el) { const m=Math.floor(state.quizTimeLeft/60); const s=state.quizTimeLeft%60; el.textContent=`⏱ ${String(m).padStart(2,'0')} : ${String(s).padStart(2,'0')}`; } },1000); }
 function renderStudentQuiz() {
-  if (!state.quizTimerActive && state.quizResults.length===0) {
-    pageWrap(`${header()}<h1 class="page-title">Kuis Adaptif 4-Tier</h1><p class="page-subtitle">Uji pemahamanmu tentang kesetimbangan kimia secara berlapis!</p><div class="glass-card hero-topic" style="min-height:180px"><span class="label">Kesetimbangan Kimia</span><h2>10 Set Soal • Evaluasi Diagnostik</h2><button class="hero-action" onclick="window.startQuiz()">Mulai Kuis</button></div>`); return;
+  if (state.quizTimerActive) {
+    go('studentQuizPage');
+    return;
   }
+  if (state.quizResults.length > 0) {
+    go('studentResult');
+    return;
+  }
+  pageWrap(`${header()}<h1 class="page-title">Kuis Adaptif 4-Tier</h1><p class="page-subtitle">Uji pemahamanmu tentang kesetimbangan kimia secara berlapis!</p><div class="glass-card hero-topic" style="min-height:180px"><span class="label">Kesetimbangan Kimia</span><h2>10 Set Soal • Evaluasi Diagnostik</h2><button class="hero-action" onclick="window.startQuiz()">Mulai Kuis</button></div>`);
 }
 function renderStudentQuizPage() {
   const set = quizBank[state.currentSetIndex]; if(!set) return executeQuizEnd();

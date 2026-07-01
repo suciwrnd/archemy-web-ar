@@ -178,8 +178,8 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 
 function resizeCanvasKeViewport(canvas) {
   const rect = canvas.parentElement.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = rect.height;
+  canvas.width = rect.width || window.innerWidth;
+  canvas.height = rect.height || window.innerHeight;
 }
 
 /* --------------------------------------------------------------------------
