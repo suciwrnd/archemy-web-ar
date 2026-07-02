@@ -662,8 +662,8 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 
-  const camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.01, 20);
-  camera.position.set(0, 0, 0.9);
+  const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.01, 20);
+  camera.position.set(0, 0.2, 1.2);
   const { scene, labuGrup, labu, partikel } = buatSceneDasar(); partikel.isiDariMisi(misiId, false);
   labuGrup.visible = false; // Hidden at first for tap-to-place
   let berjalan = true;
@@ -674,9 +674,12 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   const reticleMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, opacity: 0.7, transparent: true });
   const fakeReticle = new THREE.Mesh(reticleGeo, reticleMat);
   fakeReticle.rotation.x = -Math.PI / 2;
-  fakeReticle.position.set(0, -0.05, 0); // Positioned slightly higher to not be occluded by bottom slider
-  fakeReticle.visible = false; // Hide until scan simulation finishes
+  fakeReticle.position.set(0, -0.35, -0.2); // Di permukaan depan kamera
+  fakeReticle.visible = false;
   scene.add(fakeReticle);
+  
+  // Labu ditempatkan di depan kamera pada jarak natural
+  const defaultLabuPos = new THREE.Vector3(0, -0.15, -0.3);
   
   setTimeout(() => {
     if (!sudahDitempatkan) fakeReticle.visible = true;
@@ -685,9 +688,10 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   function onFirstTap() {
     if (sudahDitempatkan || !fakeReticle.visible) return;
     sudahDitempatkan = true;
-    fakeReticle.visible = false; // Hide reticle after placing
+    fakeReticle.visible = false;
     labuGrup.visible = true;
-    labuGrup.position.copy(fakeReticle.position); // Spawn exactly at reticle
+    labuGrup.position.copy(defaultLabuPos); // Tempatkan di depan kamera
+    labuGrup.rotation.y = 0;
     labuGrup.scale.set(0, 0, 0);
     buatEfekMuncul(labuGrup, labu);
     if (onLabuDitempatkan) onLabuDitempatkan();
@@ -794,9 +798,9 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
     }
   }
 
-  // Dynamic Volume Scaling
+  // Dynamic Volume Scaling — baseScale 1.0 agar labu tidak raksasa di layar
   const targetVolume = (nilaiVolume !== undefined) ? nilaiVolume : (data.parameterKunci === 'volume' ? nilaiSekarang : 3.0);
-  const baseScale = 10.0;
+  const baseScale = 1.0;
   const scale = Math.max(0.3, targetVolume / 3.0) * baseScale;
   if (sesiAR.labu) sesiAR.labu.userData.targetScale = scale;
   
