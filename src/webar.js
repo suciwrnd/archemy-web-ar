@@ -129,8 +129,8 @@ export const MISI_DATA = {
   }
 };
 
-const ATOM_WARNA = { H: 0xffffff, I: 0xa78bfa, N: 0x3b82f6, O: 0xef4444, C: 0xeab308 };
-const ATOM_RADIUS = { H: 0.024, I: 0.042, N: 0.034, O: 0.028, C: 0.038 };
+const ATOM_WARNA = { H: 0xe0e8ff, I: 0xc084fc, N: 0x60a5fa, O: 0xf87171, C: 0xfbbf24 };
+const ATOM_RADIUS = { H: 0.038, I: 0.062, N: 0.052, O: 0.045, C: 0.055 };
 
 export async function deteksiModeAR() {
   if (navigator.xr) {
@@ -173,16 +173,16 @@ export function buatGeometryErlenmeyer() {
 
 export function buatMaterialKaca() {
   return new THREE.MeshPhysicalMaterial({
-    color: 0xffffff,
-    metalness: 0.1,
-    roughness: 0.02,
-    transmission: 1.0, // glass-like full transparency
-    ior: 1.5, // index of refraction for glass
-    thickness: 0.2, // volume refraction
+    color: 0xd6eaf8,
+    metalness: 0.05,
+    roughness: 0.1,
+    transmission: 0.6,
+    ior: 1.45,
+    thickness: 0.15,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.05,
+    clearcoatRoughness: 0.08,
     transparent: true,
-    opacity: 1.0,
+    opacity: 0.55,
     side: THREE.DoubleSide,
     depthWrite: false
   });
@@ -190,29 +190,29 @@ export function buatMaterialKaca() {
 
 function buatAtom(simbol, jenisMol) {
   const isColorblind = document.body.classList.contains('colorblind-mode');
-  
-  // Produk biasanya sisi kanan reaksi (NH3, HI, N2O4, HCO3)
   const isProduk = ['NH3', 'HI', 'N2O4', 'HCO3'].includes(jenisMol);
   
   let geo;
+  const r = ATOM_RADIUS[simbol] || 0.04;
   if (isColorblind && isProduk) {
-    geo = new THREE.BoxGeometry(ATOM_RADIUS[simbol]*2, ATOM_RADIUS[simbol]*2, ATOM_RADIUS[simbol]*2);
+    geo = new THREE.BoxGeometry(r*2.2, r*2.2, r*2.2);
   } else {
-    geo = new THREE.SphereGeometry(ATOM_RADIUS[simbol] || 0.03, 16, 16);
+    geo = new THREE.SphereGeometry(r, 20, 20);
   }
 
-  // Warna khusus untuk colorblind (Biru vs Oranye)
   let baseColor = ATOM_WARNA[simbol] || 0x888888;
   if (isColorblind) {
-    baseColor = isProduk ? 0x3b82f6 : 0xf59e0b; // Produk Biru, Reaktan Oranye
+    baseColor = isProduk ? 0x3b82f6 : 0xf59e0b;
   }
 
   const mat = new THREE.MeshPhysicalMaterial({ 
     color: baseColor, 
-    roughness: 0.1, 
-    metalness: 0.1,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.1
+    roughness: 0.25, 
+    metalness: 0.15,
+    clearcoat: 0.8,
+    clearcoatRoughness: 0.1,
+    emissive: new THREE.Color(baseColor).multiplyScalar(0.3),
+    emissiveIntensity: 1.0
   });
   return new THREE.Mesh(geo, mat);
 }
@@ -304,32 +304,10 @@ export function buatMolekul(jenis) {
     }
   }
   
+  // Label hanya muncul sekali per grup molekul, tidak di setiap atom
   const label = buatLabelTeks(jenis);
-  label.position.set(0, 0.08, 0);
+  label.position.set(0, 0.1, 0);
   grup.add(label);
-
-  // Add aura based on reactant/product and specific chemical properties
-  const isProduk = ['HI', 'N2O4', 'NH3', 'HCO3'].includes(jenis);
-  let auraColor = isProduk ? 0x3b82f6 : 0xe11d48; // Default: Blue for product, Red for reactant
-  if (jenis === 'I2') auraColor = 0xa78bfa; // Purple
-  if (jenis === 'NO2') auraColor = 0xf59e0b; // Orange/Brown
-  if (['HI', 'H2', 'N2O4'].includes(jenis)) auraColor = 0x94a3b8; // Colorless/White-ish
-  
-  // Custom aura sprite (soft glow)
-  const canvas = document.createElement('canvas');
-  canvas.width = 64; canvas.height = 64;
-  const ctx = canvas.getContext('2d');
-  const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-  gradient.addColorStop(0, 'rgba(255,255,255,1)');
-  gradient.addColorStop(0.2, `rgba(${(auraColor>>16)&255}, ${(auraColor>>8)&255}, ${auraColor&255}, 0.8)`);
-  gradient.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, 64, 64);
-  const auraTex = new THREE.CanvasTexture(canvas);
-  const auraMat = new THREE.SpriteMaterial({ map: auraTex, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
-  const auraSprite = new THREE.Sprite(auraMat);
-  auraSprite.scale.set(0.18, 0.18, 0.18);
-  grup.add(auraSprite);
 
   grup.userData.jenis = jenis; return grup;
 }
@@ -515,10 +493,13 @@ export function buatSceneDasar() {
   shadowPlane.position.y = -0.31; // Just below the flask base
   scene.add(shadowPlane);
 
-  // Pendaran Grid Ring Neon Sian di Dasar Tabung
-  const ringGeo = new THREE.RingGeometry(0.24, 0.26, 32);
-  const ringMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
-  const ring = new THREE.Mesh(ringGeo, ringMat); ring.rotation.x = Math.PI / 2; ring.position.y = -0.32; scene.add(ring);
+  // Indikator kesetimbangan: ring di bawah labu, warna merah=belum seimbang, hijau=seimbang
+  const ringGeo = new THREE.RingGeometry(0.30, 0.34, 64);
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0xef4444, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = Math.PI / 2; ring.position.y = -0.33;
+  ring.userData.isEquilibriumRing = true;
+  scene.add(ring);
 
   // Cairan pelarut dengan bentuk mengikuti labu
   const fluidPoints = [];
@@ -757,26 +738,45 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
 
 export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
   const data = MISI_DATA[misiId]; if (!data || !sesiAR) return false;
-  const sudahTarget = Math.abs(nilaiSekarang - data.nilaiTarget) < 0.01;
+  const toleransi = Math.abs(data.nilaiTarget) * 0.08 || 0.08;
+  const sudahTarget = Math.abs(nilaiSekarang - data.nilaiTarget) <= toleransi;
   
-  // Track for colorblind toggle rebuild
   window._currentMisiId = misiId;
   window._isDekatTarget = sudahTarget;
 
   if (sesiAR.targetTerakhir !== sudahTarget) {
     sesiAR.partikel.isiDariMisi(misiId, sudahTarget);
     sesiAR.targetTerakhir = sudahTarget;
+
+    // Update equilibrium ring color
+    const ring = sesiAR.scene ? sesiAR.scene.children.find(c => c.userData && c.userData.isEquilibriumRing) : null;
+    if (ring) {
+      ring.material.color.setHex(sudahTarget ? 0x22c55e : 0xef4444);
+      ring.material.opacity = sudahTarget ? 1.0 : 0.85;
+      // Pulse animation when equilibrium achieved
+      if (sudahTarget) {
+        const startPulse = performance.now();
+        const pulseLoop = () => {
+          const elapsed = (performance.now() - startPulse) / 1000;
+          if (elapsed > 2.0) { ring.scale.set(1, 1, 1); return; }
+          const pulse = 1.0 + Math.sin(elapsed * Math.PI * 4) * 0.15;
+          ring.scale.set(pulse, 1, pulse);
+          requestAnimationFrame(pulseLoop);
+        };
+        pulseLoop();
+      }
+    }
   }
 
-  // Calculate average color from particles for fluid blending
+  // Hitung warna cairan berdasarkan komposisi partikel
   let r = 0, g = 0, b = 0, count = 0;
   sesiAR.partikel.partikel.forEach(p => {
     const jenis = p.mesh.userData.jenis;
-    let col = new THREE.Color(0x94a3b8); // Default colorless/grey
-    if (jenis === 'I2') col.setHex(0xa78bfa); // Purple
-    else if (jenis === 'NO2') col.setHex(0xf59e0b); // Orange
-    else if (jenis === 'NH3' || jenis === 'HCO3') col.setHex(0x3b82f6); // Blue
-    
+    let col = new THREE.Color(0x94a3b8);
+    if (jenis === 'I2') col.setHex(0xa78bfa);
+    else if (jenis === 'NO2') col.setHex(0xf59e0b);
+    else if (jenis === 'NH3' || jenis === 'HCO3') col.setHex(0x3b82f6);
+    else if (jenis === 'HI') col.setHex(0xfde68a);
     r += col.r; g += col.g; b += col.b; count++;
   });
   
@@ -784,24 +784,24 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
     const fluid = sesiAR.labuGrup ? sesiAR.labuGrup.children.find(c => c.userData && c.userData.uniforms) : null;
     if (fluid) {
       fluid.material.color.setRGB(r/count, g/count, b/count);
-      // Celebration glow when target reached
       if (sudahTarget) {
-        fluid.material.emissive.setRGB((r/count)*0.4, (g/count)*0.4, (b/count)*0.4);
+        fluid.material.emissive.setRGB((r/count)*0.5, (g/count)*0.5, (b/count)*0.5);
+        fluid.material.emissiveIntensity = 1.0;
       } else {
         fluid.material.emissive.setHex(0x000000);
+        fluid.material.emissiveIntensity = 0;
       }
     }
   }
 
   // Dynamic Volume Scaling
   const targetVolume = (nilaiVolume !== undefined) ? nilaiVolume : (data.parameterKunci === 'volume' ? nilaiSekarang : 3.0);
-  const baseScale = 10.0; // Make it MASSIVE just in case WebXR reference space is huge
+  const baseScale = 10.0;
   const scale = Math.max(0.3, targetVolume / 3.0) * baseScale;
-  sesiAR.labu.userData.targetScale = scale; // Saved for spawn animation
+  if (sesiAR.labu) sesiAR.labu.userData.targetScale = scale;
   
-  // If spawn animation has finished (or almost finished), scale immediately
-  if (sesiAR.labu.userData.spawnTime && (performance.now() - sesiAR.labu.userData.spawnTime) > 800) {
-    if(sesiAR.labuGrup) sesiAR.labuGrup.scale.set(scale, scale, scale);
+  if (sesiAR.labu && sesiAR.labu.userData.spawnTime && (performance.now() - sesiAR.labu.userData.spawnTime) > 800) {
+    if (sesiAR.labuGrup) sesiAR.labuGrup.scale.set(scale, scale, scale);
   }
 
   return sudahTarget;
