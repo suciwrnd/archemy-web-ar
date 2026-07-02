@@ -1,6 +1,5 @@
 /* ==========================================================================
-   ARCHEMY WEBAR PAGE — UI + orkestrasi pemanggilan webar.js
-   Import ini di main.js, lalu panggil renderWebARPage(state, container)
+   ARCHEMY WEBAR PAGE — Orkestrasi UI + webar.js
    ========================================================================== */
 
 import {
@@ -23,40 +22,38 @@ let modeARTerdeteksi = null;
 export function renderPilihMisi(container, onPilihMisi) {
   const ikonMisi = { misi1: '🔬', misi2: '🏭', misi3: '🌱', misi4: '🩸' };
   const kartu = Object.entries(MISI_DATA)
-    .map(
-      ([id, misi]) => `
+    .map(([id, misi]) => `
       <button class="misi-card" data-misi="${id}">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-          <span style="font-size:22px;">${ikonMisi[id]||'🧪'}</span>
+          <span style="font-size:22px">${ikonMisi[id]||'🧪'}</span>
           <h3 class="misi-judul">${misi.judul}</h3>
         </div>
         <code class="misi-persamaan">${misi.persamaan}</code>
-        <div style="margin-top:8px;font-size:10px;color:#7c6fd2;display:flex;gap:6px;flex-wrap:wrap;">
-          <span>🎯 Target: ${misi.parameterKunci} = ${misi.nilaiTarget}</span>
+        <div style="margin-top:8px;font-size:10px;color:#7c6fd2;">
+          🎯 Target ${misi.parameterKunci}: ${misi.nilaiTarget}
         </div>
-      </button>`
-    )
+      </button>`)
     .join('');
 
   container.innerHTML = `
     <div class="webar-pilih-misi">
-      <h1 class="page-title">🔬 Lab WebAR</h1>
-      <p class="page-subtitle">Pilih misi simulasi kesetimbangan kimia.</p>
+      <h1 class="page-title">🔬 Lab AR Kimia</h1>
+      <p class="page-subtitle">Pilih misi dan pelajari kesetimbangan kimia secara langsung.</p>
       <div class="misi-grid">${kartu}</div>
-      <div class="webar-legend" style="margin-top:16px;padding:10px;background:rgba(107,54,207,0.06);border-radius:12px;">
+      <div class="webar-legend" style="margin-top:14px;background:rgba(83,74,183,0.06);padding:10px;border-radius:12px;">
         <div class="webar-legend-item"><span class="webar-legend-color reaktan"></span><span>Reaktan</span></div>
         <div class="webar-legend-item"><span class="webar-legend-color produk"></span><span>Produk</span></div>
-        <span style="font-size:10px;color:#9d9bc4;margin-left:auto;">Ring merah=belum seimbang, hijau=seimbang</span>
+        <span style="font-size:10px;color:#9d9bc4;margin-left:auto;">Ring merah → belum setimbang • hijau → setimbang</span>
       </div>
     </div>`;
 
-  container.querySelectorAll('.misi-card').forEach((btn) => {
-    btn.addEventListener('click', () => onPilihMisi(btn.dataset.misi));
-  });
+  container.querySelectorAll('.misi-card').forEach(btn =>
+    btn.addEventListener('click', () => onPilihMisi(btn.dataset.misi))
+  );
 }
 
 /* --------------------------------------------------------------------------
-   HALAMAN KAMERA AR — entry point hybrid
+   HALAMAN KAMERA AR
    -------------------------------------------------------------------------- */
 export async function renderHalamanAR(container, misiId, onKeluar) {
   const misi = MISI_DATA[misiId];
@@ -67,257 +64,230 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   container.innerHTML = `
     <div class="webar-stage">
 
-      <!-- HUD Atas Super Compact -->
+      <!-- HUD Atas tipis -->
       <div class="webar-hud-top" id="webarHudTop">
         <button class="webar-hud-back" id="webarKeluar">← Kembali</button>
         <div class="webar-hud-center">
           <span class="webar-misi-label">${misi.judul}</span>
           <code class="webar-eq-label">${misi.persamaan}</code>
         </div>
-        <button class="webar-colorblind-btn" id="webarColorblindBtn">👁️</button>
+        <button class="webar-colorblind-btn" id="webarColorblindBtn" title="Mode buta warna">👁️</button>
       </div>
 
-      <!-- Viewport Kamera (area terbesar) -->
+      <!-- Viewport bersih — TIDAK ada kotak teks di sini -->
       <div class="webar-viewport">
         <video id="webarVideo" playsinline muted style="display:none"></video>
         <canvas id="webarCanvas"></canvas>
 
-        <!-- Status bar kecil -->
-        <div class="webar-status" id="webarStatus">Memeriksa kemampuan perangkat…</div>
-
         <!-- Scan Overlay -->
         <div class="webar-scan-overlay" id="webarScanOverlay">
           <div class="scan-phone-icon"></div>
-          <div class="webar-scan-title">Pindai Bidang Datar</div>
-          <div class="webar-scan-desc">Arahkan kamera ke meja/lantai hingga ring muncul, lalu <b>KETUK</b> layar.</div>
+          <div class="webar-scan-title">Pindai Permukaan</div>
+          <div class="webar-scan-desc">Arahkan kamera ke meja atau lantai, lalu <b>KETUK</b> untuk meletakkan labu.</div>
         </div>
 
-        <!-- Tap hint -->
+        <!-- Status — fade out setelah 3 detik -->
+        <div class="webar-status" id="webarStatus">Memeriksa kamera…</div>
+
+        <!-- Tap hint — muncul setelah scan -->
         <div class="webar-tap-hint" id="webarTapHint" style="display:none">
-          👆 Ketuk permukaan untuk memunculkan labu
+          👆 Ketuk untuk meletakkan labu
         </div>
 
-        <!-- Indikator kesetimbangan -->
-        <div class="webar-eq-indicator" id="webarEqIndicator" style="display:none">
+        <!-- Badge kesetimbangan — pojok kanan atas, sangat kecil -->
+        <div class="webar-eq-badge" id="webarEqBadge">
           <div class="eq-dot" id="eqDot"></div>
           <span id="eqText">Belum Setimbang</span>
         </div>
-
-        <!-- Overlay info molekul: selalu tampil saat labu sudah ditempatkan -->
-        <div class="webar-mol-overlay" id="webarMolOverlay" style="display:none">
-          <div class="mol-row" id="molReaktan"></div>
-          <div class="mol-arrow" id="molArrow">⇌</div>
-          <div class="mol-row" id="molProduk"></div>
-        </div>
-
-        <!-- Story box mengambang di bawah viewport -->
-        <div class="webar-story-overlay">
-          <div class="webar-story-box" id="webarStoryBox">
-            <span class="story-avatar">🤖</span>
-            <span class="story-text" id="webarStoryText">Memuat...</span>
-            <button class="story-toggle" id="webarStoryToggle">▼</button>
-          </div>
-        </div>
       </div>
 
-      <!-- Panel Kontrol Bawah -->
+      <!-- Panel Kontrol Bawah — semua teks & info di sini -->
       <div class="webar-controls" id="webarControls"></div>
     </div>`;
 
-  const statusEl = container.querySelector('#webarStatus');
-  const canvas = container.querySelector('#webarCanvas');
-  const videoEl = container.querySelector('#webarVideo');
-  const tapHint = container.querySelector('#webarTapHint');
-  const controlsEl = container.querySelector('#webarControls');
+  const statusEl    = container.querySelector('#webarStatus');
+  const canvas      = container.querySelector('#webarCanvas');
+  const videoEl     = container.querySelector('#webarVideo');
+  const tapHint     = container.querySelector('#webarTapHint');
+  const controlsEl  = container.querySelector('#webarControls');
   const scanOverlay = container.querySelector('#webarScanOverlay');
-  const hudTop = container.querySelector('#webarHudTop');
-  const colorblindBtn = container.querySelector('#webarColorblindBtn');
-  const storyToggleBtn = container.querySelector('#webarStoryToggle');
-  const storyBox = container.querySelector('#webarStoryBox');
-  const eqIndicator = container.querySelector('#webarEqIndicator');
-  const eqDot = container.querySelector('#eqDot');
-  const eqText = container.querySelector('#eqText');
-  const molOverlay = container.querySelector('#webarMolOverlay');
-  const molReaktanEl = container.querySelector('#molReaktan');
-  const molProdukEl = container.querySelector('#molProduk');
-  const molArrowEl = container.querySelector('#molArrow');
+  const hudTop      = container.querySelector('#webarHudTop');
+  const eqBadge     = container.querySelector('#webarEqBadge');
+  const eqDot       = container.querySelector('#eqDot');
+  const eqText      = container.querySelector('#eqText');
 
-  // Cerita toggle
-  storyToggleBtn.addEventListener('click', () => {
-    storyBox.classList.toggle('minimized');
-    storyToggleBtn.textContent = storyBox.classList.contains('minimized') ? '▲' : '▼';
-  });
-
-  // Keluar
   container.querySelector('#webarKeluar').addEventListener('click', () => {
     document.body.classList.remove('colorblind-mode');
     hentikanSesiAR();
     onKeluar();
   });
 
-  // Colorblind toggle
-  colorblindBtn.addEventListener('click', () => {
+  container.querySelector('#webarColorblindBtn').addEventListener('click', () => {
     document.body.classList.toggle('colorblind-mode');
-    if (window._toggleColorblindMode) window._toggleColorblindMode(document.body.classList.contains('colorblind-mode'));
+    if (window._toggleColorblindMode)
+      window._toggleColorblindMode(document.body.classList.contains('colorblind-mode'));
   });
 
   modeARTerdeteksi = await deteksiModeAR();
-
   if (modeARTerdeteksi === 'unsupported') {
-    statusEl.textContent = 'Perangkat tidak mendukung kamera. Coba di HP dengan kamera belakang.';
+    statusEl.textContent = 'Perangkat tidak mendukung kamera. Coba di HP.';
     return;
   }
 
   resizeCanvasKeViewport(canvas);
 
   const getSpeedFactor = () => {
-    const slider = document.getElementById('slider-suhu');
-    if (!slider) return 1;
-    return Number(slider.value) / 40;
+    const s = document.getElementById('slider-suhu');
+    return s ? Number(s.value) / 40 : 1;
   };
 
   sensorData.spillCallback = () => {
-    const storyText = document.getElementById('webarStoryText');
-    if (storyText) {
-      storyText.innerHTML = `<span style="color:#f87171"><b>Waduh, labunya tumpah!</b> Berdirikan kembali ponsel Anda untuk mereset reaksi.</span>`;
-    }
+    const t = document.getElementById('panelStoryText');
+    if (t) t.innerHTML = `<span style="color:#f87171"><b>Waduh, labunya tumpah!</b> Tegakkan kembali ponsel untuk mereset.</span>`;
     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
   };
-
   sensorData.unspillCallback = () => {
-    const storyText = document.getElementById('webarStoryText');
-    const misiData = MISI_DATA[misiId];
-    if (storyText) storyText.textContent = misiData.ceritaAwal;
+    const t = document.getElementById('panelStoryText');
+    const m = MISI_DATA[misiId];
+    if (t) t.textContent = m.ceritaAwal;
     if (sesiARAktif) {
-      const valVolume = Number(document.querySelector('#slider-volume')?.value || 3.0);
-      const valKunci = Number(document.querySelector('#slider-' + misiData.parameterKunci)?.value || misiData.nilaiTarget);
-      perbaruiVisualMisi(sesiARAktif, misiId, valKunci, valVolume);
+      const vol = Number(document.querySelector('#slider-volume')?.value || 3.0);
+      const val = Number(document.querySelector('#slider-' + m.parameterKunci)?.value || m.nilaiTarget);
+      perbaruiVisualMisi(sesiARAktif, misiId, val, vol);
     }
   };
 
-  // Callback saat labu berhasil ditempatkan
   const onLabuDitempatkan = () => {
     tapHint.style.display = 'none';
     scanOverlay.style.display = 'none';
-    if (eqIndicator) eqIndicator.style.display = 'flex';
-    if (molOverlay) molOverlay.style.display = 'flex';
-    // Render info awal molekul
-    updateMolOverlay(misiId, false, molReaktanEl, molProdukEl, molArrowEl);
+    eqBadge.style.display = 'flex';
   };
 
   try {
     if (modeARTerdeteksi === 'webxr') {
-      statusEl.textContent = 'AR aktif — arahkan ke permukaan datar, lalu ketuk.';
+      statusEl.textContent = 'AR aktif — arahkan ke permukaan datar.';
       tapHint.style.display = 'block';
       scanOverlay.style.display = 'none';
       sesiARAktif = await mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, getSpeedFactor);
     } else {
-      statusEl.textContent = 'Kamera aktif (mode simulasi).';
+      statusEl.textContent = 'Mode kamera aktif.';
       videoEl.style.display = 'block';
-      const scanDesc = scanOverlay.querySelector('.webar-scan-desc');
-      if (scanDesc) scanDesc.innerHTML = `Mendeteksi permukaan... Mohon tunggu.`;
+      const desc = scanOverlay.querySelector('.webar-scan-desc');
       setTimeout(() => {
-        if (scanDesc) scanDesc.innerHTML = `Ring biru muncul! <br><b>KETUK</b> layar untuk meletakkan labu.`;
+        if (desc && !sesiARAktif?.sudahDitempatkan)
+          desc.innerHTML = `Permukaan terdeteksi! <b>KETUK</b> layar untuk meletakkan labu.`;
       }, 2500);
       sesiARAktif = await mulaiSesiARjs(canvas, videoEl, misiId, getSpeedFactor, onLabuDitempatkan);
     }
-    setTimeout(() => { if (statusEl) statusEl.style.opacity = '0'; }, 2500);
+    setTimeout(() => { if (statusEl) statusEl.style.opacity = '0'; }, 3000);
   } catch (err) {
-    statusEl.textContent = 'Gagal mengakses kamera. Periksa izin kamera pada browser.';
-    console.error('[ARChemy WebAR]', err);
+    statusEl.textContent = 'Gagal akses kamera. Periksa izin browser.';
+    console.error('[ARChemy]', err);
     return;
   }
 
-  renderKontrolMisi(controlsEl, misiId, hudTop, eqDot, eqText, molReaktanEl, molProdukEl, molArrowEl);
+  renderPanelKontrol(controlsEl, misiId, hudTop, eqBadge, eqDot, eqText);
 }
 
 function resizeCanvasKeViewport(canvas) {
   const rect = canvas.parentElement.getBoundingClientRect();
-  canvas.width = rect.width || window.innerWidth;
+  canvas.width  = rect.width  || window.innerWidth;
   canvas.height = rect.height || window.innerHeight;
 }
 
 /* --------------------------------------------------------------------------
-   UPDATE OVERLAY MOLEKUL 2D
+   PANEL KONTROL — semua info edukatif & slider di sini
    -------------------------------------------------------------------------- */
-function updateMolOverlay(misiId, dekatTarget, reaktanEl, produkEl, arrowEl) {
-  if (!reaktanEl || !produkEl) return;
-  const data = MISI_DATA[misiId]; if (!data) return;
-  const set = dekatTarget ? data.partikel.dekatTarget : data.partikel.jauhTarget;
-  // Pisahkan reaktan dan produk
-  const produkJenis = { HI: true, N2O4: true, NH3: true, HCO3: true };
-  const reaktan = set.filter(s => !produkJenis[s.jenis]);
-  const produk = set.filter(s => produkJenis[s.jenis]);
-  const renderPill = (arr) => arr.map(s =>
-    `<span class="mol-pill">${s.jenis}<sub style="font-size:9px">${s.jumlah}</sub></span>`
-  ).join('');
-  reaktanEl.innerHTML = renderPill(reaktan);
-  produkEl.innerHTML = renderPill(produk);
-  if (arrowEl) arrowEl.className = 'mol-arrow' + (dekatTarget ? ' seimbang' : '');
-}
-
-/* --------------------------------------------------------------------------
-   KONTROL SLIDER PARAMETER MISI
-   -------------------------------------------------------------------------- */
-function renderKontrolMisi(container, misiId, hudTop, eqDot, eqText, molReaktanEl, molProdukEl, molArrowEl) {
+function renderPanelKontrol(container, misiId, hudTop, eqBadge, eqDot, eqText) {
   const misi = MISI_DATA[misiId];
   const indikators = [
-    { id: 'suhu',         icon: '🌡️', label: 'Suhu' },
-    { id: 'volume',       icon: '📦', label: 'Volume' },
-    { id: 'tekanan',      icon: '🗜️', label: 'Tekanan' },
-    { id: 'konsentrasi',  icon: '🧪', label: 'Konsentrasi' }
+    { id: 'suhu',        icon: '🌡️', label: 'Suhu' },
+    { id: 'volume',      icon: '📦', label: 'Volume' },
+    { id: 'tekanan',     icon: '🗜️', label: 'Tekanan' },
+    { id: 'konsentrasi', icon: '🧪', label: 'Konsentrasi' }
   ];
+  const kunci    = indikators.find(i => i.id === misi.parameterKunci);
+  const lainnya  = indikators.filter(i => i.id !== misi.parameterKunci);
+  const kRentang = misi.rentang[kunci.id];
 
-  // Cari parameter kunci untuk ditampilkan pertama
-  const kunciIdx = indikators.findIndex(i => i.id === misi.parameterKunci);
-  const kunciInd = indikators[kunciIdx];
-  const kunciRentang = misi.rentang[kunciInd.id];
+  // Molekul reaktan & produk untuk ditampilkan
+  const produkJenis = new Set(['HI', 'N2O4', 'NH3', 'HCO3']);
+  const buildMolRow = (dekat) => {
+    const set = dekat ? misi.partikel.dekatTarget : misi.partikel.jauhTarget;
+    return set.map(s => {
+      const cls = produkJenis.has(s.jenis) ? 'produk' : 'reaktan';
+      return `<span class="mol-pill ${cls}">${s.jenis}<sub style="font-size:9px">${s.jumlah}×</sub></span>`;
+    }).join('');
+  };
 
-  // Susun: parameter kunci di atas, tab untuk yang lain
-  let html = `
-    <!-- Parameter Kunci: selalu tampil -->
-    <div class="webar-key-param">
-      <span class="webar-key-label">${kunciInd.icon} ${kunciInd.label}</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="webar-key-value" id="val-key-${kunciInd.id}">${kunciRentang[3].toFixed(kunciRentang[2] < 1 ? 1 : 0)} ${kunciRentang[4]}</span>
-        <span class="webar-target-badge">🎯 ${misi.nilaiTarget} ${kunciRentang[4]}</span>
-      </div>
+  container.innerHTML = `
+    <!-- Cerita edukatif -->
+    <div class="webar-story-panel" id="panelStoryWrap">
+      <span class="story-avatar">🤖</span>
+      <span class="story-text" id="panelStoryText">${misi.ceritaAwal}</span>
+      <button class="story-toggle" id="panelStoryToggle">▼</button>
     </div>
-    <input type="range" id="slider-${kunciInd.id}" min="${kunciRentang[0]}" max="${kunciRentang[1]}" step="${kunciRentang[2]}" value="${kunciRentang[3]}" style="width:100%;accent-color:#7f77dd;margin-bottom:10px;">
 
-    <!-- Legenda -->
-    <div class="webar-legend" style="margin-bottom:10px;">
+    <!-- Molekul info: reaktan ⇌ produk -->
+    <div class="webar-mol-info" id="panelMolInfo">
+      <div id="molReaktan">${buildMolRow(false)}</div>
+      <span class="mol-arrow-txt" id="molArrowTxt">⇌</span>
+      <div id="molProduk"></div>
+    </div>
+
+    <!-- Parameter kunci -->
+    <div class="webar-key-section">
+      <div class="webar-key-header">
+        <span class="webar-key-label">${kunci.icon} ${kunci.label} <span class="webar-target-badge">🎯 ${misi.nilaiTarget} ${kRentang[4]}</span></span>
+        <span class="webar-key-value" id="valKunci">${kRentang[3].toFixed(kRentang[2]<1?1:0)} ${kRentang[4]}</span>
+      </div>
+      <div class="webar-progress-wrap"><div class="webar-progress-bar" id="progressBar"></div></div>
+      <input type="range" id="slider-${kunci.id}"
+        min="${kRentang[0]}" max="${kRentang[1]}" step="${kRentang[2]}" value="${kRentang[3]}">
+    </div>
+
+    <!-- Legenda warna -->
+    <div class="webar-legend">
       <div class="webar-legend-item"><span class="webar-legend-color reaktan"></span><span>Reaktan</span></div>
       <div class="webar-legend-item"><span class="webar-legend-color produk"></span><span>Produk</span></div>
     </div>
 
-    <!-- Tab untuk parameter lain -->
-    <div class="webar-tabs" id="webarTabs">`;
-  indikators.filter(i => i.id !== misi.parameterKunci).forEach((ind, i) => {
-    html += `<button class="webar-tab-btn ${i===0?'active':''}" data-tab="${ind.id}">${ind.icon} ${ind.label}</button>`;
+    <!-- Parameter lainnya (tab) -->
+    <div class="webar-tabs-section">
+      <div class="webar-tabs">
+        ${lainnya.map((ind,i) => `<button class="webar-tab-btn ${i===0?'active':''}" data-tab="${ind.id}">${ind.icon} ${ind.label}</button>`).join('')}
+      </div>
+      <div class="webar-sliders-container">
+        ${lainnya.map((ind,i) => {
+          const r = misi.rentang[ind.id];
+          return `<div class="webar-slider-panel ${i===0?'active':''}" id="panel-${ind.id}">
+            <div class="control-head"><b>${ind.label}</b><span id="val-${ind.id}">${r[3].toFixed(r[2]<1?1:0)} ${r[4]}</span></div>
+            <input type="range" id="slider-${ind.id}" min="${r[0]}" max="${r[1]}" step="${r[2]}" value="${r[3]}">
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+  // Refs
+  const storyText   = container.querySelector('#panelStoryText');
+  const storyToggle = container.querySelector('#panelStoryToggle');
+  const storyWrap   = container.querySelector('#panelStoryWrap');
+  const molArrow    = container.querySelector('#molArrowTxt');
+  const molProdukEl = container.querySelector('#molProduk');
+  const molRekEl    = container.querySelector('#molReaktan');
+  const progressBar = container.querySelector('#progressBar');
+  const valKunciEl  = container.querySelector('#valKunci');
+
+  // Toggle story
+  storyToggle.addEventListener('click', () => {
+    const collapsed = storyWrap.classList.toggle('collapsed');
+    storyText.style.display = collapsed ? 'none' : '';
+    storyToggle.textContent = collapsed ? '▲' : '▼';
   });
-  html += `</div><div class="webar-sliders-container">`;
-  indikators.filter(i => i.id !== misi.parameterKunci).forEach((ind, i) => {
-    const rentang = misi.rentang[ind.id];
-    html += `
-      <div class="webar-slider-panel ${i===0?'active':''}" id="panel-${ind.id}">
-        <div class="control-head">
-          <b>${ind.label}</b>
-          <span id="val-${ind.id}">${rentang[3].toFixed(rentang[2] < 1 ? 1 : 0)} ${rentang[4]}</span>
-        </div>
-        <input type="range" id="slider-${ind.id}" min="${rentang[0]}" max="${rentang[1]}" step="${rentang[2]}" value="${rentang[3]}">
-      </div>`;
-  });
-  html += `</div>`;
 
-  container.innerHTML = html;
-
-  const storyText = document.getElementById('webarStoryText');
-  if (storyText) storyText.textContent = misi.ceritaAwal;
-
-  // Tab switching (parameter non-kunci)
+  // Tab switching (parameter lain)
   const tabBtns = container.querySelectorAll('.webar-tab-btn');
-  const panels = container.querySelectorAll('.webar-slider-panel');
+  const panels  = container.querySelectorAll('.webar-slider-panel');
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       tabBtns.forEach(b => b.classList.remove('active'));
@@ -327,64 +297,74 @@ function renderKontrolMisi(container, misiId, hudTop, eqDot, eqText, molReaktanE
     });
   });
 
-  // Helper untuk update visual
-  const doUpdate = () => {
-    const valVolume = Number(container.querySelector('#slider-volume')?.value || 3.0);
-    const valKunci = Number(container.querySelector('#slider-' + misi.parameterKunci).value);
-    const tercapai = perbaruiVisualMisi(sesiARAktif, misiId, valKunci, valVolume);
+  // Helper hitung progress menuju target
+  const hitungProgress = (val) => {
+    const range  = kRentang[1] - kRentang[0];
+    const target = misi.nilaiTarget;
+    const dist   = Math.abs(val - target) / range;
+    return Math.max(0, Math.min(100, (1 - dist) * 100));
+  };
 
-    // Update overlay molekul 2D
-    updateMolOverlay(misiId, tercapai, molReaktanEl, molProdukEl, molArrowEl);
-
-    // Update indikator kesetimbangan di viewport
-    if (eqDot && eqText) {
-      if (tercapai) {
-        eqDot.classList.add('seimbang');
-        eqText.textContent = '⚖️ Setimbang!';
-      } else {
-        eqDot.classList.remove('seimbang');
-        eqText.textContent = 'Belum Setimbang';
-      }
+  // Helper update semua visual
+  const doUpdate = (tercapai, val) => {
+    // Badge kesetimbangan
+    if (eqDot && eqText && eqBadge) {
+      eqDot.className = 'eq-dot' + (tercapai ? ' seimbang' : '');
+      eqBadge.className = 'webar-eq-badge' + (tercapai ? ' seimbang' : '');
+      eqText.textContent = tercapai ? '⚖️ Setimbang!' : 'Belum Setimbang';
     }
-
-    return tercapai;
+    // Progress bar
+    if (progressBar) progressBar.style.width = hitungProgress(val) + '%';
+    // Mol overlay
+    const set = tercapai ? misi.partikel.dekatTarget : misi.partikel.jauhTarget;
+    if (molRekEl) molRekEl.innerHTML = set.filter(s => !produkJenis.has(s.jenis))
+      .map(s => `<span class="mol-pill reaktan">${s.jenis}<sub style="font-size:9px">${s.jumlah}×</sub></span>`).join('');
+    if (molProdukEl) molProdukEl.innerHTML = set.filter(s => produkJenis.has(s.jenis))
+      .map(s => `<span class="mol-pill produk">${s.jenis}<sub style="font-size:9px">${s.jumlah}×</sub></span>`).join('');
+    if (molArrow) molArrow.className = 'mol-arrow-txt' + (tercapai ? ' seimbang' : '');
+    // HUD sukses
+    if (hudTop) hudTop.classList.toggle('sukses', tercapai);
+    // Cerita
+    if (storyText) {
+      storyText.textContent = tercapai ? misi.ceritaSukses
+        : `Atur ${kunci.label} menuju 🎯 ${misi.nilaiTarget} ${kRentang[4]}`;
+    }
   };
 
   // Slider parameter kunci
-  const kunciSlider = container.querySelector('#slider-' + kunciInd.id);
-  const kunciValEl = container.querySelector('#val-key-' + kunciInd.id);
-  kunciSlider.addEventListener('input', () => {
-    const nilai = Number(kunciSlider.value);
-    kunciValEl.textContent = `${nilai.toFixed(kunciRentang[2] < 1 ? 1 : 0)} ${kunciRentang[4]}`;
-    const tercapai = doUpdate();
-    if (storyText) {
-      storyText.textContent = tercapai ? misi.ceritaSukses : `Atur ${kunciInd.label} → 🎯 ${misi.nilaiTarget} ${kunciRentang[4]}`;
-    }
-    if (hudTop) hudTop.classList.toggle('sukses', tercapai);
+  const kSlider = container.querySelector('#slider-' + kunci.id);
+  kSlider.addEventListener('input', () => {
+    const val = Number(kSlider.value);
+    if (valKunciEl) valKunciEl.textContent = `${val.toFixed(kRentang[2]<1?1:0)} ${kRentang[4]}`;
+    const vol  = Number(container.querySelector('#slider-volume')?.value || 3.0);
+    const terc = perbaruiVisualMisi(sesiARAktif, misiId, val, vol);
+    doUpdate(terc, val);
   });
 
   // Slider parameter lainnya
-  indikators.filter(i => i.id !== misi.parameterKunci).forEach(ind => {
-    const slider = container.querySelector('#slider-' + ind.id);
-    const valEl = container.querySelector('#val-' + ind.id);
-    const rentang = misi.rentang[ind.id];
-    slider.addEventListener('input', () => {
-      const nilai = Number(slider.value);
-      valEl.textContent = `${nilai.toFixed(rentang[2] < 1 ? 1 : 0)} ${rentang[4]}`;
-      doUpdate();
-      if (storyText) {
-        storyText.textContent = `Mengubah ${ind.label} tidak berpengaruh pada misi ini. Fokus pada ${labelParameter(misi.parameterKunci)}!`;
-      }
+  lainnya.forEach(ind => {
+    const sl  = container.querySelector('#slider-' + ind.id);
+    const vel = container.querySelector('#val-' + ind.id);
+    const r   = misi.rentang[ind.id];
+    sl.addEventListener('input', () => {
+      const val = Number(sl.value);
+      if (vel) vel.textContent = `${val.toFixed(r[2]<1?1:0)} ${r[4]}`;
+      const vol  = Number(container.querySelector('#slider-volume').value);
+      const valK = Number(container.querySelector('#slider-' + misi.parameterKunci).value);
+      perbaruiVisualMisi(sesiARAktif, misiId, valK, vol);
+      // Feedback: parameter ini tidak berpengaruh
+      if (storyText && ind.id !== misi.parameterKunci)
+        storyText.textContent = `💡 Mengubah ${ind.label} tidak berpengaruh di misi ini. Fokus pada ${kunci.label}!`;
     });
   });
 
-  // Init visual
-  if (sesiARAktif) doUpdate();
-}
-
-function labelParameter(kunci) {
-  const peta = { suhu: 'Suhu', volume: 'Volume', tekanan: 'Tekanan', konsentrasi: 'Konsentrasi' };
-  return peta[kunci] || kunci;
+  // Init state
+  if (sesiARAktif) {
+    const vol  = Number(container.querySelector('#slider-volume').value);
+    const valK = Number(kSlider.value);
+    const terc = perbaruiVisualMisi(sesiARAktif, misiId, valK, vol);
+    doUpdate(terc, valK);
+  }
 }
 
 /* --------------------------------------------------------------------------
