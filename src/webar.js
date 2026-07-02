@@ -173,16 +173,16 @@ export function buatGeometryErlenmeyer() {
 
 export function buatMaterialKaca() {
   return new THREE.MeshPhysicalMaterial({
-    color: 0xbfdbfe,
+    color: 0xc7e3fa,     // biru muda terang
     metalness: 0.0,
-    roughness: 0.05,
-    transmission: 0.95,
-    ior: 1.4,
-    thickness: 0.05,
+    roughness: 0.08,
+    transmission: 0.55,  // sebagian besar tembus, masih ada bentuk labu
+    ior: 1.45,
+    thickness: 0.1,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.1,
+    clearcoatRoughness: 0.05,
     transparent: true,
-    opacity: 0.18,
+    opacity: 0.38,       // cukup opak agar labu terlihat, tapi molekul tetap keliatan
     side: THREE.DoubleSide,
     depthWrite: false
   });
@@ -193,11 +193,11 @@ function buatAtom(simbol, jenisMol) {
   const isProduk = ['NH3', 'HI', 'N2O4', 'HCO3'].includes(jenisMol);
   
   let geo;
-  const r = ATOM_RADIUS[simbol] || 0.04;
+  const r = ATOM_RADIUS[simbol] || 0.055;
   if (isColorblind && isProduk) {
     geo = new THREE.BoxGeometry(r*2.2, r*2.2, r*2.2);
   } else {
-    geo = new THREE.SphereGeometry(r, 20, 20);
+    geo = new THREE.SphereGeometry(r, 24, 24);
   }
 
   let baseColor = ATOM_WARNA[simbol] || 0x888888;
@@ -205,14 +205,13 @@ function buatAtom(simbol, jenisMol) {
     baseColor = isProduk ? 0x3b82f6 : 0xf59e0b;
   }
 
-  const mat = new THREE.MeshPhysicalMaterial({ 
+  const col = new THREE.Color(baseColor);
+  const mat = new THREE.MeshStandardMaterial({ 
     color: baseColor, 
-    roughness: 0.25, 
-    metalness: 0.15,
-    clearcoat: 0.8,
-    clearcoatRoughness: 0.1,
-    emissive: new THREE.Color(baseColor).multiplyScalar(0.3),
-    emissiveIntensity: 1.0
+    roughness: 0.2, 
+    metalness: 0.1,
+    emissive: col,
+    emissiveIntensity: 0.7   // atom bersinar kuat dari dalam labu
   });
   return new THREE.Mesh(geo, mat);
 }
@@ -805,9 +804,9 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
     }
   }
 
-  // Dynamic Volume Scaling — baseScale 2.5 agar labu cukup besar & molekul terlihat
+  // Dynamic Volume Scaling — baseScale 5.0: labu besar & jelas, molekul terlihat
   const targetVolume = (nilaiVolume !== undefined) ? nilaiVolume : (data.parameterKunci === 'volume' ? nilaiSekarang : 3.0);
-  const baseScale = 2.5;
+  const baseScale = 5.0;
   const scale = Math.max(0.5, targetVolume / 3.0) * baseScale;
   if (sesiAR.labu) sesiAR.labu.userData.targetScale = scale;
   
