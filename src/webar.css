@@ -101,6 +101,50 @@ body.colorblind-mode .webar-colorblind-btn {
   object-fit: cover;
 }
 
+/* ---- Overlay Molekul 2D (muncul saat labu ditempatkan) ---- */
+.webar-mol-overlay {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 28;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+  animation: slideIn 0.4s ease-out;
+}
+.mol-row {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.mol-pill {
+  background: rgba(15, 10, 30, 0.82);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(127, 119, 221, 0.5);
+  backdrop-filter: blur(4px);
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
+.mol-row:first-child .mol-pill { border-color: rgba(239, 68, 68, 0.5); color: #fca5a5; }
+.mol-row:last-child .mol-pill { border-color: rgba(59, 130, 246, 0.5); color: #93c5fd; }
+.mol-arrow {
+  font-size: 18px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1;
+  transition: color 0.4s ease;
+}
+.mol-arrow.seimbang { color: #4ade80; }
+
+
+
 /* Status bar kecil di tengah atas viewport */
 .webar-status {
   position: absolute;

@@ -129,8 +129,8 @@ export const MISI_DATA = {
   }
 };
 
-const ATOM_WARNA = { H: 0xe0e8ff, I: 0xc084fc, N: 0x60a5fa, O: 0xf87171, C: 0xfbbf24 };
-const ATOM_RADIUS = { H: 0.038, I: 0.062, N: 0.052, O: 0.045, C: 0.055 };
+const ATOM_WARNA = { H: 0xdbeafe, I: 0xd946ef, N: 0x3b82f6, O: 0xef4444, C: 0xfbbf24 };
+const ATOM_RADIUS = { H: 0.055, I: 0.09, N: 0.075, O: 0.065, C: 0.08 };
 
 export async function deteksiModeAR() {
   if (navigator.xr) {
@@ -173,16 +173,16 @@ export function buatGeometryErlenmeyer() {
 
 export function buatMaterialKaca() {
   return new THREE.MeshPhysicalMaterial({
-    color: 0xd6eaf8,
-    metalness: 0.05,
-    roughness: 0.1,
-    transmission: 0.6,
-    ior: 1.45,
-    thickness: 0.15,
+    color: 0xbfdbfe,
+    metalness: 0.0,
+    roughness: 0.05,
+    transmission: 0.95,
+    ior: 1.4,
+    thickness: 0.05,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.08,
+    clearcoatRoughness: 0.1,
     transparent: true,
-    opacity: 0.55,
+    opacity: 0.18,
     side: THREE.DoubleSide,
     depthWrite: false
   });
@@ -245,18 +245,21 @@ const RESEP_MOLEKUL = {
 };
 function buatLabelTeks(text) {
   const canvas = document.createElement('canvas');
-  canvas.width = 128; canvas.height = 64;
+  canvas.width = 180; canvas.height = 80;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'rgba(0,0,0,0)'; ctx.fillRect(0,0,128,64);
-  ctx.fillStyle = 'white';
-  ctx.font = 'bold 32px sans-serif';
+  ctx.clearRect(0, 0, 180, 80);
+  // Background pill
+  ctx.fillStyle = 'rgba(15, 10, 30, 0.75)';
+  ctx.beginPath(); ctx.roundRect(4, 12, 172, 56, 20); ctx.fill();
+  // Text
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 38px sans-serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.shadowColor = 'black'; ctx.shadowBlur = 4;
-  ctx.fillText(text, 64, 32);
+  ctx.fillText(text, 90, 40);
   const tex = new THREE.CanvasTexture(canvas);
   const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
   const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(0.12, 0.06, 1);
+  sprite.scale.set(0.22, 0.1, 1);
   return sprite;
 }
 
@@ -320,19 +323,23 @@ export class SistemPartikel {
   isiDariMisi(misiId, dekatTarget) {
     this.bersihkan(); const data = MISI_DATA[misiId]; if (!data) return;
     const set = dekatTarget ? data.partikel.dekatTarget : data.partikel.jauhTarget;
+    // Batasi maks 2 per jenis agar tidak penuh & tetap terlihat jelas
     set.forEach(({ jenis, jumlah }) => {
-      for (let i = 0; i < jumlah; i++) this._tambah(jenis);
+      const batas = Math.min(jumlah, 2);
+      for (let i = 0; i < batas; i++) this._tambah(jenis);
     });
   }
   _tambah(jenis) {
     const mol = buatMolekul(jenis); const sudut = Math.random() * Math.PI * 2;
-    const r = Math.random() * 0.12; const tinggi = -0.2 + Math.random() * 0.4;
+    // Posisi lebih ke tengah dan lebih jauh dari dinding agar jelas
+    const r = Math.random() * 0.09;
+    const tinggi = -0.18 + Math.random() * 0.32;
     mol.position.set(Math.cos(sudut) * r, tinggi, Math.sin(sudut) * r);
     this.grup.add(mol);
     this.partikel.push({
       mesh: mol,
-      kecepatan: new THREE.Vector3((Math.random()-0.5)*0.003, (Math.random()-0.5)*0.003, (Math.random()-0.5)*0.003),
-      rotasiKecepatan: (Math.random() - 0.5) * 0.03
+      kecepatan: new THREE.Vector3((Math.random()-0.5)*0.002, (Math.random()-0.5)*0.002, (Math.random()-0.5)*0.002),
+      rotasiKecepatan: (Math.random() - 0.5) * 0.025
     });
   }
   _radiusPadaTinggi(y) {
@@ -798,10 +805,10 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
     }
   }
 
-  // Dynamic Volume Scaling — baseScale 1.0 agar labu tidak raksasa di layar
+  // Dynamic Volume Scaling — baseScale 2.5 agar labu cukup besar & molekul terlihat
   const targetVolume = (nilaiVolume !== undefined) ? nilaiVolume : (data.parameterKunci === 'volume' ? nilaiSekarang : 3.0);
-  const baseScale = 1.0;
-  const scale = Math.max(0.3, targetVolume / 3.0) * baseScale;
+  const baseScale = 2.5;
+  const scale = Math.max(0.5, targetVolume / 3.0) * baseScale;
   if (sesiAR.labu) sesiAR.labu.userData.targetScale = scale;
   
   if (sesiAR.labu && sesiAR.labu.userData.spawnTime && (performance.now() - sesiAR.labu.userData.spawnTime) > 800) {

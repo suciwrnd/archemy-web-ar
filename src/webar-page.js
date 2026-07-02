@@ -103,6 +103,13 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
           <span id="eqText">Belum Setimbang</span>
         </div>
 
+        <!-- Overlay info molekul: selalu tampil saat labu sudah ditempatkan -->
+        <div class="webar-mol-overlay" id="webarMolOverlay" style="display:none">
+          <div class="mol-row" id="molReaktan"></div>
+          <div class="mol-arrow" id="molArrow">⇌</div>
+          <div class="mol-row" id="molProduk"></div>
+        </div>
+
         <!-- Story box mengambang di bawah viewport -->
         <div class="webar-story-overlay">
           <div class="webar-story-box" id="webarStoryBox">
@@ -130,6 +137,10 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   const eqIndicator = container.querySelector('#webarEqIndicator');
   const eqDot = container.querySelector('#eqDot');
   const eqText = container.querySelector('#eqText');
+  const molOverlay = container.querySelector('#webarMolOverlay');
+  const molReaktanEl = container.querySelector('#molReaktan');
+  const molProdukEl = container.querySelector('#molProduk');
+  const molArrowEl = container.querySelector('#molArrow');
 
   // Cerita toggle
   storyToggleBtn.addEventListener('click', () => {
@@ -188,8 +199,10 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   const onLabuDitempatkan = () => {
     tapHint.style.display = 'none';
     scanOverlay.style.display = 'none';
-    // Tampilkan indikator kesetimbangan
     if (eqIndicator) eqIndicator.style.display = 'flex';
+    if (molOverlay) molOverlay.style.display = 'flex';
+    // Render info awal molekul
+    updateMolOverlay(misiId, false, molReaktanEl, molProdukEl, molArrowEl);
   };
 
   try {
@@ -215,7 +228,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     return;
   }
 
-  renderKontrolMisi(controlsEl, misiId, hudTop, eqDot, eqText);
+  renderKontrolMisi(controlsEl, misiId, hudTop, eqDot, eqText, molReaktanEl, molProdukEl, molArrowEl);
 }
 
 function resizeCanvasKeViewport(canvas) {
@@ -225,9 +238,28 @@ function resizeCanvasKeViewport(canvas) {
 }
 
 /* --------------------------------------------------------------------------
+   UPDATE OVERLAY MOLEKUL 2D
+   -------------------------------------------------------------------------- */
+function updateMolOverlay(misiId, dekatTarget, reaktanEl, produkEl, arrowEl) {
+  if (!reaktanEl || !produkEl) return;
+  const data = MISI_DATA[misiId]; if (!data) return;
+  const set = dekatTarget ? data.partikel.dekatTarget : data.partikel.jauhTarget;
+  // Pisahkan reaktan dan produk
+  const produkJenis = { HI: true, N2O4: true, NH3: true, HCO3: true };
+  const reaktan = set.filter(s => !produkJenis[s.jenis]);
+  const produk = set.filter(s => produkJenis[s.jenis]);
+  const renderPill = (arr) => arr.map(s =>
+    `<span class="mol-pill">${s.jenis}<sub style="font-size:9px">${s.jumlah}</sub></span>`
+  ).join('');
+  reaktanEl.innerHTML = renderPill(reaktan);
+  produkEl.innerHTML = renderPill(produk);
+  if (arrowEl) arrowEl.className = 'mol-arrow' + (dekatTarget ? ' seimbang' : '');
+}
+
+/* --------------------------------------------------------------------------
    KONTROL SLIDER PARAMETER MISI
    -------------------------------------------------------------------------- */
-function renderKontrolMisi(container, misiId, hudTop, eqDot, eqText) {
+function renderKontrolMisi(container, misiId, hudTop, eqDot, eqText, molReaktanEl, molProdukEl, molArrowEl) {
   const misi = MISI_DATA[misiId];
   const indikators = [
     { id: 'suhu',         icon: '🌡️', label: 'Suhu' },
@@ -300,6 +332,9 @@ function renderKontrolMisi(container, misiId, hudTop, eqDot, eqText) {
     const valVolume = Number(container.querySelector('#slider-volume')?.value || 3.0);
     const valKunci = Number(container.querySelector('#slider-' + misi.parameterKunci).value);
     const tercapai = perbaruiVisualMisi(sesiARAktif, misiId, valKunci, valVolume);
+
+    // Update overlay molekul 2D
+    updateMolOverlay(misiId, tercapai, molReaktanEl, molProdukEl, molArrowEl);
 
     // Update indikator kesetimbangan di viewport
     if (eqDot && eqText) {
