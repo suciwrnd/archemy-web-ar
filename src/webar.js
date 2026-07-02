@@ -516,7 +516,7 @@ export function buatSceneDasar() {
   fluidPoints.push(new THREE.Vector2(0, 0.0)); // Surface center
   const fluidGeo = new THREE.LatheGeometry(fluidPoints, 32);
   
-  const fluidMat = new THREE.MeshPhongMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.65, shininess: 90, specular: 0xffffff, side: THREE.DoubleSide });
+  const fluidMat = new THREE.MeshPhongMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.45, shininess: 90, specular: 0xffffff, side: THREE.DoubleSide });
   // Add wave animation shader
   const fluidUniforms = { uTime: { value: 0 } };
   fluidMat.onBeforeCompile = (shader) => {
@@ -669,7 +669,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 
   const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.01, 20);
-  camera.position.set(0, 0.2, 1.2);
+  camera.position.set(0, 0.15, 1.0);
   const { scene, labuGrup, labu, partikel } = buatSceneDasar(); partikel.isiDariMisi(misiId, false);
   labuGrup.visible = false; // Hidden at first for tap-to-place
   let berjalan = true;
@@ -684,8 +684,8 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   fakeReticle.visible = false;
   scene.add(fakeReticle);
   
-  // Labu ditempatkan di depan kamera pada jarak natural
-  const defaultLabuPos = new THREE.Vector3(0, -0.15, -0.3);
+  // Labu di depan kamera pada jarak yang tepat secara geometris
+  const defaultLabuPos = new THREE.Vector3(0, -0.1, -0.2);
   
   setTimeout(() => {
     if (!sudahDitempatkan) fakeReticle.visible = true;
@@ -804,10 +804,11 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
     }
   }
 
-  // Dynamic Volume Scaling — baseScale 5.0: labu besar & jelas, molekul terlihat
+  // Scale dihitung geometris: kamera z=1.2, labu z=-0.2, FOV=60 → layar ~1.73 unit
+  // Labu tinggi 0.78 unit, target ~55% layar → scale ≈ 1.3
   const targetVolume = (nilaiVolume !== undefined) ? nilaiVolume : (data.parameterKunci === 'volume' ? nilaiSekarang : 3.0);
-  const baseScale = 5.0;
-  const scale = Math.max(0.5, targetVolume / 3.0) * baseScale;
+  const baseScale = 1.3;
+  const scale = Math.max(0.4, targetVolume / 3.0) * baseScale;
   if (sesiAR.labu) sesiAR.labu.userData.targetScale = scale;
   
   if (sesiAR.labu && sesiAR.labu.userData.spawnTime && (performance.now() - sesiAR.labu.userData.spawnTime) > 800) {
