@@ -1293,7 +1293,7 @@ function renderTeacherAnalysis() {
   const roster = c.roster || [];
   const total = roster.length || 1;
 
-  // Distribusi kategori
+  // Distribusi kategori kelas
   const pahamCount   = roster.filter(s => s.category === 'Paham Konsep').length;
   const menebakCount = roster.filter(s => s.category === 'Menebak').length;
   const miskCount    = roster.filter(s => s.category === 'Miskonsepsi').length;
@@ -1301,20 +1301,14 @@ function renderTeacherAnalysis() {
   const menebakPct = Math.round((menebakCount/total)*100);
   const miskPct    = Math.round((miskCount/total)*100);
 
-  // Topik yang paling banyak salah (dari roster.topics)
-  const topicErrors = {};
-  roster.forEach(s => (s.topics||[]).forEach(t => { topicErrors[t] = (topicErrors[t]||0) + 1; }));
-  const topicRanking = Object.entries(topicErrors).sort((a,b)=>b[1]-a[1]);
-
-  // Watchlist
-  const watchlist = roster.filter(s => s.status === 'Kritis' || s.status === 'Perhatian');
-
-  // AI Rekomendasi Strategi
-  const aiStrategies = [];
-  if (miskCount > 0) aiStrategies.push({ icon:'', text:`${miskCount} siswa mengalami miskonsepsi. Rekomendasikan sesi WebAR remedial dengan fokus pada topik: ${topicRanking.slice(0,2).map(t=>t[0]).join(', ') || 'yang terdeteksi'}.` });
-  if (menebakCount > 0) aiStrategies.push({ icon:'', text:`${menebakCount} siswa menebak. Adakan diskusi kelas terbuka dan dorong siswa membaca ulang modul sebelum kuis berikutnya.` });
-  if (pahamPct >= 70) aiStrategies.push({ icon:'', text:`${pahamPct}% siswa sudah paham. Pertimbangkan materi lanjutan atau soal tingkat Bloom lebih tinggi (C4–C5).` });
-  if (aiStrategies.length === 0) aiStrategies.push({ icon:'', text:'Belum ada data kuis yang cukup untuk menghasilkan rekomendasi. Pastikan siswa menyelesaikan kuis diagnostik.' });
+  // Agregasi Topik
+  const topicList = Object.keys(TOPIC_MAP);
+  const topicStats = topicList.map(topic => {
+    const misk = roster.filter(s => s.category === 'Miskonsepsi' && (s.topics||[]).includes(topic)).length;
+    const menebak = roster.filter(s => s.category === 'Menebak' && (s.topics||[]).includes(topic)).length;
+    const paham = total - misk - menebak;
+    return { topic, misk, menebak, paham, miskPct: Math.round((misk/total)*100), menebakPct: Math.round((menebak/total)*100), pahamPct: Math.round((paham/total)*100) };
+  }).sort((a,b) => a.pahamPct - b.pahamPct);
 
   pageWrap(`${header({back:true,titleBackPage:'teacherDashboard',coins:false})}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
@@ -1323,9 +1317,9 @@ function renderTeacherAnalysis() {
     </div>
 
     <div id="area-cetak-laporan" style="padding:5px;background:#fff;">
-      <div class="pdf-only-header" style="margin-bottom:15px;border-bottom:2px solid #6b36cf;padding-bottom:5px;"><h3 style="margin:0;color:#6b36cf;">ARChemy — Learning Analytics Report</h3><p style="margin:0;font-size:11px;color:#555;">Rapor Diagnosis Kuis 4-Tier Kelas ${escapeHtml(c.name)}</p></div>
+      <div class="pdf-only-header" style="margin-bottom:15px;border-bottom:2px solid #6b36cf;padding-bottom:5px;"><h3 style="margin:0;color:#6b36cf;">ARChemy — Learning Analytics Report</h3><p style="margin:0;font-size:11px;color:#555;">Rapor Diagnosis Kelas ${escapeHtml(c.name)}</p></div>
 
-      <!-- Distribusi Pemahaman -->
+      <!-- Distribusi Kelas -->
       <div class="card" style="margin-bottom:14px;">
         <h4 style="margin:0 0 12px;"> Distribusi Pemahaman Kelas</h4>
         <div class="dist-chart">
@@ -1347,53 +1341,144 @@ function renderTeacherAnalysis() {
         </div>
       </div>
 
-      <!-- Topik paling banyak salah -->
-      ${topicRanking.length > 0 ? `
+      <!-- Daftar Analisis Materi -->
+      <h3 class="section-title" style="margin-top:20px;"> Daftar Analisis Materi</h3>
+      <p class="page-subtitle" style="margin-bottom:14px;">Pilih materi untuk melihat detail siswa.</p>
       <div class="card" style="margin-bottom:14px;">
-        <h4 style="margin:0 0 10px;"> Topik Paling Banyak Salah</h4>
-        ${topicRanking.map(([topic, count], i) => `
-          <div class="topic-error-row">
-            <span class="topic-rank">${i+1}</span>
-            <span class="topic-name">${escapeHtml(topic)}</span>
-            <span class="topic-count">${count} siswa</span>
-          </div>`).join('')}
-      </div>` : ''}
-
-      <!-- Watchlist -->
-      <h3 class="section-title"> Siswa Butuh Perhatian</h3>
-      <div class="card" style="margin-bottom:14px;">
-        ${watchlist.length > 0 ? watchlist.map(s => `
-          <div class="student-row" style="margin-bottom:8px;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span class="avatar-sm">${ICONS.user}</span>
-              <div>
-                <b style="font-size:12px">${escapeHtml(s.name)}</b>
-                ${s.topics?.length ? `<div>${s.topics.map(t=>`<span style="font-size:9px;background:rgba(255,79,109,.1);color:#c73e5a;padding:1px 5px;border-radius:4px;margin-right:2px">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
-              </div>
+        ${topicStats.map(t => `
+          <div class="topic-error-row" style="cursor:pointer; display:block; padding:12px;" onclick="window.teacherTopicDetail('${escapeHtml(t.topic)}')">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <b style="font-size:13px;">${escapeHtml(t.topic)}</b>
+              <span class="ap-arrow">›</span>
             </div>
-            <span class="badge ${s.status==='Kritis'?'miskonsepsi':'menebak'}">${escapeHtml(s.status)}</span>
-          </div>`).join('')
-          : '<p class="small muted" style="padding:8px;">Tidak ada siswa yang memerlukan perhatian khusus. </p>'}
+            <div class="dist-bar-track" style="height:10px; border-radius:5px; display:flex;">
+              <div class="dist-bar paham" style="width:${t.pahamPct}%; height:100%; position:relative;"></div>
+              <div class="dist-bar menebak" style="width:${t.menebakPct}%; height:100%; position:relative;"></div>
+              <div class="dist-bar miskonsepsi" style="width:${t.miskPct}%; height:100%; position:relative;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:10px; margin-top:6px; color:var(--muted);">
+              <span><span style="color:#10b981; font-weight:600;">${t.pahamPct}%</span> Paham</span>
+              <span><span style="color:#f59e0b; font-weight:600;">${t.menebakPct}%</span> Menebak</span>
+              <span><span style="color:#ef4444; font-weight:600;">${t.miskPct}%</span> Miskonsepsi</span>
+            </div>
+          </div>
+        `).join('')}
       </div>
 
-      <!-- Rekomendasi Strategi AI -->
-      <h3 class="section-title"> Rekomendasi Strategi AI</h3>
-      <div class="card">
-        ${aiStrategies.map(s => `
-          <div class="ai-strategy-row">
-            <span class="ai-strategy-icon">${s.icon}</span>
-            <p class="ai-strategy-text">${s.text}</p>
-          </div>`).join('')}
+      <!-- Detail Siswa (Hanya untuk PDF / Tersembunyi di UI) -->
+      <div class="pdf-only-section" style="display:none;">
+        <h3 style="margin-top:20px; color:#6b36cf; border-bottom:1px solid #eee; padding-bottom:5px;">Detail Evaluasi per Materi</h3>
+        ${topicStats.map(t => {
+          const critical = roster.filter(s => (s.topics||[]).includes(t.topic) && s.category !== 'Paham Konsep').sort((a,b) => a.category === 'Miskonsepsi' ? -1 : 1);
+          if (critical.length === 0) return '';
+          return `
+          <div style="margin-bottom:15px;">
+            <b style="font-size:14px; display:block; margin-bottom:5px;">${escapeHtml(t.topic)}</b>
+            <table style="width:100%; border-collapse:collapse; font-size:11px;">
+              <tr style="background:#f1f5f9;"><th style="padding:5px; text-align:left; border:1px solid #ddd;">Nama Siswa</th><th style="padding:5px; text-align:left; border:1px solid #ddd;">Status</th></tr>
+              ${critical.map(s => `<tr><td style="padding:5px; border:1px solid #ddd;">${escapeHtml(s.name)}</td><td style="padding:5px; border:1px solid #ddd; color:${s.category==='Miskonsepsi'?'#ef4444':'#d97706'}">${escapeHtml(s.category)}</td></tr>`).join('')}
+            </table>
+          </div>`;
+        }).join('')}
       </div>
     </div>`);
+}
+
+function renderTeacherTopicDetail() {
+  const c = activeClass();
+  const roster = c.roster || [];
+  const topic = state.activeTopic;
+  if (!topic) return go('teacherAnalysis');
+
+  const total = roster.length || 1;
+  const miskCount = roster.filter(s => s.category === 'Miskonsepsi' && (s.topics||[]).includes(topic)).length;
+  const menebakCount = roster.filter(s => s.category === 'Menebak' && (s.topics||[]).includes(topic)).length;
+  const pahamCount = total - miskCount - menebakCount;
+  const pahamPct = Math.round((pahamCount/total)*100);
+
+  const students = roster.map(s => {
+    let stat = 'Paham Konsep';
+    if ((s.topics||[]).includes(topic)) {
+      stat = s.category === 'Miskonsepsi' ? 'Miskonsepsi' : 'Menebak';
+    }
+    return { ...s, topicStat: stat };
+  });
+
+  const criticalStudents = students.filter(s => s.topicStat !== 'Paham Konsep').sort((a,b) => a.topicStat === 'Miskonsepsi' ? -1 : 1);
+  const goodStudents = students.filter(s => s.topicStat === 'Paham Konsep');
+
+  let aiRec = '';
+  if (miskCount > 0) aiRec = `Rekomendasi AI: Terdapat ${miskCount} siswa yang mengalami miskonsepsi. Disarankan menggunakan simulasi WebAR untuk memvisualisasikan kembali konsep ini secara interaktif.`;
+  else if (menebakCount > 0) aiRec = `Rekomendasi AI: ${menebakCount} siswa masih menebak. Berikan latihan soal terstruktur untuk memperkuat penalaran kognitif mereka.`;
+  else aiRec = `Rekomendasi AI: Seluruh kelas sudah menguasai topik ini. Anda dapat melanjutkan ke materi berikutnya atau memberikan soal evaluasi lanjutan.`;
+
+  pageWrap(`${header({back:true,titleBackPage:'teacherAnalysis',coins:false})}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div><h1 class="page-title" style="margin:0;font-size:18px;">Detail Materi</h1><p class="page-subtitle" style="margin:0;">${escapeHtml(topic)}</p></div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <h4 style="margin:0 0 10px;">Ringkasan Topik</h4>
+      <div style="display:flex; gap:10px; margin-bottom:12px;">
+        <div style="flex:1; background:rgba(16, 185, 129, 0.1); color:#10b981; padding:10px; border-radius:8px; text-align:center;"><b>${pahamPct}%</b><br><span style="font-size:10px">Paham</span></div>
+        <div style="flex:1; background:rgba(245, 158, 11, 0.1); color:#d97706; padding:10px; border-radius:8px; text-align:center;"><b>${Math.round((menebakCount/total)*100)}%</b><br><span style="font-size:10px">Menebak</span></div>
+        <div style="flex:1; background:rgba(239, 68, 68, 0.1); color:#ef4444; padding:10px; border-radius:8px; text-align:center;"><b>${Math.round((miskCount/total)*100)}%</b><br><span style="font-size:10px">Miskonsepsi</span></div>
+      </div>
+      <div class="ai-strategy-row" style="margin:0; background:var(--bg);">
+        <p class="ai-strategy-text" style="font-size:12px;">${aiRec}</p>
+      </div>
+    </div>
+
+    <h3 class="section-title"> Daftar Siswa</h3>
+    <div class="card" style="margin-bottom:14px;">
+      ${criticalStudents.length > 0 ? `<div style="font-size:11px; font-weight:bold; color:var(--muted); margin-bottom:8px; text-transform:uppercase;">Butuh Perhatian (${criticalStudents.length})</div>` : ''}
+      ${criticalStudents.map(s => `
+        <div class="student-row" style="margin-bottom:8px; background:${s.topicStat==='Miskonsepsi'?'rgba(239, 68, 68, 0.05)':'rgba(245, 158, 11, 0.05)'}; border:1px solid ${s.topicStat==='Miskonsepsi'?'rgba(239, 68, 68, 0.2)':'rgba(245, 158, 11, 0.2)'};">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="avatar-sm">${ICONS.user}</span>
+            <b style="font-size:13px">${escapeHtml(s.name)}</b>
+          </div>
+          <span class="badge ${s.topicStat==='Miskonsepsi'?'miskonsepsi':'menebak'}">${escapeHtml(s.topicStat)}</span>
+        </div>`).join('')}
+
+      ${goodStudents.length > 0 ? `<div style="font-size:11px; font-weight:bold; color:var(--muted); margin:16px 0 8px; text-transform:uppercase;">Paham Konsep (${goodStudents.length})</div>` : ''}
+      ${goodStudents.map(s => `
+        <div class="student-row" style="margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="avatar-sm" style="background:#f0f9ff; color:#0ea5e9;">${ICONS.user}</span>
+            <b style="font-size:13px">${escapeHtml(s.name)}</b>
+          </div>
+          <span class="badge" style="background:rgba(16, 185, 129, 0.1); color:#10b981;">Paham Konsep</span>
+        </div>`).join('')}
+    </div>
+  `);
 }
 
 function studentAttention(name,score,status) { return `<div class="student-row" style="margin-bottom:8px;display:flex;justify-content:space-between;padding:8px;border:1px solid #eee;border-radius:10px;"><span><b>${escapeHtml(name)}</b> (${score}%)</span> <span class="badge ${status==='Kritis'?'miskonsepsi':'menebak'}">${escapeHtml(status)}</span></div>`; }
 function eksporLaporanPDF() {
   if (typeof html2pdf === 'undefined') { toast(' Library PDF belum dimuat.'); return; }
-  const element = document.getElementById('area-cetak-laporan'); const nameKls = state.classes[state.selectedClassIndex]?.name || 'Kelas'; toast(' Memproses PDF...');
+  const element = document.getElementById('area-cetak-laporan'); 
+  const nameKls = state.classes[state.selectedClassIndex]?.name || 'Kelas'; 
+  toast(' Memproses PDF...');
+  
+  // Unhide pdf-only sections for html2pdf rendering
+  const hiddenElements = element.querySelectorAll('.pdf-only-section');
+  hiddenElements.forEach(el => el.style.display = 'block');
+
   const opsi = { margin:[15,12,15,12], filename:`Laporan_ARChemy_${nameKls}.pdf`, image:{type:'jpeg',quality:.98}, html2canvas:{scale:2,useCORS:true,logging:false}, jsPDF:{unit:'mm',format:'a4',orientation:'portrait'} };
-  try { html2pdf().set(opsi).from(element).save().then(()=>toast('PDF Berhasil diunduh!')).catch(()=>toast('Gagal ekspor PDF.')); } catch(e) { toast('Gagal: '+e.message); }
+  
+  try { 
+    html2pdf().set(opsi).from(element).save().then(() => {
+      toast('PDF Berhasil diunduh!');
+      hiddenElements.forEach(el => el.style.display = 'none');
+    }).catch(() => {
+      toast('Gagal ekspor PDF.');
+      hiddenElements.forEach(el => el.style.display = 'none');
+    }); 
+  } catch(e) { 
+    toast('Gagal: '+e.message); 
+    hiddenElements.forEach(el => el.style.display = 'none');
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -1444,7 +1529,8 @@ function render() {
     studentWebAR:renderStudentWebARPage, studentAdaptivePath:renderStudentAdaptivePath,
     teacherClasses:renderTeacherClasses, teacherDashboard:renderTeacherDashboard,
     teacherModules:renderTeacherModules, teacherQuiz:renderTeacherQuiz,
-    teacherEditQuiz:renderTeacherEditQuiz, teacherAnalysis:renderTeacherAnalysis, profile:renderProfile,
+    teacherCreateQuiz:renderTeacherCreateQuiz,
+    teacherEditQuiz:renderTeacherEditQuiz, teacherAnalysis:renderTeacherAnalysis, teacherTopicDetail:renderTeacherTopicDetail, profile:renderProfile,
     teacherClassDetail:renderTeacherClassDetail,
   };
   try {
@@ -1474,6 +1560,7 @@ if (typeof window !== 'undefined') {
   window.addModuleWithAI = addModuleWithAI; window.deleteModule = deleteModule;
   window.newQuestion = newQuestion; window.saveQuestion = saveQuestion;
   window.eksporLaporanPDF = eksporLaporanPDF; window.editQuestion = editQuestion;
+  window.teacherTopicDetail = (topic) => { state.activeTopic = topic; go('teacherTopicDetail'); };
   window.render = render;
 }
 
