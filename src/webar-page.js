@@ -19,26 +19,41 @@ let modeARTerdeteksi = null;
 /* --------------------------------------------------------------------------
    HALAMAN PILIH MISI
    -------------------------------------------------------------------------- */
-export function renderPilihMisi(container, onPilihMisi) {
+export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
   const ikonMisi = { misi1: '🔬', misi2: '🏭', misi3: '🌱', misi4: '🩸' };
+
+  // Dapatkan misi yang sudah diselesaikan dari state
+  const viewedMisi = window.state?.viewedMisi || [];
+
   const kartu = Object.entries(MISI_DATA)
-    .map(([id, misi]) => `
-      <button class="misi-card" data-misi="${id}">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-          <span style="font-size:22px">${ikonMisi[id]||'🧪'}</span>
-          <h3 class="misi-judul">${misi.judul}</h3>
-        </div>
-        <code class="misi-persamaan">${misi.persamaan}</code>
-        <div style="margin-top:8px;font-size:10px;color:#7c6fd2;">
-          🎯 Target ${misi.parameterKunci}: ${misi.nilaiTarget}
-        </div>
-      </button>`)
+    .map(([id, misi]) => {
+      const isRec  = recommendedIds.includes(id);
+      const isDone = viewedMisi.includes(id);
+      const badgeHtml = isRec
+        ? `<div class="misi-ai-badge">🎯 Prioritas AI</div>`
+        : isDone
+          ? `<div class="misi-done-badge">✅ Selesai</div>`
+          : '';
+      return `
+        <button class="misi-card ${isRec ? 'misi-recommended' : ''} ${isDone ? 'misi-done' : ''}" data-misi="${id}">
+          ${badgeHtml}
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <span style="font-size:22px">${ikonMisi[id]||'🧪'}</span>
+            <h3 class="misi-judul">${misi.judul}</h3>
+          </div>
+          <code class="misi-persamaan">${misi.persamaan}</code>
+          <div style="margin-top:8px;font-size:10px;color:#7c6fd2;">
+            🎯 Target ${misi.parameterKunci}: ${misi.nilaiTarget}
+          </div>
+        </button>`;
+    })
     .join('');
 
   container.innerHTML = `
     <div class="webar-pilih-misi">
       <h1 class="page-title">🔬 Lab AR Kimia</h1>
       <p class="page-subtitle">Pilih misi dan pelajari kesetimbangan kimia secara langsung.</p>
+      ${recommendedIds.length > 0 ? `<div class="misi-rec-banner">🧠 AI merekomendasikan ${recommendedIds.length} misi berdasarkan hasil diagnosismu</div>` : ''}
       <div class="misi-grid">${kartu}</div>
       <div class="webar-legend" style="margin-top:14px;background:rgba(83,74,183,0.06);padding:10px;border-radius:12px;">
         <div class="webar-legend-item"><span class="webar-legend-color reaktan"></span><span>Reaktan</span></div>
