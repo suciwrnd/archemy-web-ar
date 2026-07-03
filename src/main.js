@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ARCHEMY MAIN ENGINE — CLOSED-LOOP ADAPTIVE LEARNING SPA
+   ARCHEMY MAIN ENGINE - CLOSED-LOOP ADAPTIVE LEARNING SPA
    Versi baru: semua siklus tertutup (diagnosis → personalisasi → pembelajaran
    → evaluasi → analitik guru) tersambung.
    ========================================================================== */
@@ -38,61 +38,61 @@ const ICONS = {
    QUIZ BANK dengan Bloom Level per soal
    -------------------------------------------------------------------------- */
 const quizBank = [
-  { id:'qs1', topic:'Konsep Dasar Kesetimbangan', bloomLevel: 1, bloomLabel: 'C1 — Mengingat',
+  { id:'qs1', topic:'Konsep Dasar Kesetimbangan', bloomLevel: 1, bloomLabel: 'C1 - Mengingat',
     tier1:{ question:'Suatu reaksi dikatakan berada dalam keadaan setimbang apabila...',
       options:['Reaksi telah berhenti sepenuhnya dan tidak ada perubahan','Laju reaksi maju sama dengan laju reaksi balik','Semua reaktan telah habis bereaksi membentuk produk','Konsentrasi reaktan selalu lebih besar dari konsentrasi produk'], answer:1 },
     tier3:{ question:'Alasan ilmiah yang mendukung jawaban Anda adalah...',
       options:['Pada keadaan setimbang, laju pembentukan produk sama dengan laju penguraian produk kembali menjadi reaktan, sehingga konsentrasi tampak tetap','Kesetimbangan tercapai karena semua molekul berhenti bergerak','Kesetimbangan hanya terjadi jika suhu dan tekanan sistem adalah nol','Pada kesetimbangan, energi kinetik semua partikel menjadi sama besar'], answer:0 }
   },
-  { id:'qs2', topic:'Kesetimbangan Dinamis', bloomLevel: 2, bloomLabel: 'C2 — Memahami',
+  { id:'qs2', topic:'Kesetimbangan Dinamis', bloomLevel: 2, bloomLabel: 'C2 - Memahami',
     tier1:{ question:'Pada kesetimbangan dinamis, pernyataan yang paling tepat adalah...',
       options:['Reaksi maju dan balik sudah berhenti sama sekali','Konsentrasi reaktan dan produk terus berubah secara drastis','Reaksi maju dan balik tetap berlangsung dengan laju yang sama sehingga komposisi campuran tetap','Hanya reaksi ke arah produk yang masih berlangsung'], answer:2 },
     tier3:{ question:'Dasar ilmiah yang menjelaskan kesetimbangan dinamis adalah...',
       options:['On a molecular level, collisions between particles still occur and forward-reverse reactions proceed simultaneously, but the net change in concentration is zero','Molekul berhenti bergerak begitu sistem mencapai kesetimbangan','Energi kinetik rata-rata semua molekul menjadi nol pada keadaan setimbang','Kesetimbangan dinamis hanya dapat terjadi pada tekanan sangat tinggi'], answer:0 }
   },
-  { id:'qs3', topic:'Pengaruh Konsentrasi', bloomLevel: 3, bloomLabel: 'C3 — Mengaplikasikan',
+  { id:'qs3', topic:'Pengaruh Konsentrasi', bloomLevel: 3, bloomLabel: 'C3 - Mengaplikasikan',
     tier1:{ question:'Pada reaksi: N₂(g) + 3H₂(g) ⇌ 2NH₃(g), jika konsentrasi N₂ ditambah, kesetimbangan akan...',
       options:['Bergeser ke kiri (arah reaktan)','Bergeser ke kanan (arah produk)','Tidak mengalami pergeseran','Reaksi langsung berhenti'], answer:1 },
     tier3:{ question:'Alasan ilmiah dari pergeseran kesetimbangan tersebut adalah...',
       options:['Sesuai Asas Le Chatelier, penambahan konsentrasi reaktan mendorong sistem bergeser ke arah produk untuk mengurangi gangguan','Penambahan N₂ menurunkan energi aktivasi reaksi maju saja','Gas N₂ yang ditambahkan langsung terurai menjadi atom nitrogen bebas','Konsentrasi reaktan tidak pernah mempengaruhi posisi kesetimbangan'], answer:0 }
   },
-  { id:'qs4', topic:'Pengaruh Tekanan dan Volume', bloomLevel: 3, bloomLabel: 'C3 — Mengaplikasikan',
+  { id:'qs4', topic:'Pengaruh Tekanan dan Volume', bloomLevel: 3, bloomLabel: 'C3 - Mengaplikasikan',
     tier1:{ question:'Pada reaksi: 2SO₂(g) + O₂(g) ⇌ 2SO₃(g), jika tekanan dinaikkan, kesetimbangan akan...',
       options:['Bergeser ke kiri karena mol gas reaktan lebih sedikit','Bergeser ke kanan karena mol gas produk lebih sedikit','Tidak berubah karena tekanan tidak mempengaruhi kesetimbangan gas','Bergeser ke kiri karena SO₃ lebih berat dari SO₂'], answer:1 },
     tier3:{ question:'Prinsip yang mendasari pengaruh tekanan ini adalah...',
       options:['Peningkatan tekanan menggeser sistem ke sisi dengan jumlah mol gas lebih sedikit (3 mol → 2 mol) sesuai Asas Le Chatelier','Tekanan tinggi selalu menguntungkan produk pada semua reaksi','Tekanan hanya mempengaruhi reaksi fase cair','Peningkatan tekanan selalu menghentikan reaksi kesetimbangan'], answer:0 }
   },
-  { id:'qs5', topic:'Pengaruh Suhu', bloomLevel: 3, bloomLabel: 'C3 — Mengaplikasikan',
+  { id:'qs5', topic:'Pengaruh Suhu', bloomLevel: 3, bloomLabel: 'C3 - Mengaplikasikan',
     tier1:{ question:'Reaksi: N₂O₄(g) ⇌ 2NO₂(g), ΔH = +57 kJ/mol. Jika suhu dinaikkan, kesetimbangan akan...',
       options:['Bergeser ke kiri sehingga N₂O₄ bertambah','Bergeser ke kanan sehingga NO₂ bertambah','Tidak mengalami pergeseran','Reaksi berubah menjadi ireversibel'], answer:1 },
     tier3:{ question:'Dasar ilmiah pengaruh suhu pada kesetimbangan ini adalah...',
       options:['Kenaikan suhu menyediakan kalor yang dimanfaatkan reaksi endoterm (ke kanan) untuk menyerap kelebihan kalor sesuai Asas Le Chatelier','Suhu tinggi selalu mempercepat semua reaksi ke arah produk','Perubahan suhu hanya mempengaruhi laju reaksi, tidak mengubah tetapan kesetimbangan','Kenaikan suhu menurunkan energi aktivasi reaksi balik saja'], answer:0 }
   },
-  { id:'qs6', topic:'Peran Katalis', bloomLevel: 2, bloomLabel: 'C2 — Memahami',
+  { id:'qs6', topic:'Peran Katalis', bloomLevel: 2, bloomLabel: 'C2 - Memahami',
     tier1:{ question:'Penambahan katalis pada sistem kesetimbangan akan...',
       options:['Menggeser kesetimbangan ke arah produk','Menggeser kesetimbangan ke arah reaktan','Mempercepat tercapainya kesetimbangan tanpa mengubah posisi kesetimbangan','Menghentikan reaksi balik sepenuhnya'], answer:2 },
     tier3:{ question:'Alasan katalis tidak mengubah posisi kesetimbangan adalah...',
       options:['Katalis menurunkan energi aktivasi reaksi maju dan balik secara proporsional sama, sehingga perbandingan laju tidak berubah','Katalis hanya mempengaruhi warna larutan','Katalis menambah jumlah mol produk melalui reaksi samping','Katalis menyerap seluruh energi kinetik molekul gas'], answer:0 }
   },
-  { id:'qs7', topic:'Tetapan Kesetimbangan Kc', bloomLevel: 4, bloomLabel: 'C4 — Menganalisis',
+  { id:'qs7', topic:'Tetapan Kesetimbangan Kc', bloomLevel: 4, bloomLabel: 'C4 - Menganalisis',
     tier1:{ question:'Untuk reaksi: 2A(g) + B(g) ⇌ 3C(g), ekspresi Kc yang benar adalah...',
       options:['Kc = [A]²[B] / [C]³','Kc = [C]³ / ([A]²[B])','Kc = [C] / ([A][B])','Kc = ([A] + [B]) / [C]'], answer:1 },
     tier3:{ question:'Prinsip penulisan ekspresi Kc tersebut didasarkan pada...',
       options:['Kc merupakan perbandingan konsentrasi produk berpangkat koefisien dibagi konsentrasi reaktan berpangkat koefisien','Nilai Kc selalu sama dengan 1','Koefisien reaksi tidak mempengaruhi ekspresi Kc','Kc dihitung dari penjumlahan konsentrasi semua zat'], answer:0 }
   },
-  { id:'qs8', topic:'Hubungan Kp dan Kc', bloomLevel: 4, bloomLabel: 'C4 — Menganalisis',
+  { id:'qs8', topic:'Hubungan Kp dan Kc', bloomLevel: 4, bloomLabel: 'C4 - Menganalisis',
     tier1:{ question:'Hubungan antara Kp and Kc dinyatakan oleh rumus...',
       options:['Kp = Kc × (RT)^Δn','Kp = Kc / (RT)','Kp = Kc + RT','Kp = Kc × R'], answer:0 },
     tier3:{ question:'Makna Δn dalam hubungan Kp = Kc(RT)^Δn adalah...',
       options:['Selisih jumlah koefisien mol gas produk dikurangi koefisien mol gas reaktan','Jumlah total mol semua zat','Jumlah mol reaktan saja','Δn selalu bernilai positif untuk setiap reaksi'], answer:0 }
   },
-  { id:'qs9', topic:'Kesetimbangan Heterogen', bloomLevel: 4, bloomLabel: 'C4 — Menganalisis',
+  { id:'qs9', topic:'Kesetimbangan Heterogen', bloomLevel: 4, bloomLabel: 'C4 - Menganalisis',
     tier1:{ question:'Pada reaksi: CaCO₃(s) ⇌ CaO(s) + CO₂(g), ekspresi Kc yang benar adalah...',
       options:['Kc = [CaO][CO₂] / [CaCO₃]','Kc = [CO₂]','Kc = 1 / [CO₂]','Kc = [CaCO₃] / ([CaO][CO₂])'], answer:1 },
     tier3:{ question:'Alasan ilmiah zat padat tidak dimasukkan ke ekspresi Kc adalah...',
       options:['Konsentrasi zat padat murni bersifat konstan dan sudah termasuk dalam nilai Kc','Zat padat tidak ikut bereaksi','Zat padat selalu habis bereaksi','Zat padat tidak memiliki massa molar'], answer:0 }
   },
-  { id:'qs10', topic:'Aplikasi Industri (Proses Haber)', bloomLevel: 5, bloomLabel: 'C5 — Mengevaluasi',
+  { id:'qs10', topic:'Aplikasi Industri (Proses Haber)', bloomLevel: 5, bloomLabel: 'C5 - Mengevaluasi',
     tier1:{ question:'Dalam proses Haber: N₂(g) + 3H₂(g) ⇌ 2NH₃(g), ΔH = −92 kJ/mol. Kondisi yang menguntungkan pembentukan NH₃ adalah...',
       options:['Suhu tinggi dan tekanan rendah','Suhu rendah dan tekanan tinggi','Suhu tinggi dan tekanan tinggi','Suhu rendah dan tekanan rendah'], answer:1 },
     tier3:{ question:'Namun dalam praktik industri digunakan suhu sedang (~450°C) karena...',
@@ -271,7 +271,7 @@ function awardPoints(amount, reason='') {
   state.points = (state.points || 0) + amount;
   state.gems = (state.gems || 0) + Math.floor(amount / 5);
   saveState();
-  toast(`+${amount} XP ${reason ? '— ' + reason : ''}`);
+  toast(`+${amount} XP ${reason ? '- ' + reason : ''}`);
 }
 
 function awardBadge(badgeId) {
@@ -512,9 +512,9 @@ function renderStudentDashboard() {
     <div class="card" style="margin-top:14px;"><h3 style="margin:0 0 10px">Kemampuan & Badge</h3>${progressRow('Pemahaman baik',pemahamanBaik)}${progressRow('Pemahaman kurang',pemahamanKurang,'red')}<div class="badge-row">${badgesHtml}</div><button class="btn small-btn ghost" style="margin-top:12px" onclick="window.go('studentResult')">Lihat detail kuis</button></div>
 
     <section class="leaderboard-wrap"><div class="podium">
-      ${podiumUser(topThree[1]?.name||'—','second',topThree[1]?.pts||0)}
-      ${podiumUser(topThree[0]?.name||'—','first',topThree[0]?.pts||0)}
-      ${podiumUser(topThree[2]?.name||'—','third',topThree[2]?.pts||0)}
+      ${podiumUser(topThree[1]?.name||'-','second',topThree[1]?.pts||0)}
+      ${podiumUser(topThree[0]?.name||'-','first',topThree[0]?.pts||0)}
+      ${podiumUser(topThree[2]?.name||'-','third',topThree[2]?.pts||0)}
     </div><div class="rank-list">${rest.map((u,i)=>`<div class="rank-row${u.isSelf?' top':''}"><span>${i+4}.</span><span class="avatar-sm">${ICONS.user}</span><span>${u.name}${u.isSelf?' (Kamu)':''}</span><span style="margin-left:auto;font-size:11px;opacity:.7">${u.pts} XP</span></div>`).join('')}</div></section>`);
 }
 
@@ -524,7 +524,7 @@ function podiumUser(name, pos, pts) {
 function progressRow(label,pct,cls='') { return `<div class="progress-row"><span class="label">${label}</span><span class="pct">${pct}%</span><div class="bar"><div class="bar-fill ${cls}" style="--w:${pct}%"></div></div></div>`; }
 
 /* --------------------------------------------------------------------------
-   HALAMAN ADAPTIVE LEARNING PATH — BARU
+   HALAMAN ADAPTIVE LEARNING PATH - BARU
    -------------------------------------------------------------------------- */
 function renderStudentAdaptivePath() {
   const recs = state.aiRecommendations || [];
@@ -677,7 +677,7 @@ function moduleSheet(m) {
     <div class="sheet-block"><h4>AI Insight</h4><div class="insight-card">
       <div class="insight-row"><span>▣ Tingkat Kesulitan</span><span class="tag">${escapeHtml(m.difficulty)}</span></div>
       <div class="insight-row"><span>◉ Estimasi Waktu</span><span class="tag">${escapeHtml(m.time)}</span></div>
-      <div class="insight-row"><span> Prasyarat</span><span class="tag">${escapeHtml(m.prereq||'—')}</span></div>
+      <div class="insight-row"><span> Prasyarat</span><span class="tag">${escapeHtml(m.prereq||'-')}</span></div>
     </div></div>
     <div class="actions-row" style="margin-top:12px"><button class="btn" onclick="window.closeModule()">Tutup</button></div>
   </div>`;
@@ -738,7 +738,7 @@ function renderStudentQuizPage() {
   const progress=Math.round((currentStep/40)*100);
   const m=Math.floor(state.quizTimeLeft/60); const s=state.quizTimeLeft%60;
   const tierClasses=[1,2,3,4].map(t=>{ if(t<tier) return 'done'; if(t===tier) return 'active'; return ''; });
-  const bloomLabel = set.bloomLabel || 'C1 — Mengingat';
+  const bloomLabel = set.bloomLabel || 'C1 - Mengingat';
   const bloomColor = set.bloomLevel >= 4 ? '#ff6b6b' : set.bloomLevel >= 3 ? '#ffa500' : '#6b36cf';
 
   let questionContent='';
@@ -746,7 +746,7 @@ function renderStudentQuizPage() {
     const q=tier===1?set.tier1:set.tier3;
     questionContent=`<div class="quiz-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:10px;background:rgba(255,255,255,0.2);padding:3px 8px;border-radius:999px;">${tier===1?'Tier 1 — Jawaban Konsep':'Tier 3 — Alasan Ilmiah'}</span>
+        <span style="font-size:10px;background:rgba(255,255,255,0.2);padding:3px 8px;border-radius:999px;">${tier===1?'Tier 1 - Jawaban Konsep':'Tier 3 - Alasan Ilmiah'}</span>
         <span style="font-size:10px;background:rgba(255,255,255,0.15);padding:3px 8px;border-radius:999px;color:#fff;">${bloomLabel}</span>
       </div>
       <h3>${escapeHtml(q.question)}</h3>
@@ -943,7 +943,7 @@ function resetQuiz() {
 }
 
 /* --------------------------------------------------------------------------
-   STUDENT RESULT — Diagnosis AI Lengkap
+   STUDENT RESULT - Diagnosis AI Lengkap
    -------------------------------------------------------------------------- */
 function renderStudentResult() {
   const results = state.quizResults;
@@ -978,8 +978,8 @@ function renderStudentResult() {
         ${catBadge(r.category)}
       </div>
       <div style="font-size:11px;color:var(--muted);line-height:1.6;">
-        <div>Tier 1: ${r.tier1Correct?' Benar':' Salah'} | Keyakinan: ${escapeHtml(r.tier2Confidence||'—')}</div>
-        <div>Tier 3: ${r.tier3Correct?' Benar':' Salah'} | Keyakinan: ${escapeHtml(r.tier4Confidence||'—')}</div>
+        <div>Tier 1: ${r.tier1Correct?' Benar':' Salah'} | Keyakinan: ${escapeHtml(r.tier2Confidence||'-')}</div>
+        <div>Tier 3: ${r.tier3Correct?' Benar':' Salah'} | Keyakinan: ${escapeHtml(r.tier4Confidence||'-')}</div>
         <div style="margin-top:2px;opacity:.7">Level Bloom: ${escapeHtml(set.bloomLabel||'C1')}</div>
       </div>
       ${miskDetail}
@@ -1033,7 +1033,7 @@ function renderStudentResult() {
 }
 
 /* --------------------------------------------------------------------------
-   WEBAR — AR LAB
+   WEBAR - AR LAB
    -------------------------------------------------------------------------- */
 function renderStudentWebARPage() {
   const recMisiIds = (state.aiRecommendations||[]).filter(r=>r.type==='misi').map(r=>r.id);
@@ -1149,7 +1149,7 @@ function renderTeacherClassDetail() {
 }
 
 /* --------------------------------------------------------------------------
-   TEACHER MODULES — dengan AI Summary Generator
+   TEACHER MODULES - dengan AI Summary Generator
    -------------------------------------------------------------------------- */
 function renderTeacherModules() {
   pageWrap(`${header({coins:false,back:true,titleBackPage:'teacherDashboard'})}
@@ -1295,7 +1295,7 @@ function saveQuestion() {
 }
 
 /* --------------------------------------------------------------------------
-   TEACHER ANALYSIS — Analitik Lengkap dengan Distribusi & Rekomendasi
+   TEACHER ANALYSIS - Analitik Lengkap dengan Distribusi & Rekomendasi
    -------------------------------------------------------------------------- */
 function renderTeacherAnalysis() {
   const c = activeClass();
@@ -1321,7 +1321,7 @@ function renderTeacherAnalysis() {
 
   pageWrap(`${header({back:true,titleBackPage:'teacherDashboard',coins:false})}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-      <div><h1 class="page-title" style="margin:0;">Analisis Kognitif</h1><p class="page-subtitle" style="margin:0;">${escapeHtml(c.name)} — Real-Time</p></div>
+      <div><h1 class="page-title" style="margin:0;">Analisis Kognitif</h1><p class="page-subtitle" style="margin:0;">${escapeHtml(c.name)} - Real-Time</p></div>
       <button class="btn small-btn" style="background:#10b981;" onclick="window.eksporLaporanPDF()"> PDF</button>
     </div>
 

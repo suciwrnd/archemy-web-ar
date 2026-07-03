@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ARCHEMY WEBAR CSS — National-Level Clean AR Layout
+   ARCHEMY WEBAR CSS - National-Level Clean AR Layout
    ========================================================================== */
 
 /* ===== BASE STAGE ===== */
@@ -17,7 +17,7 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ===== HUD ATAS — super compact, tidak overlap ===== */
+/* ===== HUD ATAS - super compact, tidak overlap ===== */
 .webar-hud-top {
   position: relative;
   z-index: 30;
@@ -85,7 +85,7 @@ body.colorblind-mode .webar-colorblind-btn {
   color: #fff;
 }
 
-/* ===== VIEWPORT KAMERA — AREA BERSIH ===== */
+/* ===== VIEWPORT KAMERA - AREA BERSIH ===== */
 .webar-viewport {
   position: relative;
   flex: 1;
@@ -101,7 +101,7 @@ body.colorblind-mode .webar-colorblind-btn {
   object-fit: cover;
 }
 
-/* Status bar — kecil di pojok, fade out sendiri */
+/* Status bar - kecil di pojok, fade out sendiri */
 .webar-status {
   position: absolute;
   bottom: 10px;
@@ -121,7 +121,7 @@ body.colorblind-mode .webar-colorblind-btn {
   pointer-events: none;
 }
 
-/* Indikator kesetimbangan — badge kecil pojok kanan atas viewport */
+/* Indikator kesetimbangan - badge kecil pojok kanan atas viewport */
 .webar-eq-badge {
   position: absolute;
   top: 10px;
@@ -163,7 +163,7 @@ body.colorblind-mode .webar-colorblind-btn {
   50% { box-shadow: 0 0 12px 5px rgba(34,197,94,0.9); }
 }
 
-/* Tap hint — tengah viewport, minimalis */
+/* Tap hint - tengah viewport, minimalis */
 .webar-tap-hint {
   position: absolute;
   bottom: 14px;
@@ -250,7 +250,7 @@ body.colorblind-mode .webar-colorblind-btn {
 .webar-controls::-webkit-scrollbar { width: 2px; }
 .webar-controls::-webkit-scrollbar-thumb { background: rgba(127,119,221,0.3); border-radius: 2px; }
 
-/* Story box — di dalam panel, BUKAN di atas viewport */
+/* Story box - di dalam panel, BUKAN di atas viewport */
 .webar-story-panel {
   display: flex;
   gap: 8px;

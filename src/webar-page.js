@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ARCHEMY WEBAR PAGE — Orkestrasi UI + webar.js
+   ARCHEMY WEBAR PAGE - Orkestrasi UI + webar.js
    ========================================================================== */
 
 import {
@@ -87,7 +87,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         <button class="webar-colorblind-btn" id="webarColorblindBtn" title="Mode buta warna"><span style="font-size:11px; font-weight:600;">Mode Buta Warna</span></button>
       </div>
 
-      <!-- Viewport bersih — TIDAK ada kotak teks di sini -->
+      <!-- Viewport bersih - TIDAK ada kotak teks di sini -->
       <div class="webar-viewport">
         <video id="webarVideo" playsinline muted style="display:none"></video>
         <canvas id="webarCanvas"></canvas>
@@ -99,15 +99,15 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
           <div class="webar-scan-desc">Arahkan kamera ke meja atau lantai, lalu <b>KETUK</b> untuk meletakkan labu.</div>
         </div>
 
-        <!-- Status — fade out setelah 3 detik -->
+        <!-- Status - fade out setelah 3 detik -->
         <div class="webar-status" id="webarStatus">Memeriksa kamera…</div>
 
-        <!-- Tap hint — muncul setelah scan -->
+        <!-- Tap hint - muncul setelah scan -->
         <div class="webar-tap-hint" id="webarTapHint" style="display:none">
           Ketuk untuk meletakkan labu
         </div>
 
-        <!-- Badge kesetimbangan — pojok kanan atas, sangat kecil -->
+        <!-- Badge kesetimbangan - pojok kanan atas, sangat kecil -->
         <div class="webar-eq-badge" id="webarEqBadge">
           <div class="eq-dot" id="eqDot"></div>
           <span id="eqText">Belum Setimbang</span>
@@ -124,7 +124,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         </div>
       </div>
 
-      <!-- Panel Kontrol Bawah — semua teks & info di sini -->
+      <!-- Panel Kontrol Bawah - semua teks & info di sini -->
       <div class="webar-controls" id="webarControls"></div>
     </div>`;
 
@@ -212,7 +212,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 
   try {
     if (modeARTerdeteksi === 'webxr') {
-      statusEl.textContent = 'AR aktif — arahkan ke permukaan datar.';
+      statusEl.textContent = 'AR aktif - arahkan ke permukaan datar.';
       tapHint.style.display = 'block';
       scanOverlay.style.display = 'none';
       sesiARAktif = await mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, getSpeedFactor);
@@ -243,7 +243,7 @@ function resizeCanvasKeViewport(canvas) {
 }
 
 /* --------------------------------------------------------------------------
-   PANEL KONTROL — semua info edukatif & slider di sini
+   PANEL KONTROL - semua info edukatif & slider di sini
    -------------------------------------------------------------------------- */
 function renderPanelKontrol(container, misiId, hudTop, eqBadge, eqDot, eqText) {
   const misi = MISI_DATA[misiId];
