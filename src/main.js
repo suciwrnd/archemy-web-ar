@@ -196,9 +196,9 @@ const defaultState = {
   badges: [],
   // AI adaptive recommendations (generated after quiz)
   aiRecommendations: [],
-  profile:{
-    siswa:{ name:'Suci Ramadhani', email:'suci@student.archemy.id', school:'SMA Negeri 1 Banda Aceh', className:'XI IPA 1', password:'123456' },
-    guru:{ name:'Ibu Misnawati S.Pd', email:'misnawati@guru.archemy.id', school:'SMA Negeri 1 Banda Aceh', className:'Guru Kimia', password:'123456' }
+  profile: {
+    siswa:{ name:'Suci Ramadhani', email:'suci@student.archemy.id', school:'SMA Negeri 5 Banda Aceh', className:'XI IPA 1', password:'123456' },
+    guru:{ name:'Ibu Misnawati S.Pd', email:'misnawati@guru.archemy.id', school:'SMA Negeri 5 Banda Aceh', className:'Guru Kimia', password:'123456' }
   },
   modules: defaultModules, questions: defaultQuestions, classes: defaultClasses,
   teacherEditingQuestionId:null
@@ -236,6 +236,15 @@ function loadState() {
       merged.webarMisiAktif = null;
       merged.page = 'studentDashboard';
     }
+    
+    // Force migration of school name for existing cached profiles
+    if (merged.profile.siswa.school === 'SMA Negeri 1 Kimia' || merged.profile.siswa.school === 'SMA Negeri 1 Banda Aceh') {
+      merged.profile.siswa.school = 'SMA Negeri 5 Banda Aceh';
+    }
+    if (merged.profile.guru.school === 'SMA Negeri 1 Kimia' || merged.profile.guru.school === 'SMA Negeri 1 Banda Aceh') {
+      merged.profile.guru.school = 'SMA Negeri 5 Banda Aceh';
+    }
+
     return merged;
   } catch { return structuredClone(defaultState); }
 }
