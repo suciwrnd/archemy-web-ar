@@ -174,12 +174,12 @@ const TOPIC_ROUTING = {
    BADGE DEFINITIONS
    -------------------------------------------------------------------------- */
 const BADGE_DEFS = {
-  first_ar:     { emoji: '🧪', name: 'Ilmuwan Pemula',      desc: 'Selesaikan misi WebAR pertama' },
-  le_chatelier: { emoji: '⚗️', name: 'Ahli Le Chatelier',   desc: 'Jawab benar semua soal suhu, tekanan & konsentrasi' },
-  no_misconc:   { emoji: '🔬', name: 'Bebas Miskonsepsi',   desc: 'Selesaikan kuis tanpa miskonsepsi' },
-  speed_demon:  { emoji: '⚡', name: 'Kilat',               desc: 'Selesaikan kuis dalam waktu < 5 menit' },
-  perfect:      { emoji: '🏆', name: 'Sempurna',            desc: 'Jawab semua soal dengan benar' },
-  ar_explorer:  { emoji: '🌌', name: 'Penjelajah AR',       desc: 'Selesaikan semua misi WebAR' },
+  first_ar:     { emoji: '', name: 'Ilmuwan Pemula',      desc: 'Selesaikan misi WebAR pertama' },
+  le_chatelier: { emoji: '️', name: 'Ahli Le Chatelier',   desc: 'Jawab benar semua soal suhu, tekanan & konsentrasi' },
+  no_misconc:   { emoji: '', name: 'Bebas Miskonsepsi',   desc: 'Selesaikan kuis tanpa miskonsepsi' },
+  speed_demon:  { emoji: '', name: 'Kilat',               desc: 'Selesaikan kuis dalam waktu < 5 menit' },
+  perfect:      { emoji: '', name: 'Sempurna',            desc: 'Jawab semua soal dengan benar' },
+  ar_explorer:  { emoji: '', name: 'Penjelajah AR',       desc: 'Selesaikan semua misi WebAR' },
 };
 
 /* --------------------------------------------------------------------------
@@ -279,7 +279,7 @@ function awardBadge(badgeId) {
        <h3 style="margin:0 0 4px;color:var(--purple);">${bd.name}</h3>
        <p style="font-size:12px;color:var(--muted);margin:0;">${bd.desc}</p>
      </div>`,
-    `<button class="btn full" onclick="window.closeModal()">Lanjutkan 🚀</button>`
+    `<button class="btn full" onclick="window.closeModal()">Lanjutkan </button>`
   );
 }
 
@@ -410,7 +410,7 @@ function renderLogin() {
 }
 function submitLogin() {
   const email=document.getElementById('loginEmail').value.trim(); if (!email) return toast('Email tidak boleh kosong');
-  state.profile[state.role].email=email; saveState(); toast('Login berhasil ✨');
+  state.profile[state.role].email=email; saveState(); toast('Login berhasil ');
   if (state.role==='siswa') go(state.joinedClass?'studentDashboard':'joinClass'); else go('teacherClasses');
 }
 function renderRegister() {
@@ -431,7 +431,7 @@ function renderRegister() {
 }
 function submitRegister() {
   const p=state.profile[state.role]; p.name=document.getElementById('regName').value.trim()||p.name; p.email=document.getElementById('regEmail').value.trim()||p.email; p.school=document.getElementById('regSchool').value.trim()||p.school; p.password=document.getElementById('regPass').value.trim()||p.password;
-  saveState(); toast('Akun berhasil dibuat ✅'); if (state.role==='siswa') go('joinClass'); else go('teacherClasses');
+  saveState(); toast('Akun berhasil dibuat '); if (state.role==='siswa') go('joinClass'); else go('teacherClasses');
 }
 
 /* --------------------------------------------------------------------------
@@ -446,7 +446,7 @@ function renderJoinClass() {
 function fillCode() { document.getElementById('classCode').value='KIM-137'; }
 function joinClass() {
   const code=document.getElementById('classCode').value.trim().toUpperCase(); const cls=state.classes.find(c=>c.code===code); if (!cls) return toast('Kode kelas belum ditemukan');
-  state.joinedClass=true; state.profile.siswa.className=cls.name; state.selectedClassIndex=state.classes.indexOf(cls); saveState(); toast(`Berhasil bergabung ke ${cls.name} 🎉`); go('studentDashboard');
+  state.joinedClass=true; state.profile.siswa.className=cls.name; state.selectedClassIndex=state.classes.indexOf(cls); saveState(); toast(`Berhasil bergabung ke ${cls.name} `); go('studentDashboard');
 }
 
 /* --------------------------------------------------------------------------
@@ -482,13 +482,13 @@ function renderStudentDashboard() {
 
   const badgesHtml = state.badges?.length > 0
     ? state.badges.map(b => BADGE_DEFS[b] ? `<span class="badge-chip" title="${BADGE_DEFS[b].desc}">${BADGE_DEFS[b].emoji}</span>` : '').join('')
-    : '<span class="small muted">Belum ada badge. Selesaikan kuis untuk mendapatkan badge! 🏅</span>';
+    : '<span class="small muted">Belum ada badge. Selesaikan kuis untuk mendapatkan badge! </span>';
 
   pageWrap(`${header()}
-    <h1 class="page-title">Halo ${firstName(p.name)}! 👋</h1><p class="page-subtitle">Siap berpetualang bersama Chemy?</p>
+    <h1 class="page-title">Halo ${firstName(p.name)}! </h1><p class="page-subtitle">Siap berpetualang bersama Chemy?</p>
 
     ${hasRec ? `<div class="adaptive-alert" onclick="window.go('studentAdaptivePath')">
-      <span class="adaptive-alert-icon">🧠</span>
+      <span class="adaptive-alert-icon"></span>
       <div>
         <b>AI telah memetakan jalur belajarmu!</b>
         <span>${state.aiRecommendations.length} rekomendasi tersedia</span>
@@ -539,7 +539,7 @@ function renderStudentAdaptivePath() {
     const m = state.modules.find(mod => mod.id === rec.id);
     if (!m) return '';
     return `<div class="ap-rec-card priority-${rec.priority}" onclick="window.openModuleFromPath('${m.id}')">
-      <div class="ap-rec-icon">${rec.priority==='high'?'🔥':'📖'}</div>
+      <div class="ap-rec-icon">${rec.priority==='high'?'':''}</div>
       <div>
         <b style="font-size:12px">${escapeHtml(m.title)}</b>
         <span class="small muted" style="display:block">${escapeHtml(rec.reason)}</span>
@@ -550,11 +550,11 @@ function renderStudentAdaptivePath() {
   };
 
   const MISI_LABEL = { misi1:'Gas Iodin Reversibel', misi2:'Operasi Smog Kota', misi3:'Amonia Gas', misi4:'Proses Haber' };
-  const MISI_EMOJI = { misi1:'🔬', misi2:'🏭', misi3:'🌱', misi4:'🩸' };
+  const MISI_EMOJI = { misi1:'', misi2:'', misi3:'', misi4:'' };
   const recMisiCard = (rec) => {
     const label = MISI_LABEL[rec.id] || rec.id;
     return `<div class="ap-rec-card priority-${rec.priority}" onclick="window.goToMisi('${rec.id}')">
-      <div class="ap-rec-icon">${MISI_EMOJI[rec.id]||'🧪'}</div>
+      <div class="ap-rec-icon">${MISI_EMOJI[rec.id]||''}</div>
       <div>
         <b style="font-size:12px">Misi: ${label}</b>
         <span class="small muted" style="display:block">${escapeHtml(rec.reason)}</span>
@@ -565,14 +565,14 @@ function renderStudentAdaptivePath() {
   };
 
   const emptyState = recs.length === 0 ? `<div class="empty-state" style="padding:28px;">
-    <div style="font-size:40px;margin-bottom:10px">🧬</div>
+    <div style="font-size:40px;margin-bottom:10px"></div>
     <b>Belum ada rekomendasi</b>
     <p class="small muted" style="margin-top:6px">Selesaikan kuis diagnostik 4-tier terlebih dahulu untuk mendapatkan jalur belajar personal.</p>
     <button class="btn" style="margin-top:14px" onclick="window.go('studentQuiz')">Mulai Kuis Sekarang</button>
   </div>` : '';
 
   pageWrap(`${header({back:true,titleBackPage:'studentDashboard'})}
-    <h1 class="page-title">Jalur Belajarmu 🧠</h1>
+    <h1 class="page-title">Jalur Belajarmu </h1>
     <p class="page-subtitle">Dipersonalisasi oleh AI berdasarkan hasil kuis diagnostikmu.</p>
 
     ${emptyState}
@@ -580,7 +580,7 @@ function renderStudentAdaptivePath() {
     ${recs.length > 0 ? `
     <!-- Status diagnosis -->
     <div class="ap-diagnosis-card">
-      <div class="ap-diag-header">✦ Ringkasan Diagnosis AI</div>
+      <div class="ap-diag-header"> Ringkasan Diagnosis AI</div>
       <div class="ap-diag-grid">
         <div class="ap-diag-stat paham"><b>${pahamTopics.length}</b><span>Paham</span></div>
         <div class="ap-diag-stat menebak"><b>${menebakTopics.length}</b><span>Menebak</span></div>
@@ -590,19 +590,19 @@ function renderStudentAdaptivePath() {
     </div>
 
     <!-- Analisis per kategori -->
-    ${catSection('Sudah Paham', pahamTopics, '✅', 'paham')}
-    ${catSection('Perlu Diperhatikan', menebakTopics, '⚠️', 'menebak')}
-    ${catSection('Ada Miskonsepsi', miskonsepsi, '❌', 'miskonsepsi')}
-    ${catSection('Perlu Dipelajari', tidakPaham, '📚', 'tidak-paham')}
+    ${catSection('Sudah Paham', pahamTopics, '', 'paham')}
+    ${catSection('Perlu Diperhatikan', menebakTopics, '️', 'menebak')}
+    ${catSection('Ada Miskonsepsi', miskonsepsi, '', 'miskonsepsi')}
+    ${catSection('Perlu Dipelajari', tidakPaham, '', 'tidak-paham')}
 
     <!-- Rekomendasi Modul -->
     ${moduleRecs.length > 0 ? `
-    <h3 class="section-title">📖 Modul yang Direkomendasikan</h3>
+    <h3 class="section-title"> Modul yang Direkomendasikan</h3>
     <div class="ap-rec-list">${moduleRecs.map(recModuleCard).join('')}</div>` : ''}
 
     <!-- Rekomendasi Misi WebAR -->
     ${misiRecs.length > 0 ? `
-    <h3 class="section-title">🔬 Misi WebAR yang Direkomendasikan</h3>
+    <h3 class="section-title"> Misi WebAR yang Direkomendasikan</h3>
     <div class="ap-rec-list">${misiRecs.map(recMisiCard).join('')}</div>` : ''}
 
     <div class="actions-row" style="margin-top:16px;">
@@ -637,7 +637,7 @@ function renderStudentModules() {
 
   pageWrap(`${header()}<h1 class="page-title">Modul Pembelajaran</h1>
     <div class="tabs">${tab('all','Semua')}${tab('file','File')}${tab('video','Video')}${tab('link','Link')}</div>
-    ${recModuleIds.length > 0 ? `<div class="rec-banner">🧠 ${recModuleIds.length} modul direkomendasikan AI untuk kamu</div>` : ''}
+    ${recModuleIds.length > 0 ? `<div class="rec-banner"> ${recModuleIds.length} modul direkomendasikan AI untuk kamu</div>` : ''}
     <div class="module-list">${modules.map(m => moduleCard(m, recModuleIds)).join('')||`<div class="empty-state">Belum ada modul.</div>`}</div>
     ${state.activeModule?moduleSheet(state.modules.find(m=>m.id===state.activeModule)):''}
   `);
@@ -650,17 +650,17 @@ function typePillClass(type) { return type==='file'?'type-doc':type==='video'?'t
 function moduleCard(m, recIds=[]) {
   const isRec = recIds.includes(m.id);
   return `<button class="module-card fold ${isRec?'rec-highlight':''}" onclick="window.openModule('${m.id}')">
-    ${isRec ? '<div class="rec-badge-module">🎯 Direkomendasikan AI</div>' : ''}
+    ${isRec ? '<div class="rec-badge-module"> Direkomendasikan AI</div>' : ''}
     <div class="module-icon-wrap">${moduleIcon(m.type)}</div>
     <h3 class="module-title">${escapeHtml(m.title)}</h3>
-    <div class="module-meta"><span class="pill ${typePillClass(m.type)}">${typeLabel(m.type)}</span><span class="pill ai">✦ Ringkasan AI</span></div>
+    <div class="module-meta"><span class="pill ${typePillClass(m.type)}">${typeLabel(m.type)}</span><span class="pill ai"> Ringkasan AI</span></div>
   </button>`;
 }
 function openModule(id) { state.activeModule=id; saveState(); render(); }
 function closeModule() { state.activeModule=null; saveState(); render(); }
 function moduleSheet(m) {
   if (!m) return '';
-  return `<div class="sheet"><div class="sheet-title"><h3>✦ Ringkasan AI</h3><span class="pill">${typeLabel(m.type)}</span></div>
+  return `<div class="sheet"><div class="sheet-title"><h3> Ringkasan AI</h3><span class="pill">${typeLabel(m.type)}</span></div>
     <div class="module-card" style="box-shadow:none;min-height:70px;margin-bottom:10px">${moduleIcon(m.type)}<div><h3 class="module-title">${escapeHtml(m.title)}</h3><p class="small muted" style="margin:0">${escapeHtml(m.meta)}</p></div></div>
     <div class="sheet-block"><h4>Ringkasan</h4><div class="summary-card">${escapeHtml(m.summary)}</div></div>
     <div class="sheet-block"><h4>Poin Penting</h4><div class="summary-card"><ul style="padding-left:18px;margin:0">${m.points.map(p=>`<li>${escapeHtml(p)}</li>`).join('')}</ul></div></div>
@@ -668,7 +668,7 @@ function moduleSheet(m) {
     <div class="sheet-block"><h4>AI Insight</h4><div class="insight-card">
       <div class="insight-row"><span>▣ Tingkat Kesulitan</span><span class="tag">${escapeHtml(m.difficulty)}</span></div>
       <div class="insight-row"><span>◉ Estimasi Waktu</span><span class="tag">${escapeHtml(m.time)}</span></div>
-      <div class="insight-row"><span>📋 Prasyarat</span><span class="tag">${escapeHtml(m.prereq||'—')}</span></div>
+      <div class="insight-row"><span> Prasyarat</span><span class="tag">${escapeHtml(m.prereq||'—')}</span></div>
     </div></div>
     <div class="actions-row" style="margin-top:12px"><button class="btn" onclick="window.closeModule()">Tutup</button></div>
   </div>`;
@@ -692,7 +692,7 @@ function startTimer() {
     const el=document.getElementById('quizTimer');
     if (el) {
       const m=Math.floor(state.quizTimeLeft/60); const s=state.quizTimeLeft%60;
-      el.textContent=`⏱ ${String(m).padStart(2,'0')} : ${String(s).padStart(2,'0')}`;
+      el.textContent=` ${String(m).padStart(2,'0')} : ${String(s).padStart(2,'0')}`;
       el.classList.toggle('warning', state.quizTimeLeft < 60);
     }
   },1000);
@@ -707,7 +707,7 @@ function renderStudentQuiz() {
       <h2>10 Set Soal • Evaluasi Diagnostik</h2>
       <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
         <span class="bloom-badge" style="background:rgba(255,255,255,0.2);color:#fff;font-size:10px;padding:4px 10px;border-radius:999px;">C1→C5 Bloom Taxonomy</span>
-        <span class="bloom-badge" style="background:rgba(255,255,255,0.2);color:#fff;font-size:10px;padding:4px 10px;border-radius:999px;">⏱ 10 Menit</span>
+        <span class="bloom-badge" style="background:rgba(255,255,255,0.2);color:#fff;font-size:10px;padding:4px 10px;border-radius:999px;"> 10 Menit</span>
       </div>
       <button class="hero-action" onclick="window.startQuiz()">Mulai Kuis</button>
     </div>
@@ -757,7 +757,7 @@ function renderStudentQuizPage() {
         <h1 class="page-title" style="margin:0">Kuis Adaptif</h1>
         <span style="font-size:10px;color:var(--muted)">Topik ${state.currentSetIndex+1}/${quizBank.length}: ${escapeHtml(set.topic)}</span>
       </div>
-      <span class="timer" id="quizTimer">⏱ ${String(m).padStart(2,'0')} : ${String(s).padStart(2,'0')}</span>
+      <span class="timer" id="quizTimer"> ${String(m).padStart(2,'0')} : ${String(s).padStart(2,'0')}</span>
     </div>
     <div class="quiz-progress"><div class="fill" style="--w:${progress}%"></div></div>
     <div class="tier-tabs">${[1,2,3,4].map((t,i)=>`<button class="tier ${tierClasses[i]}">Tier ${t}</button>`).join('')}</div>
@@ -806,13 +806,13 @@ function saveAndNext() {
       saveState();
       const reqMisi = currentSet.topic === 'Pengaruh Tekanan dan Volume' ? 'misi2' : 'misi1';
       openModal(
-        '🚨 AI Mendeteksi Miskonsepsi!',
+        ' AI Mendeteksi Miskonsepsi!',
         `<div style="font-size:13px;line-height:1.6;">
            <p><b>Topik:</b> ${escapeHtml(currentSet.topic)}</p>
            <p>Sistem mendeteksi <b>Miskonsepsi Sejati</b>: kamu menjawab salah namun sangat yakin dengan jawabanmu.</p>
-           <p style="color:var(--purple)">💡 Rekomendasi: Visualisasikan konsep ini di Lab WebAR sebelum melanjutkan.</p>
+           <p style="color:var(--purple)"> Rekomendasi: Visualisasikan konsep ini di Lab WebAR sebelum melanjutkan.</p>
          </div>`,
-        `<button class="btn full" onclick="window.closeModal(); window.goToMisi('${reqMisi}');">📱 Pergi ke Lab AR</button>
+        `<button class="btn full" onclick="window.closeModal(); window.goToMisi('${reqMisi}');"> Pergi ke Lab AR</button>
          <button class="btn ghost full" onclick="window.closeModal(); window.jalankanLompatanAdaptif('${currentSet.topic}', false);">Lewati & Lanjut</button>`
       );
     } else { jalankanLompatanAdaptif(currentSet.topic, true); }
@@ -955,22 +955,22 @@ function renderStudentResult() {
 
   const catBadge = (cat) => {
     const m = {'Paham Konsep':'paham','Menebak':'menebak','Miskonsepsi':'miskonsepsi','Tidak Paham':'tidak-paham'};
-    const icon = {'Paham Konsep':'✅','Menebak':'⚠️','Miskonsepsi':'❌','Tidak Paham':'📚'};
+    const icon = {'Paham Konsep':'','Menebak':'️','Miskonsepsi':'','Tidak Paham':''};
     return `<span class="badge ${m[cat]||''}" style="font-size:9px;padding:2px 6px;">${icon[cat]||''} ${escapeHtml(cat||'-')}</span>`;
   };
 
   const reviewHtml = results.map((r,i) => {
     const set = quizBank[r.setIndex]; if(!set) return '';
     const miskDetail = r.category === 'Miskonsepsi' ?
-      `<div class="misconception-detail">⚠️ <b>Letak miskonsepsi:</b> Kamu yakin dengan jawaban yang salah. ${escapeHtml(set.tier3.options[set.tier3.answer].substring(0,80))}...</div>` : '';
+      `<div class="misconception-detail">️ <b>Letak miskonsepsi:</b> Kamu yakin dengan jawaban yang salah. ${escapeHtml(set.tier3.options[set.tier3.answer].substring(0,80))}...</div>` : '';
     return `<div class="result-topic-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <b style="font-size:12px">${i+1}. ${escapeHtml(r.topic)}</b>
         ${catBadge(r.category)}
       </div>
       <div style="font-size:11px;color:var(--muted);line-height:1.6;">
-        <div>Tier 1: ${r.tier1Correct?'✅ Benar':'❌ Salah'} | Keyakinan: ${escapeHtml(r.tier2Confidence||'—')}</div>
-        <div>Tier 3: ${r.tier3Correct?'✅ Benar':'❌ Salah'} | Keyakinan: ${escapeHtml(r.tier4Confidence||'—')}</div>
+        <div>Tier 1: ${r.tier1Correct?' Benar':' Salah'} | Keyakinan: ${escapeHtml(r.tier2Confidence||'—')}</div>
+        <div>Tier 3: ${r.tier3Correct?' Benar':' Salah'} | Keyakinan: ${escapeHtml(r.tier4Confidence||'—')}</div>
         <div style="margin-top:2px;opacity:.7">Level Bloom: ${escapeHtml(set.bloomLabel||'C1')}</div>
       </div>
       ${miskDetail}
@@ -994,7 +994,7 @@ function renderStudentResult() {
         </svg>
         <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:22px;font-weight:bold;">${score}%</div>
       </div>
-      <p class="small muted" style="margin:4px 0 0;">⏱ Waktu: ${tMin}m ${tSec}s | ${total} topik dinilai</p>
+      <p class="small muted" style="margin:4px 0 0;"> Waktu: ${tMin}m ${tSec}s | ${total} topik dinilai</p>
     </div>
 
     <!-- Stats grid -->
@@ -1007,9 +1007,9 @@ function renderStudentResult() {
 
     <!-- AI Diagnosis -->
     <div style="background:${aiColor};padding:16px;border-radius:20px;color:white;margin-bottom:14px;">
-      <h4 style="margin:0 0 6px;color:#00E5FF;">✦ Diagnosis Gemini AI</h4>
+      <h4 style="margin:0 0 6px;color:#00E5FF;"> Diagnosis Gemini AI</h4>
       <p style="font-size:12px;opacity:.9;margin:0 0 12px;">${aiMsg}</p>
-      ${hasRec ? `<button class="btn full" style="background:linear-gradient(135deg,#7c3fd4,#28d4c8)" onclick="window.go('studentAdaptivePath')">🧠 Lihat Jalur Belajarmu</button>` : `<button class="btn full" style="margin-top:4px" onclick="window.go('studentWebAR')">🔬 Eksplorasi Lab AR</button>`}
+      ${hasRec ? `<button class="btn full" style="background:linear-gradient(135deg,#7c3fd4,#28d4c8)" onclick="window.go('studentAdaptivePath')"> Lihat Jalur Belajarmu</button>` : `<button class="btn full" style="margin-top:4px" onclick="window.go('studentWebAR')"> Eksplorasi Lab AR</button>`}
     </div>
 
     <!-- Per-topic review -->
@@ -1115,7 +1115,7 @@ function showAddClassModal() {
 function addClass() {
   const name=document.getElementById('newClassName').value.trim(); if(!name) return toast('Isi nama kelas!');
   const code=`KIM-${Math.floor(140+Math.random()*850)}`; state.classes.push({id:`c${Date.now()}`,name,code,students:32,progress:0,quiz:10,roster:[]});
-  state.selectedClassIndex=state.classes.length-1; saveState(); closeModal(); render(); toast(`Kelas baru ${code} aktif! 🎉`);
+  state.selectedClassIndex=state.classes.length-1; saveState(); closeModal(); render(); toast(`Kelas baru ${code} aktif! `);
 }
 
 function renderTeacherClassDetail() {
@@ -1150,9 +1150,9 @@ function renderTeacherModules() {
       <div class="field"><label>Judul Modul</label><input id="moduleTitle" class="input" placeholder="Ketik judul modul"></div>
       <div class="field"><label>Tipe Materi</label>
         <select id="moduleType" class="select">
-          <option value="file">📄 Dokumen (PDF/PPT)</option>
-          <option value="video">🎬 Video</option>
-          <option value="link">🔗 Tautan</option>
+          <option value="file"> Dokumen (PDF/PPT)</option>
+          <option value="video"> Video</option>
+          <option value="link"> Tautan</option>
         </select>
       </div>
       <div class="field"><label>Deskripsi Singkat</label><textarea id="moduleSummary" class="textarea" placeholder="Tuliskan deskripsi singkat materi..."></textarea></div>
@@ -1163,10 +1163,10 @@ function renderTeacherModules() {
           <option value="Tinggi">Tinggi</option>
         </select>
       </div>
-      <button class="btn full" id="uploadModuleBtn" onclick="window.addModuleWithAI()">✦ Unggah & Generate Ringkasan AI</button>
+      <button class="btn full" id="uploadModuleBtn" onclick="window.addModuleWithAI()"> Unggah & Generate Ringkasan AI</button>
     </div>
     <h3 class="section-title">Modul Tersedia (${state.modules.length})</h3>
-    <div class="module-list">${state.modules.map(m=>`<div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:12px;margin-bottom:8px;"><div><b style="font-size:13px">${escapeHtml(m.title)}</b><div style="margin-top:4px;"><span class="pill ${typePillClass(m.type)}">${typeLabel(m.type)}</span><span class="pill ai" style="margin-left:4px;">✦ AI</span></div></div><button class="icon-btn danger" onclick="window.deleteModule('${m.id}')">${ICONS.trash}</button></div>`).join('')}</div>`);
+    <div class="module-list">${state.modules.map(m=>`<div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:12px;margin-bottom:8px;"><div><b style="font-size:13px">${escapeHtml(m.title)}</b><div style="margin-top:4px;"><span class="pill ${typePillClass(m.type)}">${typeLabel(m.type)}</span><span class="pill ai" style="margin-left:4px;"> AI</span></div></div><button class="icon-btn danger" onclick="window.deleteModule('${m.id}')">${ICONS.trash}</button></div>`).join('')}</div>`);
 }
 
 function addModuleWithAI() {
@@ -1178,7 +1178,7 @@ function addModuleWithAI() {
 
   // Simulate AI processing
   const btn = document.getElementById('uploadModuleBtn');
-  btn.textContent = '✦ AI sedang membuat ringkasan...';
+  btn.textContent = ' AI sedang membuat ringkasan...';
   btn.disabled = true;
 
   setTimeout(() => {
@@ -1207,7 +1207,7 @@ function addModuleWithAI() {
       prereq: 'Kesetimbangan Kimia Dasar'
     });
     saveState();
-    toast('✅ Materi terunggah dengan Ringkasan AI!');
+    toast(' Materi terunggah dengan Ringkasan AI!');
     render();
   }, 1800);
 }
@@ -1233,7 +1233,7 @@ function renderTeacherQuiz() {
           <div><b style="font-size:15px;display:block;">8</b><span class="small muted">belum</span></div>
           <div><b style="font-size:15px;display:block;color:var(--purple);">78%</b><span class="small muted">rata-rata</span></div>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;"><button class="btn ghost small-btn" onclick="window.editQuestion('qs3_t1')">📝 Edit</button><span class="small" style="color:var(--danger);font-weight:600;">Tenggat: 2 hari 3 jam</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;"><button class="btn ghost small-btn" onclick="window.editQuestion('qs3_t1')"> Edit</button><span class="small" style="color:var(--danger);font-weight:600;">Tenggat: 2 hari 3 jam</span></div>
       </div>
       <div class="card" style="padding:14px;margin-bottom:14px;border-radius:18px;">
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;"><div style="flex:1;"><h4 style="margin:0;font-size:14px;color:var(--ink);">Kuis Diagnostik Topik 2</h4><span class="small muted">Kesetimbangan Kimia Dinamis</span></div><span class="badge tidak-paham" style="font-size:9px;padding:2px 8px;">Selesai</span></div>
@@ -1242,7 +1242,7 @@ function renderTeacherQuiz() {
           <div><b style="font-size:15px;display:block;">0</b><span class="small muted">belum</span></div>
           <div><b style="font-size:15px;display:block;color:var(--success);">90%</b><span class="small muted">rata-rata</span></div>
         </div>
-        <button class="btn plain small-btn" style="width:100%" onclick="window.go('teacherAnalysis')">📊 Lihat Hasil Analisis</button>
+        <button class="btn plain small-btn" style="width:100%" onclick="window.go('teacherAnalysis')"> Lihat Hasil Analisis</button>
       </div>
     </div>`);
 }
@@ -1311,15 +1311,15 @@ function renderTeacherAnalysis() {
 
   // AI Rekomendasi Strategi
   const aiStrategies = [];
-  if (miskCount > 0) aiStrategies.push({ icon:'🔬', text:`${miskCount} siswa mengalami miskonsepsi. Rekomendasikan sesi WebAR remedial dengan fokus pada topik: ${topicRanking.slice(0,2).map(t=>t[0]).join(', ') || 'yang terdeteksi'}.` });
-  if (menebakCount > 0) aiStrategies.push({ icon:'📖', text:`${menebakCount} siswa menebak. Adakan diskusi kelas terbuka dan dorong siswa membaca ulang modul sebelum kuis berikutnya.` });
-  if (pahamPct >= 70) aiStrategies.push({ icon:'🚀', text:`${pahamPct}% siswa sudah paham. Pertimbangkan materi lanjutan atau soal tingkat Bloom lebih tinggi (C4–C5).` });
-  if (aiStrategies.length === 0) aiStrategies.push({ icon:'📊', text:'Belum ada data kuis yang cukup untuk menghasilkan rekomendasi. Pastikan siswa menyelesaikan kuis diagnostik.' });
+  if (miskCount > 0) aiStrategies.push({ icon:'', text:`${miskCount} siswa mengalami miskonsepsi. Rekomendasikan sesi WebAR remedial dengan fokus pada topik: ${topicRanking.slice(0,2).map(t=>t[0]).join(', ') || 'yang terdeteksi'}.` });
+  if (menebakCount > 0) aiStrategies.push({ icon:'', text:`${menebakCount} siswa menebak. Adakan diskusi kelas terbuka dan dorong siswa membaca ulang modul sebelum kuis berikutnya.` });
+  if (pahamPct >= 70) aiStrategies.push({ icon:'', text:`${pahamPct}% siswa sudah paham. Pertimbangkan materi lanjutan atau soal tingkat Bloom lebih tinggi (C4–C5).` });
+  if (aiStrategies.length === 0) aiStrategies.push({ icon:'', text:'Belum ada data kuis yang cukup untuk menghasilkan rekomendasi. Pastikan siswa menyelesaikan kuis diagnostik.' });
 
   pageWrap(`${header({back:true,titleBackPage:'teacherDashboard',coins:false})}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
       <div><h1 class="page-title" style="margin:0;">Analisis Kognitif</h1><p class="page-subtitle" style="margin:0;">${escapeHtml(c.name)} — Real-Time</p></div>
-      <button class="btn small-btn" style="background:#10b981;" onclick="window.eksporLaporanPDF()">📥 PDF</button>
+      <button class="btn small-btn" style="background:#10b981;" onclick="window.eksporLaporanPDF()"> PDF</button>
     </div>
 
     <div id="area-cetak-laporan" style="padding:5px;background:#fff;">
@@ -1327,7 +1327,7 @@ function renderTeacherAnalysis() {
 
       <!-- Distribusi Pemahaman -->
       <div class="card" style="margin-bottom:14px;">
-        <h4 style="margin:0 0 12px;">📊 Distribusi Pemahaman Kelas</h4>
+        <h4 style="margin:0 0 12px;"> Distribusi Pemahaman Kelas</h4>
         <div class="dist-chart">
           <div class="dist-bar-wrap">
             <div class="dist-bar-label">Paham Konsep</div>
@@ -1350,7 +1350,7 @@ function renderTeacherAnalysis() {
       <!-- Topik paling banyak salah -->
       ${topicRanking.length > 0 ? `
       <div class="card" style="margin-bottom:14px;">
-        <h4 style="margin:0 0 10px;">🎯 Topik Paling Banyak Salah</h4>
+        <h4 style="margin:0 0 10px;"> Topik Paling Banyak Salah</h4>
         ${topicRanking.map(([topic, count], i) => `
           <div class="topic-error-row">
             <span class="topic-rank">${i+1}</span>
@@ -1360,7 +1360,7 @@ function renderTeacherAnalysis() {
       </div>` : ''}
 
       <!-- Watchlist -->
-      <h3 class="section-title">🚨 Siswa Butuh Perhatian</h3>
+      <h3 class="section-title"> Siswa Butuh Perhatian</h3>
       <div class="card" style="margin-bottom:14px;">
         ${watchlist.length > 0 ? watchlist.map(s => `
           <div class="student-row" style="margin-bottom:8px;">
@@ -1373,11 +1373,11 @@ function renderTeacherAnalysis() {
             </div>
             <span class="badge ${s.status==='Kritis'?'miskonsepsi':'menebak'}">${escapeHtml(s.status)}</span>
           </div>`).join('')
-          : '<p class="small muted" style="padding:8px;">Tidak ada siswa yang memerlukan perhatian khusus. ✅</p>'}
+          : '<p class="small muted" style="padding:8px;">Tidak ada siswa yang memerlukan perhatian khusus. </p>'}
       </div>
 
       <!-- Rekomendasi Strategi AI -->
-      <h3 class="section-title">🤖 Rekomendasi Strategi AI</h3>
+      <h3 class="section-title"> Rekomendasi Strategi AI</h3>
       <div class="card">
         ${aiStrategies.map(s => `
           <div class="ai-strategy-row">
@@ -1390,8 +1390,8 @@ function renderTeacherAnalysis() {
 
 function studentAttention(name,score,status) { return `<div class="student-row" style="margin-bottom:8px;display:flex;justify-content:space-between;padding:8px;border:1px solid #eee;border-radius:10px;"><span><b>${escapeHtml(name)}</b> (${score}%)</span> <span class="badge ${status==='Kritis'?'miskonsepsi':'menebak'}">${escapeHtml(status)}</span></div>`; }
 function eksporLaporanPDF() {
-  if (typeof html2pdf === 'undefined') { toast('✘ Library PDF belum dimuat.'); return; }
-  const element = document.getElementById('area-cetak-laporan'); const nameKls = state.classes[state.selectedClassIndex]?.name || 'Kelas'; toast('⏳ Memproses PDF...');
+  if (typeof html2pdf === 'undefined') { toast(' Library PDF belum dimuat.'); return; }
+  const element = document.getElementById('area-cetak-laporan'); const nameKls = state.classes[state.selectedClassIndex]?.name || 'Kelas'; toast(' Memproses PDF...');
   const opsi = { margin:[15,12,15,12], filename:`Laporan_ARChemy_${nameKls}.pdf`, image:{type:'jpeg',quality:.98}, html2canvas:{scale:2,useCORS:true,logging:false}, jsPDF:{unit:'mm',format:'a4',orientation:'portrait'} };
   try { html2pdf().set(opsi).from(element).save().then(()=>toast('PDF Berhasil diunduh!')).catch(()=>toast('Gagal ekspor PDF.')); } catch(e) { toast('Gagal: '+e.message); }
 }
@@ -1413,10 +1413,10 @@ function renderProfile() {
     <div class="card info-list" style="margin-top:14px;">
       <div class="info-row"><b>Email</b><span>${escapeHtml(p.email)}</span></div>
       <div class="info-row"><b>Instansi</b><span>${escapeHtml(p.school)}</span></div>
-      <div class="info-row" style="cursor:pointer;" onclick="window.toggleColorblind()"><b>Mode Buta Warna</b><span>${state.colorblind?'✅ Aktif':'Nonaktif'}</span></div>
+      <div class="info-row" style="cursor:pointer;" onclick="window.toggleColorblind()"><b>Mode Buta Warna</b><span>${state.colorblind?' Aktif':'Nonaktif'}</span></div>
     </div>
     ${state.role==='siswa' && (state.badges||[]).length > 0 ? `
-    <h3 class="section-title">Badge Kamu 🏅</h3>
+    <h3 class="section-title">Badge Kamu </h3>
     <div class="card">${myBadges}</div>` : ''}
     <div class="actions-row" style="margin-top:14px;"><button class="btn danger full" onclick="window.logout()">Logout Akun</button></div>`);
 }

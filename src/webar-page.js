@@ -30,7 +30,7 @@ export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
       const isRec  = recommendedIds.includes(id);
       const isDone = viewedMisi.includes(id);
       const badgeHtml = isRec
-        ? `<div class="misi-ai-badge">🎯 Prioritas AI</div>`
+        ? `<div class="misi-ai-badge">Prioritas AI</div>`
         : '';
       return `
         <button class="misi-card ${isRec ? 'misi-recommended' : ''}" data-misi="${id}">
@@ -41,7 +41,7 @@ export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
           </div>
           <code class="misi-persamaan">${misi.persamaan}</code>
           <div style="margin-top:8px;font-size:10px;color:#7c6fd2;">
-            🎯 Temukan keadaan setimbang!
+            Temukan keadaan setimbang!
           </div>
         </button>`;
     })
@@ -49,9 +49,9 @@ export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
 
   container.innerHTML = `
     <div class="webar-pilih-misi">
-      <h1 class="page-title">🔬 Lab AR Kimia</h1>
+      <h1 class="page-title">Lab AR Kimia</h1>
       <p class="page-subtitle">Pilih misi dan pelajari kesetimbangan kimia secara langsung.</p>
-      ${recommendedIds.length > 0 ? `<div class="misi-rec-banner">🧠 AI merekomendasikan ${recommendedIds.length} misi berdasarkan hasil diagnosismu</div>` : ''}
+      ${recommendedIds.length > 0 ? `<div class="misi-rec-banner">AI merekomendasikan ${recommendedIds.length} misi berdasarkan hasil diagnosismu</div>` : ''}
       <div class="misi-grid">${kartu}</div>
       <div class="webar-legend" style="margin-top:14px;background:rgba(83,74,183,0.06);padding:10px;border-radius:12px;">
         <div class="webar-legend-item"><span class="webar-legend-color reaktan"></span><span>Reaktan</span></div>
@@ -104,7 +104,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 
         <!-- Tap hint — muncul setelah scan -->
         <div class="webar-tap-hint" id="webarTapHint" style="display:none">
-          👆 Ketuk untuk meletakkan labu
+          Ketuk untuk meletakkan labu
         </div>
 
         <!-- Badge kesetimbangan — pojok kanan atas, sangat kecil -->
@@ -248,10 +248,10 @@ function resizeCanvasKeViewport(canvas) {
 function renderPanelKontrol(container, misiId, hudTop, eqBadge, eqDot, eqText) {
   const misi = MISI_DATA[misiId];
   const indikators = [
-    { id: 'suhu',        icon: '🌡️', label: 'Suhu' },
-    { id: 'volume',      icon: '📦', label: 'Volume' },
-    { id: 'tekanan',     icon: '🗜️', label: 'Tekanan' },
-    { id: 'konsentrasi', icon: '🧪', label: 'Konsentrasi' }
+    { id: 'suhu',        icon: '', label: 'Suhu' },
+    { id: 'volume',      icon: '', label: 'Volume' },
+    { id: 'tekanan',     icon: '', label: 'Tekanan' },
+    { id: 'konsentrasi', icon: '', label: 'Konsentrasi' }
   ];
 
   // Molekul reaktan & produk untuk ditampilkan
@@ -267,7 +267,6 @@ function renderPanelKontrol(container, misiId, hudTop, eqBadge, eqDot, eqText) {
   container.innerHTML = `
     <!-- Cerita edukatif -->
     <div class="webar-story-panel" id="panelStoryWrap">
-      <span class="story-avatar">🤖</span>
       <span class="story-text" id="panelStoryText">${misi.ceritaAwal}</span>
       <button class="story-toggle" id="panelStoryToggle">▼</button>
     </div>
@@ -288,7 +287,7 @@ function renderPanelKontrol(container, misiId, hudTop, eqBadge, eqDot, eqText) {
     <!-- Semua Parameter (tabbed) -->
     <div class="webar-tabs-section">
       <div class="webar-tabs">
-        ${indikators.map((ind,i) => `<button class="webar-tab-btn ${i===0?'active':''}" data-tab="${ind.id}">${ind.icon} ${ind.label}</button>`).join('')}
+        ${indikators.map((ind,i) => `<button class="webar-tab-btn ${i===0?'active':''}" data-tab="${ind.id}">${ind.label}</button>`).join('')}
       </div>
       <div class="webar-sliders-container">
         ${indikators.map((ind,i) => {
