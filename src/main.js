@@ -1326,7 +1326,7 @@ function renderTeacherAnalysis() {
     </div>
 
     <div id="area-cetak-laporan" style="padding:5px;background:#fff;">
-      <div class="pdf-only-header" style="margin-bottom:15px;border-bottom:2px solid #6b36cf;padding-bottom:5px;"><h3 style="margin:0;color:#6b36cf;">ARChemy — Learning Analytics Report</h3><p style="margin:0;font-size:11px;color:#555;">Rapor Diagnosis Kelas ${escapeHtml(c.name)}</p></div>
+      <div class="pdf-only-header" style="margin-bottom:15px;border-bottom:2px solid #6b36cf;padding-bottom:5px;"><h3 style="margin:0;color:#6b36cf;">ARChemy Learning Analytics Report</h3><p style="margin:0;font-size:11px;color:#555;">Rapor Diagnosis Kelas ${escapeHtml(c.name)}</p></div>
 
       <!-- Distribusi Kelas -->
       <div class="card" style="margin-bottom:14px;">
