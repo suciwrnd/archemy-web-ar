@@ -197,8 +197,8 @@ const defaultState = {
   // AI adaptive recommendations (generated after quiz)
   aiRecommendations: [],
   profile:{
-    siswa:{ name:'Suci Ramadhani', email:'suci@student.archemy.id', school:'SMA Negeri 1 Kimia', className:'XI IPA 1', password:'123456' },
-    guru:{ name:'Ibu Misnawati S.Pd', email:'misnawati@guru.archemy.id', school:'SMA Negeri 1 Kimia', className:'Guru Kimia', password:'123456' }
+    siswa:{ name:'Suci Ramadhani', email:'suci@student.archemy.id', school:'SMA Negeri 1 Banda Aceh', className:'XI IPA 1', password:'123456' },
+    guru:{ name:'Ibu Misnawati S.Pd', email:'misnawati@guru.archemy.id', school:'SMA Negeri 1 Banda Aceh', className:'Guru Kimia', password:'123456' }
   },
   modules: defaultModules, questions: defaultQuestions, classes: defaultClasses,
   teacherEditingQuestionId:null
