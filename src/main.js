@@ -1232,7 +1232,7 @@ function deleteModule(id) {
 function renderTeacherQuiz() {
   pageWrap(`${header({coins:false,back:true,titleBackPage:'teacherDashboard'})}
     <h1 class="page-title">Kelola Kuis</h1><p class="page-subtitle">Buat dan kelola kuis kognitif berjenjang.</p>
-    <button class="btn" style="min-height:36px;padding:0 14px;border-radius:999px;margin-bottom:18px;" onclick="window.newQuestion()"><span style="font-size:16px;font-weight:bold;">+</span> Buat Kuis</button>
+    <button class="btn" style="min-height:36px;padding:0 14px;border-radius:999px;margin-bottom:18px;" onclick="window.newQuestion()"><span style="font-size:16px;font-weight:bold;">+</span> Aktifkan Kuis Baru</button>
     <div class="quiz-history-list">
       <div class="card" style="padding:14px;margin-bottom:14px;border-radius:18px;">
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;"><div style="flex:1;"><h4 style="margin:0;font-size:14px;color:var(--ink);">Kuis Diagnostik Topik 3</h4><span class="small muted">Karakteristik Sistem Homogen dan Heterogen</span></div><span class="badge paham" style="background:var(--purple);color:white;font-size:9px;padding:2px 8px;">Aktif</span></div>
