@@ -262,7 +262,7 @@ function awardPoints(amount, reason='') {
   state.points = (state.points || 0) + amount;
   state.gems = (state.gems || 0) + Math.floor(amount / 5);
   saveState();
-  toast(`+${amount} XP ${reason ? '— ' + reason : ''} 🌟`);
+  toast(`+${amount} XP ${reason ? '— ' + reason : ''}`);
 }
 
 function awardBadge(badgeId) {
@@ -681,7 +681,7 @@ function startQuiz() {
   state.currentSetIndex=0; state.currentTier=1; state.currentBloomLevel=1;
   state.quizResults=[]; state.selectedOption=null; state.confidence=null;
   state.quizTimeLeft=600; state.quizTimerActive=true;
-  state.aiRecommendations=[];
+  state.aiRecommendations=[]; state.questionStartTime = Date.now();
   saveState(); startTimer(); go('studentQuizPage');
 }
 function startTimer() {
@@ -782,6 +782,7 @@ function saveAndNext() {
   else if (tier === 3) { result.tier3Answer = state.selectedOption; result.tier3Correct = state.selectedOption === currentSet.tier3.answer; }
   else if (tier === 4) {
     result.tier4Confidence = state.confidence;
+    result.timeTaken = Math.round((Date.now() - (state.questionStartTime || Date.now())) / 1000);
     const isConf = c => c === 'Yakin' || c === 'Sangat Yakin';
     if (result.tier1Correct && isConf(result.tier2Confidence) && result.tier3Correct && isConf(result.tier4Confidence))  result.category = 'Paham Konsep';
     else if (result.tier1Correct && !isConf(result.tier2Confidence)) result.category = 'Menebak';
@@ -825,15 +826,98 @@ function jalankanLompatanAdaptif(currentTopic, isSuccess) {
   if (nextTopicTarget === 'END') { executeQuizEnd(); }
   else {
     const nextIdx = quizBank.findIndex(q => q.topic === nextTopicTarget);
-    if (nextIdx >= 0) { state.currentSetIndex = nextIdx; state.currentTier = 1; saveState(); render(); }
+    if (nextIdx >= 0) { state.currentSetIndex = nextIdx; state.currentTier = 1; state.questionStartTime = Date.now(); saveState(); render(); }
     else { executeQuizEnd(); }
   }
 }
 
-function executeQuizEnd() {
+async function fetchGeminiAnalysis(payload) {
+  return new Promise((resolve, reject) => {
+    // Simulasi delay jaringan API 2.5 detik
+    setTimeout(() => {
+      // 90% success rate to simulate real network
+      if (Math.random() > 0.1) {
+        // Build mock recommendations based on the payload analysis
+        const miskCount = payload.results.filter(r => r.category === 'Miskonsepsi').length;
+        const total = payload.results.length;
+        const pahamCount = payload.results.filter(r => r.category === 'Paham Konsep').length;
+
+        let classification = 'Perlu Pendampingan Dasar';
+        if (pahamCount === total) classification = 'Sangat Mahir';
+        else if (pahamCount > total / 2 && miskCount === 0) classification = 'Pemahaman Baik';
+        else if (miskCount > 0) classification = 'Terdeteksi Miskonsepsi';
+
+        let recom = [];
+        if (miskCount > 0) {
+          recom.push({ text: `Penting: AI mendeteksi ${miskCount} miskonsepsi. Disarankan mencoba Lab WebAR untuk memvisualisasikan konsep.`, action: "window.go('studentWebAR')" });
+        }
+        if (pahamCount < total) {
+          recom.push({ text: 'Pelajari ulang teori dasar pada modul yang direkomendasikan AI.', action: "window.go('studentModules')" });
+        }
+        if (recom.length === 0) {
+          recom.push({ text: 'Luar biasa! Pemahaman Anda sangat baik. AI menyarankan Anda melanjutkan ke latihan soal tingkat lanjut.', action: null });
+        }
+        
+        resolve({
+          status: 'success',
+          analysis: { classification, recommendations: recom }
+        });
+      } else {
+        reject(new Error('Gemini API sedang tidak tersedia (simulasi error)'));
+      }
+    }, 2500);
+  });
+}
+
+async function executeQuizEnd() {
   clearInterval(quizInterval); quizInterval = null; state.quizTimerActive = false;
-  // Generate AI recommendations based on results
-  state.aiRecommendations = generateAdaptiveLearningPath(state.quizResults);
+  
+  // Show Loading state
+  const app = document.getElementById('app');
+  if (app) {
+    app.innerHTML = `
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center;">
+        <div style="width:40px;height:40px;border:4px solid #f3f3f3;border-top:4px solid #6b36cf;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:20px;"></div>
+        <h3 style="margin:0;color:#1e293b;">Menganalisis Jawaban...</h3>
+        <p style="color:#64748b;font-size:14px;">Mengirim data 4-tier ke AI Assistant (Gemini API)</p>
+      </div>
+      <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+    `;
+  }
+
+  // Construct Payload
+  const payload = {
+    userId: 'student123',
+    timestamp: new Date().toISOString(),
+    totalTimeTaken: 600 - state.quizTimeLeft,
+    results: state.quizResults.map(r => ({
+      topic: r.topic,
+      bloomLevel: r.bloomLevel,
+      tier1Answer: r.tier1Answer,
+      tier1Correct: r.tier1Correct,
+      tier2Confidence: r.tier2Confidence,
+      tier3Answer: r.tier3Answer,
+      tier3Correct: r.tier3Correct,
+      tier4Confidence: r.tier4Confidence,
+      category: r.category,
+      timeTaken: r.timeTaken
+    }))
+  };
+
+  try {
+    const aiResponse = await fetchGeminiAnalysis(payload);
+    state.aiRecommendations = aiResponse.analysis.recommendations;
+    state.aiClassification = aiResponse.analysis.classification;
+    // Save to history
+    state.aiAnalysisHistory = state.aiAnalysisHistory || [];
+    state.aiAnalysisHistory.push({ date: new Date().toISOString(), payload, analysis: aiResponse.analysis });
+  } catch (err) {
+    console.warn("AI Fallback triggered:", err);
+    state.aiRecommendations = generateAdaptiveLearningPath(state.quizResults);
+    state.aiClassification = 'Analisis AI Tidak Tersedia (Fallback)';
+    toast('Gagal terhubung ke AI, menggunakan analisis standar.');
+  }
+
   // Bonus poin jika paham
   const pahamCount = state.quizResults.filter(r => r.category === 'Paham Konsep').length;
   if (pahamCount > 0) awardPoints(pahamCount * 20, 'bonus pemahaman');
@@ -893,12 +977,10 @@ function renderStudentResult() {
     </div>`;
   }).join('');
 
-  const aiColor = miskCount > 0 ? '#1e1b4b' : '#0f2d1a';
-  const aiMsg   = miskCount > 0
-    ? `Terdeteksi <b>${miskCount} topik miskonsepsi</b>. AI merekomendasikan modul & misi WebAR yang spesifik untuk memperbaikinya.`
-    : menebakCount > 0
-      ? `Kamu menebak di ${menebakCount} topik. Baca ulang modul yang direkomendasikan untuk memperkuat pemahaman.`
-      : `Luar biasa! Pemahaman konsep kesetimbangan kimiamu sudah sangat kokoh dan bebas miskonsepsi. 🎉`;
+  const aiColor = (state.aiClassification && state.aiClassification.includes('Miskonsepsi')) ? '#1e1b4b' : '#0f2d1a';
+  const aiMsg   = state.aiClassification 
+    ? `Klasifikasi AI: <b style="color:#2dd4bf;">${escapeHtml(state.aiClassification)}</b>` 
+    : (miskCount > 0 ? `Terdeteksi <b>${miskCount} topik miskonsepsi</b>.` : `Pemahaman kamu sudah baik.`);
 
   pageWrap(`${header({back:true})}
     <h1 class="page-title">Hasil Kuis 4-Tier</h1>
@@ -1311,7 +1393,7 @@ function eksporLaporanPDF() {
   if (typeof html2pdf === 'undefined') { toast('✘ Library PDF belum dimuat.'); return; }
   const element = document.getElementById('area-cetak-laporan'); const nameKls = state.classes[state.selectedClassIndex]?.name || 'Kelas'; toast('⏳ Memproses PDF...');
   const opsi = { margin:[15,12,15,12], filename:`Laporan_ARChemy_${nameKls}.pdf`, image:{type:'jpeg',quality:.98}, html2canvas:{scale:2,useCORS:true,logging:false}, jsPDF:{unit:'mm',format:'a4',orientation:'portrait'} };
-  try { html2pdf().set(opsi).from(element).save().then(()=>toast('🎉 PDF Berhasil diunduh!')).catch(()=>toast('✘ Gagal ekspor PDF.')); } catch(e) { toast('✘ Gagal: '+e.message); }
+  try { html2pdf().set(opsi).from(element).save().then(()=>toast('PDF Berhasil diunduh!')).catch(()=>toast('Gagal ekspor PDF.')); } catch(e) { toast('Gagal: '+e.message); }
 }
 
 /* --------------------------------------------------------------------------

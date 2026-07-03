@@ -58,9 +58,10 @@ export const MISI_DATA = {
   misi1: {
     judul: 'Misi 1: Gas Iodin Reversibel',
     persamaan: 'H₂(g) + I₂(g) ⇌ 2HI(g)',
-    ceritaAwal: 'Halo! Reaksi di labu ini belum setimbang. Laju reaksi pembentukan produk dan penguraian reaktan masih berbeda. Atur Suhu mencapai 🎯 Target 50°C untuk menyeimbangkannya!',
+    ceritaAwal: 'Halo! Reaksi di labu ini belum setimbang. Laju reaksi pembentukan produk dan penguraian reaktan masih berbeda. Tingkatkan energi panas (Suhu) sistem untuk menyeimbangkannya! (Klu: Setel ke target 50°C)',
     ceritaSukses: 'Luar biasa! Kesetimbangan tercapai. Ingat, ini Kesetimbangan Dinamis: Secara statis warnanya tetap, tapi secara mikroskopis molekul H₂, I₂, dan HI terus bereaksi bolak-balik dengan laju yang sama!',
     parameterKunci: 'suhu',
+    wujud: 'gas',
     nilaiTarget: 50,
     rentang: {
       suhu: [20, 100, 1, 30, '°C'],
@@ -70,15 +71,16 @@ export const MISI_DATA = {
     },
     partikel: {
       jauhTarget: [{ jenis: 'H2', jumlah: 4 }, { jenis: 'I2', jumlah: 4 }, { jenis: 'HI', jumlah: 1 }],
-      dekatTarget: [{ jenis: 'H2', jumlah: 1 }, { jenis: 'I2', jumlah: 1 }, { jenis: 'HI', jumlah: 5 }]
+      dekatTarget: [{ jenis: 'H2', jumlah: 2 }, { jenis: 'I2', jumlah: 2 }, { jenis: 'HI', jumlah: 5 }]
     }
   },
   misi2: {
     judul: 'Misi 2: Operasi Smog Kota',
     persamaan: '2NO₂(g) ⇌ N₂O₄(g)',
-    ceritaAwal: 'Gas NO₂ beracun! Sistem belum setimbang. Sesuai asas Le Chatelier, perkecil Volume labu ke 🎯 Target 2.0L untuk meningkatkan tekanan dan menggeser reaksi ke jumlah mol gas yang lebih kecil (N₂O₄).',
+    ceritaAwal: 'Gas NO₂ beracun! Sistem belum setimbang. Sesuai asas Le Chatelier, perkecil volume labu untuk meningkatkan tekanan dan menggeser reaksi ke jumlah mol gas yang lebih kecil (N₂O₄). (Klu: Setel ke target 2.0 L)',
     ceritaSukses: 'Hebat! Volume kecil memperbesar tekanan, menggeser reaksi ke arah N₂O₄. Secara dinamis, molekul NO₂ dan N₂O₄ masih terus terbentuk dan terurai tanpa henti di dalam sistem!',
     parameterKunci: 'volume',
+    wujud: 'gas',
     nilaiTarget: 2.0,
     rentang: {
       suhu: [20, 100, 1, 50, '°C'],
@@ -88,15 +90,16 @@ export const MISI_DATA = {
     },
     partikel: {
       jauhTarget: [{ jenis: 'NO2', jumlah: 6 }, { jenis: 'N2O4', jumlah: 1 }],
-      dekatTarget: [{ jenis: 'NO2', jumlah: 1 }, { jenis: 'N2O4', jumlah: 4 }]
+      dekatTarget: [{ jenis: 'NO2', jumlah: 2 }, { jenis: 'N2O4', jumlah: 3 }]
     }
   },
   misi3: {
     judul: 'Misi 3: Pabrik Pupuk Amonia',
     persamaan: 'N₂(g) + 3H₂(g) ⇌ 2NH₃(g)',
-    ceritaAwal: 'Pabrik butuh NH₃. Sistem belum setimbang. Tambahkan Konsentrasi reaktan H₂ mencapai 🎯 Target 1.0 M untuk mendorong kesetimbangan ke arah produk (kanan)!',
+    ceritaAwal: 'Pabrik butuh NH₃. Sistem belum setimbang. Tambahkan konsentrasi reaktan H₂ untuk mendorong kesetimbangan ke arah produk (kanan)! (Klu: Setel ke target 1.0 M)',
     ceritaSukses: 'Sempurna! Asas Le Chatelier terbukti: penambahan konsentrasi reaktan menggeser reaksi ke produk. Meskipun jumlah amonia tampak statis, reaksi mikroskopis tetap berjalan bolak-balik (dinamis)!',
     parameterKunci: 'konsentrasi',
+    wujud: 'gas',
     nilaiTarget: 1.0,
     rentang: {
       suhu: [20, 100, 1, 50, '°C'],
@@ -105,16 +108,17 @@ export const MISI_DATA = {
       konsentrasi: [0.1, 2, 0.1, 0.2, 'M']
     },
     partikel: {
-      jauhTarget: [{ jenis: 'H2', jumlah: 6 }, { jenis: 'NH3', jumlah: 1 }],
-      dekatTarget: [{ jenis: 'H2', jumlah: 2 }, { jenis: 'NH3', jumlah: 4 }]
+      jauhTarget: [{ jenis: 'N2', jumlah: 2 }, { jenis: 'H2', jumlah: 2 }, { jenis: 'NH3', jumlah: 1 }],
+      dekatTarget: [{ jenis: 'N2', jumlah: 1 }, { jenis: 'H2', jumlah: 3 }, { jenis: 'NH3', jumlah: 3 }]
     }
   },
   misi4: {
     judul: 'Misi 4: Buffer Darah',
-    persamaan: 'H₂CO₃(aq) ⇌ HCO₃⁻(aq) + H⁺(aq)',
-    ceritaAwal: 'pH darah pasien tidak seimbang! Atur Tekanan gas paru-paru mencapai 🎯 Target 3.0 atm untuk memulihkan kesetimbangan asam karbonat!',
+    persamaan: 'CO₂(g) + H₂O(l) ⇌ H₂CO₃(aq)',
+    ceritaAwal: 'pH darah pasien tidak seimbang! Atur tekanan gas dari paru-paru untuk memulihkan kesetimbangan asam karbonat di dalam plasma darah! (Klu: Setel ke target 3.0 atm)',
     ceritaSukses: 'Penyelamatan berhasil! Darah kini dalam keadaan kesetimbangan dinamis. Reaksi ionisasi dan asosiasi terus terjadi di dalam plasma darah dengan laju yang seimbang.',
     parameterKunci: 'tekanan',
+    wujud: 'aqueous',
     nilaiTarget: 3.0,
     rentang: {
       suhu: [20, 100, 1, 37, '°C'],
@@ -123,14 +127,33 @@ export const MISI_DATA = {
       konsentrasi: [0.1, 2, 0.1, 1.0, 'M']
     },
     partikel: {
-      jauhTarget: [{ jenis: 'H2CO3', jumlah: 4 }, { jenis: 'HCO3', jumlah: 1 }],
-      dekatTarget: [{ jenis: 'H2CO3', jumlah: 1 }, { jenis: 'HCO3', jumlah: 4 }]
+      jauhTarget: [{ jenis: 'CO2', jumlah: 4 }, { jenis: 'H2O', jumlah: 4 }, { jenis: 'H2CO3', jumlah: 1 }],
+      dekatTarget: [{ jenis: 'CO2', jumlah: 1 }, { jenis: 'H2O', jumlah: 1 }, { jenis: 'H2CO3', jumlah: 4 }]
+    }
+  },
+  misi5: {
+    judul: 'Misi 5: Dekomposisi Batu Kapur',
+    persamaan: 'CaCO₃(s) ⇌ CaO(s) + CO₂(g)',
+    ceritaAwal: 'Reaksi dekomposisi ini bersifat endotermik (menyerap panas). Berikan lebih banyak energi panas (Suhu) untuk mendorong penguraian batu kapur menjadi gas CO₂! (Klu: Setel ke target 80°C)',
+    ceritaSukses: 'Bagus sekali! Pada kesetimbangan heterogen, penambahan suhu pada reaksi endotermik menggeser reaksi ke kanan (produk). Perhatikan bahwa merubah ukuran wadah akan merubah tekanan gas CO₂.',
+    parameterKunci: 'suhu',
+    wujud: 'heterogen',
+    nilaiTarget: 80,
+    rentang: {
+      suhu: [20, 100, 1, 30, '°C'],
+      volume: [1, 5, 0.1, 3.0, 'L'],
+      tekanan: [1, 5, 0.1, 1.0, 'atm'],
+      konsentrasi: [0.1, 2, 0.1, 1.0, 'M']
+    },
+    partikel: {
+      jauhTarget: [{ jenis: 'CaCO3', jumlah: 3 }, { jenis: 'CaO', jumlah: 1 }, { jenis: 'CO2', jumlah: 1 }],
+      dekatTarget: [{ jenis: 'CaCO3', jumlah: 1 }, { jenis: 'CaO', jumlah: 3 }, { jenis: 'CO2', jumlah: 3 }]
     }
   }
 };
 
-const ATOM_WARNA = { H: 0xdbeafe, I: 0xd946ef, N: 0x3b82f6, O: 0xef4444, C: 0xfbbf24 };
-const ATOM_RADIUS = { H: 0.055, I: 0.09, N: 0.075, O: 0.065, C: 0.08 };
+const ATOM_WARNA = { H: 0xdbeafe, I: 0xd946ef, N: 0x3b82f6, O: 0xef4444, C: 0xfbbf24, Ca: 0xd4d4d8 };
+const ATOM_RADIUS = { H: 0.055, I: 0.09, N: 0.075, O: 0.065, C: 0.08, Ca: 0.10 };
 
 export async function deteksiModeAR() {
   if (navigator.xr) {
@@ -149,18 +172,18 @@ export function buatGeometryErlenmeyer() {
     new THREE.Vector2(0.26, -0.32),
     new THREE.Vector2(0.26, -0.24),
     new THREE.Vector2(0.22, -0.05),
-    new THREE.Vector2(0.16, 0.12),
-    new THREE.Vector2(0.08, 0.24),
-    new THREE.Vector2(0.07, 0.42),
+    new THREE.Vector2(0.18, 0.12),
+    new THREE.Vector2(0.14, 0.24),
+    new THREE.Vector2(0.13, 0.42),
     // Rim
-    new THREE.Vector2(0.09, 0.44),
-    new THREE.Vector2(0.09, 0.45),
-    new THREE.Vector2(0.07, 0.46),
-    new THREE.Vector2(0.06, 0.45),
+    new THREE.Vector2(0.15, 0.44),
+    new THREE.Vector2(0.15, 0.45),
+    new THREE.Vector2(0.13, 0.46),
+    new THREE.Vector2(0.12, 0.45),
     // Inner wall
-    new THREE.Vector2(0.06, 0.42),
-    new THREE.Vector2(0.07, 0.24),
-    new THREE.Vector2(0.15, 0.12),
+    new THREE.Vector2(0.12, 0.42),
+    new THREE.Vector2(0.13, 0.24),
+    new THREE.Vector2(0.17, 0.12),
     new THREE.Vector2(0.21, -0.05),
     new THREE.Vector2(0.25, -0.24),
     new THREE.Vector2(0.25, -0.31),
@@ -190,7 +213,7 @@ export function buatMaterialKaca() {
 
 function buatAtom(simbol, jenisMol) {
   const isColorblind = document.body.classList.contains('colorblind-mode');
-  const isProduk = ['NH3', 'HI', 'N2O4', 'HCO3'].includes(jenisMol);
+  const isProduk = ['NH3', 'HI', 'N2O4', 'H2CO3', 'CO2', 'CaO'].includes(jenisMol);
   
   let geo;
   const r = ATOM_RADIUS[simbol] || 0.055;
@@ -208,10 +231,10 @@ function buatAtom(simbol, jenisMol) {
   const col = new THREE.Color(baseColor);
   const mat = new THREE.MeshStandardMaterial({ 
     color: baseColor, 
-    roughness: 0.2, 
+    roughness: 0.5, 
     metalness: 0.1,
     emissive: col,
-    emissiveIntensity: 0.7   // atom bersinar kuat dari dalam labu
+    emissiveIntensity: 0.1   // tidak lagi bersinar terang (flat), agar shading 3D bola terlihat jelas
   });
   return new THREE.Mesh(geo, mat);
 }
@@ -234,13 +257,18 @@ function buatIkatanKe(p1, p2, radius = 0.012) {
 
 const RESEP_MOLEKUL = {
   H2: { atoms: ['H', 'H'], jarak: 0.06 },
+  N2: { atoms: ['N', 'N'], jarak: 0.05 },
   I2: { atoms: ['I', 'I'], jarak: 0.08 },
   HI: { atoms: ['H', 'I'], jarak: 0.07 },
+  H2O: { atoms: ['O', 'H', 'H'], sudut: true },
   NO2: { atoms: ['N', 'O', 'O'], sudut: true },
   N2O4: { atoms: ['N', 'N', 'O', 'O', 'O', 'O'], dimer: true },
   NH3: { atoms: ['N', 'H', 'H', 'H'], piramida: true },
   H2CO3: { atoms: ['C', 'O', 'O', 'O'], kompleks: true },
-  HCO3: { atoms: ['C', 'O', 'O'], kompleks: true }
+  HCO3: { atoms: ['C', 'O', 'O'], kompleks: true },
+  CO2: { atoms: ['O', 'C', 'O'], linear: true },
+  CaCO3: { atoms: ['Ca', 'C', 'O', 'O', 'O'], kompleksCa: true },
+  CaO: { atoms: ['Ca', 'O'], jarak: 0.11 }
 };
 function buatLabelTeks(text) {
   const canvas = document.createElement('canvas');
@@ -256,26 +284,28 @@ function buatLabelTeks(text) {
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(text, 90, 40);
   const tex = new THREE.CanvasTexture(canvas);
-  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false });
   const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(0.22, 0.1, 1);
+  sprite.scale.set(0.12, 0.05, 1);
   return sprite;
 }
 
 export function buatMolekul(jenis) {
   const resep = RESEP_MOLEKUL[jenis]; if (!resep) return new THREE.Group();
   const grup = new THREE.Group();
+  const atomGrup = new THREE.Group();
+  grup.add(atomGrup);
 
   if (resep.atoms.length === 2) {
     const atomA = buatAtom(resep.atoms[0], jenis); const atomB = buatAtom(resep.atoms[1], jenis);
     atomA.position.set(-resep.jarak/2, 0, 0); atomB.position.set(resep.jarak/2, 0, 0);
-    grup.add(atomA, atomB, buatIkatanKe(atomA.position, atomB.position));
+    atomGrup.add(atomA, atomB, buatIkatanKe(atomA.position, atomB.position));
   } else if (resep.sudut) {
     // Bentuk V (Bent) untuk NO2
     const n = buatAtom('N', jenis); const o1 = buatAtom('O', jenis); const o2 = buatAtom('O', jenis);
     n.position.set(0, 0, 0);
     o1.position.set(-0.04, 0.03, 0); o2.position.set(0.04, 0.03, 0);
-    grup.add(n, o1, o2, buatIkatanKe(n.position, o1.position), buatIkatanKe(n.position, o2.position));
+    atomGrup.add(n, o1, o2, buatIkatanKe(n.position, o1.position), buatIkatanKe(n.position, o2.position));
   } else if (resep.dimer) {
     // Planar N2O4
     const n1 = buatAtom('N', jenis); const n2 = buatAtom('N', jenis);
@@ -284,31 +314,52 @@ export function buatMolekul(jenis) {
     const o3 = buatAtom('O', jenis); const o4 = buatAtom('O', jenis);
     o1.position.set(-0.06, 0.04, 0); o2.position.set(-0.06, -0.04, 0);
     o3.position.set(0.06, 0.04, 0); o4.position.set(0.06, -0.04, 0);
-    grup.add(n1, n2, o1, o2, o3, o4);
-    grup.add(buatIkatanKe(n1.position, n2.position));
-    grup.add(buatIkatanKe(n1.position, o1.position), buatIkatanKe(n1.position, o2.position));
-    grup.add(buatIkatanKe(n2.position, o3.position), buatIkatanKe(n2.position, o4.position));
+    atomGrup.add(n1, n2, o1, o2, o3, o4);
+    atomGrup.add(buatIkatanKe(n1.position, n2.position));
+    atomGrup.add(buatIkatanKe(n1.position, o1.position), buatIkatanKe(n1.position, o2.position));
+    atomGrup.add(buatIkatanKe(n2.position, o3.position), buatIkatanKe(n2.position, o4.position));
   } else if (resep.piramida) {
     // Trigonal Pyramidal untuk NH3
-    const n = buatAtom('N', jenis); n.position.set(0, 0.02, 0); grup.add(n);
+    const n = buatAtom('N', jenis); n.position.set(0, 0.02, 0); atomGrup.add(n);
     for(let i=0; i<3; i++) {
       const h = buatAtom('H', jenis); const angle = (i * Math.PI * 2) / 3;
       h.position.set(Math.cos(angle)*0.04, -0.02, Math.sin(angle)*0.04);
-      grup.add(h, buatIkatanKe(n.position, h.position));
+      atomGrup.add(h, buatIkatanKe(n.position, h.position));
     }
   } else if (resep.kompleks) {
     // Planar segitiga untuk karbonat
-    const c = buatAtom('C', jenis); c.position.set(0, 0, 0); grup.add(c);
+    const c = buatAtom('C', jenis); c.position.set(0, 0, 0); atomGrup.add(c);
     for(let i=0; i<resep.atoms.length-1; i++) {
       const o = buatAtom('O', jenis); const angle = (i * Math.PI * 2) / 3;
       o.position.set(Math.cos(angle)*0.05, Math.sin(angle)*0.05, 0);
-      grup.add(o, buatIkatanKe(c.position, o.position));
+      atomGrup.add(o, buatIkatanKe(c.position, o.position));
+    }
+  } else if (resep.linear) {
+    const c = buatAtom('C', jenis); c.position.set(0, 0, 0); atomGrup.add(c);
+    const o1 = buatAtom('O', jenis); o1.position.set(-0.08, 0, 0); atomGrup.add(o1, buatIkatanKe(c.position, o1.position));
+    const o2 = buatAtom('O', jenis); o2.position.set(0.08, 0, 0); atomGrup.add(o2, buatIkatanKe(c.position, o2.position));
+  } else if (resep.kompleksCa) {
+    const ca = buatAtom('Ca', jenis); ca.position.set(0, 0, 0); atomGrup.add(ca);
+    const c = buatAtom('C', jenis); c.position.set(0, 0.1, 0); atomGrup.add(c, buatIkatanKe(ca.position, c.position));
+    for(let i=0; i<3; i++) {
+      const o = buatAtom('O', jenis); const angle = (i * Math.PI * 2) / 3;
+      o.position.set(Math.cos(angle)*0.05, 0.15, Math.sin(angle)*0.05);
+      atomGrup.add(o, buatIkatanKe(c.position, o.position));
     }
   }
+
+  // Perkecil skala SEMUA molekul agar konsisten dan tidak menembus (clipping) dinding labu
+  atomGrup.scale.set(0.65, 0.65, 0.65);
+  if (resep.kompleksCa) atomGrup.position.y -= 0.05; // sejajarkan ke tengah
+  
+  grup.userData.atomGrup = atomGrup;
   
   // Label hanya muncul sekali per grup molekul, tidak di setiap atom
   const label = buatLabelTeks(jenis);
-  label.position.set(0, 0.1, 0);
+  // Tambahkan sedikit random offset Y agar jika ada beberapa molekul menumpuk, teksnya tidak saling Z-fighting
+  const randomYOffset = (Math.random() - 0.5) * 0.04;
+  label.position.set(0, 0.1 + randomYOffset, 0);
+  if (resep.kompleksCa || resep.dimer) label.position.y = 0.06 + randomYOffset;
   grup.add(label);
 
   grup.userData.jenis = jenis; return grup;
@@ -322,31 +373,35 @@ export class SistemPartikel {
   isiDariMisi(misiId, dekatTarget) {
     this.bersihkan(); const data = MISI_DATA[misiId]; if (!data) return;
     const set = dekatTarget ? data.partikel.dekatTarget : data.partikel.jauhTarget;
-    // Batasi maks 2 per jenis agar tidak penuh & tetap terlihat jelas
+    this.wujud = data.wujud;
+    // Batasi maks 3 per jenis agar tidak penuh & tetap terlihat jelas
     set.forEach(({ jenis, jumlah }) => {
-      const batas = Math.min(jumlah, 2);
+      const batas = Math.min(jumlah, 3);
       for (let i = 0; i < batas; i++) this._tambah(jenis);
     });
   }
   _tambah(jenis) {
     const mol = buatMolekul(jenis); const sudut = Math.random() * Math.PI * 2;
-    // Posisi lebih ke tengah dan lebih jauh dari dinding agar jelas
-    const r = Math.random() * 0.09;
-    const tinggi = -0.18 + Math.random() * 0.32;
+    const isSolid = (jenis === 'CaCO3' || jenis === 'CaO');
+    
+    const r = Math.random() * (isSolid ? 0.15 : 0.09);
+    const tinggi = isSolid ? -0.28 + (Math.random() * 0.03) : -0.18 + Math.random() * (this.wujud === 'gas' || this.wujud === 'heterogen' ? 0.5 : 0.32);
+    
     mol.position.set(Math.cos(sudut) * r, tinggi, Math.sin(sudut) * r);
     this.grup.add(mol);
     this.partikel.push({
       mesh: mol,
-      kecepatan: new THREE.Vector3((Math.random()-0.5)*0.002, (Math.random()-0.5)*0.002, (Math.random()-0.5)*0.002),
-      rotasiKecepatan: (Math.random() - 0.5) * 0.025
+      isSolid: isSolid,
+      kecepatan: isSolid ? new THREE.Vector3(0,0,0) : new THREE.Vector3((Math.random()-0.5)*0.002, (Math.random()-0.5)*0.002, (Math.random()-0.5)*0.002),
+      rotasiKecepatan: isSolid ? 0 : (Math.random() - 0.5) * 0.025
     });
   }
   _radiusPadaTinggi(y) {
-    if (y < -0.24) return 0.19; 
-    if (y > 0.20) return 0.01;
-    // Linear interpolation from y=-0.24 (r=0.19) to y=0.20 (r=0.01)
+    if (y < -0.24) return 0.20; 
+    if (y > 0.20) return 0.06;
+    // Linear interpolation from y=-0.24 (r=0.20) to y=0.20 (r=0.06)
     const t = (y + 0.24) / 0.44; 
-    return 0.19 - (t * 0.18);
+    return 0.20 - (t * 0.14);
   }
   perbarui(faktorKecepatan = 1) {
     if (sensorData.shake > 0.0001) {
@@ -355,11 +410,33 @@ export class SistemPartikel {
     }
 
     this.partikel.forEach((p) => {
+      const targetGrup = p.mesh.userData.atomGrup || p.mesh;
+      if (p.isSolid) {
+        // Solid hanya diam di bawah, sedikit wiggle
+        targetGrup.rotation.y += (Math.random()-0.5) * 0.01 * faktorKecepatan;
+        return;
+      }
+      
       // Apply gravity/tilt
       if (!sensorData.isSpilled) {
+        // Efek gravitasi/accelerometer dari HP
         p.kecepatan.x += sensorData.gX;
         p.kecepatan.z += sensorData.gZ;
         p.kecepatan.y += sensorData.gY;
+        
+        // BROWNIAN MOTION (Sangat penting agar molekul tidak diam statis di laptop / saat HP diam)
+        // Hal ini juga memvisualisasikan SIFAT DINAMIS dari molekul (Kinetic Theory)
+        const gerakAcak = 0.003;
+        p.kecepatan.x += (Math.random() - 0.5) * gerakAcak;
+        p.kecepatan.z += (Math.random() - 0.5) * gerakAcak;
+        
+        if (this.wujud === 'gas' || this.wujud === 'heterogen') {
+          // Gas cenderung menyebar dan melayang
+          p.kecepatan.y += (Math.random() - 0.45) * gerakAcak;
+        } else {
+          // Cairan cenderung lebih berat tapi tetap bergerak acak
+          p.kecepatan.y += (Math.random() - 0.55) * gerakAcak;
+        }
       } else {
         // Spilled! Let them fall out using real gravity towards the mouth
         p.kecepatan.x += sensorData.gX * 2;
@@ -389,18 +466,54 @@ export class SistemPartikel {
             pos.x *= scale; pos.z *= scale;
           }
         }
+        
+        // Atas/Bawah
+        // Tekanan membatasi batas atas (yMax) untuk gas! (semakin tinggi tekanan, semakin rendah yMax)
+        const tekananFaktor = this.tekanan || 1.0;
+        const baseMaxY = 0.38;
+        // Misal tekanan range 0.1 - 2.0. Jika tekanan 2.0, yMax turun drastis.
+        const gasMaxY = baseMaxY - ((tekananFaktor - 1.0) * 0.1);
+        const yMax = (this.wujud === 'gas' || this.wujud === 'heterogen') ? gasMaxY : 0.0;
+        
+        if (pos.y > yMax) { pos.y = yMax; p.kecepatan.y *= -0.5; }
         if (pos.y < -0.28) { pos.y = -0.28; p.kecepatan.y *= -0.5; }
-        if (pos.y > 0.38) { pos.y = 0.38; p.kecepatan.y *= -0.5; }
       }
       
-      p.mesh.rotation.y += p.rotasiKecepatan * faktorKecepatan;
-      p.mesh.rotation.x += 0.01 * faktorKecepatan;
+      targetGrup.rotation.y += p.rotasiKecepatan * faktorKecepatan;
+      targetGrup.rotation.z += p.rotasiKecepatan * faktorKecepatan * 0.5;
       
       // Make sprites always face camera
       p.mesh.children.forEach(c => {
         if (c.isSprite) c.quaternion.copy(p.mesh.quaternion).invert();
       });
     });
+
+    // Cek tabrakan antar molekul untuk mencegah overlap (Z-fighting)
+    for (let i = 0; i < this.partikel.length; i++) {
+      for (let j = i + 1; j < this.partikel.length; j++) {
+        const p1 = this.partikel[i];
+        const p2 = this.partikel[j];
+        if (p1.isSolid && p2.isSolid) continue;
+        
+        const dx = p1.mesh.position.x - p2.mesh.position.x;
+        const dy = p1.mesh.position.y - p2.mesh.position.y;
+        const dz = p1.mesh.position.z - p2.mesh.position.z;
+        const distSq = dx*dx + dy*dy + dz*dz;
+        
+        const minLompat = 0.015; // jarak minimum kuadrat (~0.12 unit)
+        if (distSq < minLompat && distSq > 0.000001) {
+          const dist = Math.sqrt(distSq);
+          const force = (0.12 - dist) * 0.05; // gaya tolakan
+          
+          const fx = (dx / dist) * force;
+          const fy = (dy / dist) * force;
+          const fz = (dz / dist) * force;
+          
+          if (!p1.isSolid) { p1.kecepatan.x += fx; p1.kecepatan.y += fy; p1.kecepatan.z += fz; }
+          if (!p2.isSolid) { p2.kecepatan.x -= fx; p2.kecepatan.y -= fy; p2.kecepatan.z -= fz; }
+        }
+      }
+    }
 
     // Collision logic for reactions
     for (let i = 0; i < this.partikel.length; i++) {
@@ -476,6 +589,9 @@ export function buatSceneDasar() {
   innerLight.position.set(0, -0.1, 0);
   scene.add(innerLight);
 
+  const labuGrup = new THREE.Group();
+  scene.add(labuGrup);
+
   // Soft shadow plane di bawah labu
   const shadowGeo = new THREE.PlaneGeometry(0.8, 0.8);
   const shadowMat = new THREE.MeshBasicMaterial({
@@ -484,7 +600,6 @@ export function buatSceneDasar() {
     opacity: 0.3,
     depthWrite: false
   });
-  // Create a soft radial gradient for the shadow
   const shadowCanvas = document.createElement('canvas');
   shadowCanvas.width = 128; shadowCanvas.height = 128;
   const shadowCtx = shadowCanvas.getContext('2d');
@@ -496,16 +611,16 @@ export function buatSceneDasar() {
   
   const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
   shadowPlane.rotation.x = -Math.PI / 2;
-  shadowPlane.position.y = -0.31; // Just below the flask base
-  scene.add(shadowPlane);
+  shadowPlane.position.y = -0.32; // Sedikit di bawah labu base (-0.31) untuk hindari Z-fighting
+  labuGrup.add(shadowPlane);
 
-  // Indikator kesetimbangan: ring di bawah labu, warna merah=belum seimbang, hijau=seimbang
+  // Indikator kesetimbangan: ring di bawah labu
   const ringGeo = new THREE.RingGeometry(0.30, 0.34, 64);
   const ringMat = new THREE.MeshBasicMaterial({ color: 0xef4444, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
   const ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.rotation.x = Math.PI / 2; ring.position.y = -0.33;
+  ring.rotation.x = Math.PI / 2; ring.position.y = -0.315;
   ring.userData.isEquilibriumRing = true;
-  scene.add(ring);
+  labuGrup.add(ring);
 
   // Cairan pelarut dengan bentuk mengikuti labu
   const fluidPoints = [];
@@ -528,23 +643,28 @@ export function buatSceneDasar() {
       `#include <begin_vertex>`,
       `
       #include <begin_vertex>
-      // Hanya gerakkan vertex yang ada di permukaan atas (y >= -0.01)
       if (position.y >= -0.01) {
         transformed.y += sin(position.x * 10.0 + uTime * 3.0) * 0.015 + cos(position.z * 10.0 + uTime * 2.5) * 0.015;
       }
       `
     );
   };
-  
-  const labuGrup = new THREE.Group();
-  scene.add(labuGrup);
+
 
   const fluid = new THREE.Mesh(fluidGeo, fluidMat);
   fluid.userData.uniforms = fluidUniforms;
+  fluid.visible = false; // Sembunyikan secara default sampai perbaruiVisualMisi mengatur
   labuGrup.add(fluid);
 
   const labu = new THREE.Mesh(buatGeometryErlenmeyer(), buatMaterialKaca()); 
   labuGrup.add(labu);
+
+  // Tutup karet (stopper) - diperlebar untuk menyesuaikan leher labu baru
+  const stopperGeo = new THREE.CylinderGeometry(0.11, 0.13, 0.05, 32);
+  const stopperMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.9, metalness: 0.1 });
+  const stopper = new THREE.Mesh(stopperGeo, stopperMat);
+  stopper.position.y = 0.46; // Pas di mulut labu
+  labuGrup.add(stopper);
 
   // Global toggle function for colorblind mode
   const partikelSys = new SistemPartikel(labuGrup);
@@ -615,6 +735,7 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
   session.addEventListener('select', () => {
     if (sudahDitempatkan || !reticle.visible) return;
     labuGrup.position.copy(reticle.position); 
+    labuGrup.position.y += 0.35; // Angkat dari lantai agar tidak amblas
     labuGrup.visible = true; 
     sudahDitempatkan = true;
     labuGrup.scale.set(0, 0, 0);
@@ -644,7 +765,7 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
         if (sensorData.isSpilled) {
           c.visible = false;
         } else {
-          c.visible = true;
+          // c.visible is managed by perbaruiVisualMisi
           c.scale.y = 1.0;
         }
       }
@@ -669,7 +790,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 
   const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.01, 20);
-  camera.position.set(0, 0.15, 1.0);
+  camera.position.set(0, 0.15, 1.35); // Mundurkan kamera agar labu utuh terlihat
   const { scene, labuGrup, labu, partikel } = buatSceneDasar(); partikel.isiDariMisi(misiId, false);
   labuGrup.visible = false; // Hidden at first for tap-to-place
   let berjalan = true;
@@ -685,7 +806,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   scene.add(fakeReticle);
   
   // Labu di depan kamera pada jarak yang tepat secara geometris
-  const defaultLabuPos = new THREE.Vector3(0, -0.1, -0.2);
+  const defaultLabuPos = new THREE.Vector3(0, 0.25, -0.2);
   
   setTimeout(() => {
     if (!sudahDitempatkan) fakeReticle.visible = true;
@@ -723,7 +844,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
         if (sensorData.isSpilled) {
           c.visible = false;
         } else {
-          c.visible = true;
+          // c.visible is managed by perbaruiVisualMisi
           c.scale.y = 1.0;
         }
       }
@@ -746,9 +867,9 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   };
 }
 
-export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
+export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, params) {
   const data = MISI_DATA[misiId]; if (!data || !sesiAR) return false;
-  const toleransi = Math.abs(data.nilaiTarget) * 0.08 || 0.08;
+  const toleransi = Math.abs(data.nilaiTarget) * 0.05 || 0.05;
   const sudahTarget = Math.abs(nilaiSekarang - data.nilaiTarget) <= toleransi;
   
   window._currentMisiId = misiId;
@@ -759,7 +880,7 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
     sesiAR.targetTerakhir = sudahTarget;
 
     // Update equilibrium ring color
-    const ring = sesiAR.scene ? sesiAR.scene.children.find(c => c.userData && c.userData.isEquilibriumRing) : null;
+    const ring = sesiAR.labuGrup ? sesiAR.labuGrup.children.find(c => c.userData && c.userData.isEquilibriumRing) : null;
     if (ring) {
       ring.material.color.setHex(sudahTarget ? 0x22c55e : 0xef4444);
       ring.material.opacity = sudahTarget ? 1.0 : 0.85;
@@ -778,6 +899,11 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
     }
   }
 
+  if (params && typeof params === 'object') {
+    sesiAR.partikel.tekanan = params.tek;
+    sesiAR.partikel.konsentrasi = params.kon;
+  }
+
   // Hitung warna cairan berdasarkan komposisi partikel
   let r = 0, g = 0, b = 0, count = 0;
   sesiAR.partikel.partikel.forEach(p => {
@@ -785,29 +911,45 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, nilaiVolume) {
     let col = new THREE.Color(0x94a3b8);
     if (jenis === 'I2') col.setHex(0xa78bfa);
     else if (jenis === 'NO2') col.setHex(0xf59e0b);
-    else if (jenis === 'NH3' || jenis === 'HCO3') col.setHex(0x3b82f6);
+    else if (jenis === 'NH3' || jenis === 'H2CO3') col.setHex(0x3b82f6);
     else if (jenis === 'HI') col.setHex(0xfde68a);
+    else if (jenis === 'CO2') col.setHex(0xcbd5e1);
+    else if (jenis === 'CaCO3') col.setHex(0xffffff);
+    else if (jenis === 'CaO') col.setHex(0xfef3c7);
+    else if (jenis === 'H2O') col.setHex(0x93c5fd);
     r += col.r; g += col.g; b += col.b; count++;
   });
   
-  if (count > 0) {
-    const fluid = sesiAR.labuGrup ? sesiAR.labuGrup.children.find(c => c.userData && c.userData.uniforms) : null;
-    if (fluid) {
-      fluid.material.color.setRGB(r/count, g/count, b/count);
-      if (sudahTarget) {
-        fluid.material.emissive.setRGB((r/count)*0.5, (g/count)*0.5, (b/count)*0.5);
-        fluid.material.emissiveIntensity = 1.0;
-      } else {
-        fluid.material.emissive.setHex(0x000000);
-        fluid.material.emissiveIntensity = 0;
+  const fluid = sesiAR.labuGrup ? sesiAR.labuGrup.children.find(c => c.userData && c.userData.uniforms) : null;
+  if (fluid) {
+    // Sembunyikan cairan jika bukan reaksi aqueous
+    if (data.wujud === 'gas' || data.wujud === 'heterogen') {
+      fluid.visible = false;
+    } else {
+      fluid.visible = true;
+      // Pengaruh konsentrasi terhadap opasitas cairan (visual feedback)
+      const kons = (params && typeof params === 'object' && params.kon) ? params.kon : 1.0;
+      // Range kon biasanya 0.1 - 2.0. Kita petakan ke opasitas dasar 0.3 - 0.7
+      const targetOpacity = 0.3 + (kons * 0.15);
+      fluid.material.opacity = Math.min(0.85, Math.max(0.15, targetOpacity));
+
+      if (count > 0) {
+        fluid.material.color.setRGB(r/count, g/count, b/count);
+        if (sudahTarget) {
+          fluid.material.emissive.setRGB((r/count)*0.5, (g/count)*0.5, (b/count)*0.5);
+          fluid.material.emissiveIntensity = 1.0;
+        } else {
+          fluid.material.emissive.setHex(0x000000);
+          fluid.material.emissiveIntensity = 0;
+        }
       }
     }
   }
 
   // Scale dihitung geometris: kamera z=1.2, labu z=-0.2, FOV=60 → layar ~1.73 unit
-  // Labu tinggi 0.78 unit, target ~55% layar → scale ≈ 1.3
-  const targetVolume = (nilaiVolume !== undefined) ? nilaiVolume : (data.parameterKunci === 'volume' ? nilaiSekarang : 3.0);
-  const baseScale = 1.3;
+  // Labu tinggi 0.78 unit, target ~55% layar → scale ≈ 1.0
+  const targetVolume = (params && typeof params === 'object') ? params.vol : (data.parameterKunci === 'volume' ? nilaiSekarang : 3.0);
+  const baseScale = 1.0;
   const scale = Math.max(0.4, targetVolume / 3.0) * baseScale;
   if (sesiAR.labu) sesiAR.labu.userData.targetScale = scale;
   

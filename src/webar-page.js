@@ -20,7 +20,7 @@ let modeARTerdeteksi = null;
    HALAMAN PILIH MISI
    -------------------------------------------------------------------------- */
 export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
-  const ikonMisi = { misi1: '🔬', misi2: '🏭', misi3: '🌱', misi4: '🩸' };
+    const ikonMisi = { misi1: '1.', misi2: '2.', misi3: '3.', misi4: '4.', misi5: '5.' };
 
   // Dapatkan misi yang sudah diselesaikan dari state
   const viewedMisi = window.state?.viewedMisi || [];
@@ -31,19 +31,17 @@ export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
       const isDone = viewedMisi.includes(id);
       const badgeHtml = isRec
         ? `<div class="misi-ai-badge">🎯 Prioritas AI</div>`
-        : isDone
-          ? `<div class="misi-done-badge">✅ Selesai</div>`
-          : '';
+        : '';
       return `
-        <button class="misi-card ${isRec ? 'misi-recommended' : ''} ${isDone ? 'misi-done' : ''}" data-misi="${id}">
+        <button class="misi-card ${isRec ? 'misi-recommended' : ''}" data-misi="${id}">
           ${badgeHtml}
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-            <span style="font-size:22px">${ikonMisi[id]||'🧪'}</span>
+            <span style="font-size:18px; font-weight:700;">${ikonMisi[id]||'>'}</span>
             <h3 class="misi-judul">${misi.judul}</h3>
           </div>
           <code class="misi-persamaan">${misi.persamaan}</code>
           <div style="margin-top:8px;font-size:10px;color:#7c6fd2;">
-            🎯 Target ${misi.parameterKunci}: ${misi.nilaiTarget}
+            🎯 Temukan keadaan setimbang!
           </div>
         </button>`;
     })
@@ -86,7 +84,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
           <span class="webar-misi-label">${misi.judul}</span>
           <code class="webar-eq-label">${misi.persamaan}</code>
         </div>
-        <button class="webar-colorblind-btn" id="webarColorblindBtn" title="Mode buta warna">👁️</button>
+        <button class="webar-colorblind-btn" id="webarColorblindBtn" title="Mode buta warna"><span style="font-size:11px; font-weight:600;">Mode Buta Warna</span></button>
       </div>
 
       <!-- Viewport bersih — TIDAK ada kotak teks di sini -->
@@ -114,6 +112,16 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
           <div class="eq-dot" id="eqDot"></div>
           <span id="eqText">Belum Setimbang</span>
         </div>
+        
+        <!-- Popup Sukses (Hidden default) -->
+        <div class="webar-success-popup" id="webarSuccessPopup" style="display:none;">
+          <div class="webar-success-card">
+            <h2>Misi Selesai!</h2>
+            <p>Kesetimbangan berhasil dicapai.</p>
+            <div class="webar-success-pts" id="webarSuccessPts">+50 XP</div>
+            <button class="btn-primary" id="btnClaimWebar" style="width:100%; padding:12px;">Klaim & Kembali</button>
+          </div>
+        </div>
       </div>
 
       <!-- Panel Kontrol Bawah — semua teks & info di sini -->
@@ -130,6 +138,25 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   const eqBadge     = container.querySelector('#webarEqBadge');
   const eqDot       = container.querySelector('#eqDot');
   const eqText      = container.querySelector('#eqText');
+
+  const btnClaim = container.querySelector('#btnClaimWebar');
+  const ptsEl    = container.querySelector('#webarSuccessPts');
+  if (btnClaim) {
+    const isAlreadyDone = window.state?.viewedMisi?.includes(misiId);
+    const reward = isAlreadyDone ? 10 : 50;
+    if (ptsEl) ptsEl.textContent = `+${reward} XP`;
+    btnClaim.addEventListener('click', () => {
+      window.state = window.state || {};
+      window.state.viewedMisi = window.state.viewedMisi || [];
+      if (!isAlreadyDone) window.state.viewedMisi.push(misiId);
+      if (window.addPoints) window.addPoints(reward, 'Praktikum AR Selesai');
+      if (window.saveState) window.saveState();
+      
+      document.body.classList.remove('colorblind-mode');
+      hentikanSesiAR();
+      onKeluar();
+    });
+  }
 
   container.querySelector('#webarKeluar').addEventListener('click', () => {
     document.body.classList.remove('colorblind-mode');
@@ -166,9 +193,14 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     const m = MISI_DATA[misiId];
     if (t) t.textContent = m.ceritaAwal;
     if (sesiARAktif) {
-      const vol = Number(document.querySelector('#slider-volume')?.value || 3.0);
+      const p = {
+        vol: Number(document.querySelector('#slider-volume')?.value || 3.0),
+        tek: Number(document.querySelector('#slider-tekanan')?.value || 1.0),
+        kon: Number(document.querySelector('#slider-konsentrasi')?.value || 1.0),
+        suh: Number(document.querySelector('#slider-suhu')?.value || 40.0)
+      };
       const val = Number(document.querySelector('#slider-' + m.parameterKunci)?.value || m.nilaiTarget);
-      perbaruiVisualMisi(sesiARAktif, misiId, val, vol);
+      perbaruiVisualMisi(sesiARAktif, misiId, val, p);
     }
   };
 
@@ -221,12 +253,9 @@ function renderPanelKontrol(container, misiId, hudTop, eqBadge, eqDot, eqText) {
     { id: 'tekanan',     icon: '🗜️', label: 'Tekanan' },
     { id: 'konsentrasi', icon: '🧪', label: 'Konsentrasi' }
   ];
-  const kunci    = indikators.find(i => i.id === misi.parameterKunci);
-  const lainnya  = indikators.filter(i => i.id !== misi.parameterKunci);
-  const kRentang = misi.rentang[kunci.id];
 
   // Molekul reaktan & produk untuk ditampilkan
-  const produkJenis = new Set(['HI', 'N2O4', 'NH3', 'HCO3']);
+  const produkJenis = new Set(['HI', 'N2O4', 'NH3', 'HCO3', 'CO2', 'CaO']);
   const buildMolRow = (dekat) => {
     const set = dekat ? misi.partikel.dekatTarget : misi.partikel.jauhTarget;
     return set.map(s => {
@@ -250,30 +279,19 @@ function renderPanelKontrol(container, misiId, hudTop, eqBadge, eqDot, eqText) {
       <div id="molProduk"></div>
     </div>
 
-    <!-- Parameter kunci -->
-    <div class="webar-key-section">
-      <div class="webar-key-header">
-        <span class="webar-key-label">${kunci.icon} ${kunci.label} <span class="webar-target-badge">🎯 ${misi.nilaiTarget} ${kRentang[4]}</span></span>
-        <span class="webar-key-value" id="valKunci">${kRentang[3].toFixed(kRentang[2]<1?1:0)} ${kRentang[4]}</span>
-      </div>
-      <div class="webar-progress-wrap"><div class="webar-progress-bar" id="progressBar"></div></div>
-      <input type="range" id="slider-${kunci.id}"
-        min="${kRentang[0]}" max="${kRentang[1]}" step="${kRentang[2]}" value="${kRentang[3]}">
-    </div>
-
     <!-- Legenda warna -->
-    <div class="webar-legend">
+    <div class="webar-legend" style="margin-bottom:8px">
       <div class="webar-legend-item"><span class="webar-legend-color reaktan"></span><span>Reaktan</span></div>
       <div class="webar-legend-item"><span class="webar-legend-color produk"></span><span>Produk</span></div>
     </div>
 
-    <!-- Parameter lainnya (tab) -->
+    <!-- Semua Parameter (tabbed) -->
     <div class="webar-tabs-section">
       <div class="webar-tabs">
-        ${lainnya.map((ind,i) => `<button class="webar-tab-btn ${i===0?'active':''}" data-tab="${ind.id}">${ind.icon} ${ind.label}</button>`).join('')}
+        ${indikators.map((ind,i) => `<button class="webar-tab-btn ${i===0?'active':''}" data-tab="${ind.id}">${ind.icon} ${ind.label}</button>`).join('')}
       </div>
       <div class="webar-sliders-container">
-        ${lainnya.map((ind,i) => {
+        ${indikators.map((ind,i) => {
           const r = misi.rentang[ind.id];
           return `<div class="webar-slider-panel ${i===0?'active':''}" id="panel-${ind.id}">
             <div class="control-head"><b>${ind.label}</b><span id="val-${ind.id}">${r[3].toFixed(r[2]<1?1:0)} ${r[4]}</span></div>
@@ -290,8 +308,6 @@ function renderPanelKontrol(container, misiId, hudTop, eqBadge, eqDot, eqText) {
   const molArrow    = container.querySelector('#molArrowTxt');
   const molProdukEl = container.querySelector('#molProduk');
   const molRekEl    = container.querySelector('#molReaktan');
-  const progressBar = container.querySelector('#progressBar');
-  const valKunciEl  = container.querySelector('#valKunci');
 
   // Toggle story
   storyToggle.addEventListener('click', () => {
@@ -300,7 +316,7 @@ function renderPanelKontrol(container, misiId, hudTop, eqBadge, eqDot, eqText) {
     storyToggle.textContent = collapsed ? '▲' : '▼';
   });
 
-  // Tab switching (parameter lain)
+  // Tab switching
   const tabBtns = container.querySelectorAll('.webar-tab-btn');
   const panels  = container.querySelectorAll('.webar-slider-panel');
   tabBtns.forEach(btn => {
@@ -312,24 +328,16 @@ function renderPanelKontrol(container, misiId, hudTop, eqBadge, eqDot, eqText) {
     });
   });
 
-  // Helper hitung progress menuju target
-  const hitungProgress = (val) => {
-    const range  = kRentang[1] - kRentang[0];
-    const target = misi.nilaiTarget;
-    const dist   = Math.abs(val - target) / range;
-    return Math.max(0, Math.min(100, (1 - dist) * 100));
-  };
-
+  let popupTimeout;
+  let misiSelesai = false;
   // Helper update semua visual
-  const doUpdate = (tercapai, val) => {
+  const doUpdate = (tercapai) => {
     // Badge kesetimbangan
     if (eqDot && eqText && eqBadge) {
       eqDot.className = 'eq-dot' + (tercapai ? ' seimbang' : '');
       eqBadge.className = 'webar-eq-badge' + (tercapai ? ' seimbang' : '');
-      eqText.textContent = tercapai ? '⚖️ Setimbang!' : 'Belum Setimbang';
+      eqText.textContent = tercapai ? 'Status: Setimbang!' : 'Belum Setimbang';
     }
-    // Progress bar
-    if (progressBar) progressBar.style.width = hitungProgress(val) + '%';
     // Mol overlay
     const set = tercapai ? misi.partikel.dekatTarget : misi.partikel.jauhTarget;
     if (molRekEl) molRekEl.innerHTML = set.filter(s => !produkJenis.has(s.jenis))
@@ -341,44 +349,47 @@ function renderPanelKontrol(container, misiId, hudTop, eqBadge, eqDot, eqText) {
     if (hudTop) hudTop.classList.toggle('sukses', tercapai);
     // Cerita
     if (storyText) {
-      storyText.textContent = tercapai ? misi.ceritaSukses
-        : `Atur ${kunci.label} menuju 🎯 ${misi.nilaiTarget} ${kRentang[4]}`;
+      storyText.textContent = tercapai ? misi.ceritaSukses : misi.ceritaAwal;
+    }
+
+    if (tercapai && !misiSelesai) {
+      misiSelesai = true;
+      popupTimeout = setTimeout(() => {
+        const pop = document.getElementById('webarSuccessPopup');
+        if (pop) pop.style.display = 'flex';
+      }, 2500); // Tunda 2.5 detik agar user bisa melihat ring hijau dulu
+    } else if (!tercapai && misiSelesai) {
+      misiSelesai = false;
+      clearTimeout(popupTimeout);
     }
   };
 
-  // Slider parameter kunci
-  const kSlider = container.querySelector('#slider-' + kunci.id);
-  kSlider.addEventListener('input', () => {
-    const val = Number(kSlider.value);
-    if (valKunciEl) valKunciEl.textContent = `${val.toFixed(kRentang[2]<1?1:0)} ${kRentang[4]}`;
-    const vol  = Number(container.querySelector('#slider-volume')?.value || 3.0);
-    const terc = perbaruiVisualMisi(sesiARAktif, misiId, val, vol);
-    doUpdate(terc, val);
+  const getParams = () => ({
+    vol: Number(container.querySelector('#slider-volume')?.value || 3.0),
+    tek: Number(container.querySelector('#slider-tekanan')?.value || 1.0),
+    kon: Number(container.querySelector('#slider-konsentrasi')?.value || 1.0),
+    suh: Number(container.querySelector('#slider-suhu')?.value || 40.0)
   });
 
-  // Slider parameter lainnya
-  lainnya.forEach(ind => {
+  // Slider events
+  indikators.forEach(ind => {
     const sl  = container.querySelector('#slider-' + ind.id);
     const vel = container.querySelector('#val-' + ind.id);
     const r   = misi.rentang[ind.id];
     sl.addEventListener('input', () => {
       const val = Number(sl.value);
       if (vel) vel.textContent = `${val.toFixed(r[2]<1?1:0)} ${r[4]}`;
-      const vol  = Number(container.querySelector('#slider-volume').value);
       const valK = Number(container.querySelector('#slider-' + misi.parameterKunci).value);
-      perbaruiVisualMisi(sesiARAktif, misiId, valK, vol);
-      // Feedback: parameter ini tidak berpengaruh
-      if (storyText && ind.id !== misi.parameterKunci)
-        storyText.textContent = `💡 Mengubah ${ind.label} tidak berpengaruh di misi ini. Fokus pada ${kunci.label}!`;
+      const terc = perbaruiVisualMisi(sesiARAktif, misiId, valK, getParams());
+      doUpdate(terc);
     });
   });
 
   // Init state
   if (sesiARAktif) {
-    const vol  = Number(container.querySelector('#slider-volume').value);
-    const valK = Number(kSlider.value);
-    const terc = perbaruiVisualMisi(sesiARAktif, misiId, valK, vol);
-    doUpdate(terc, valK);
+    const valK = Number(container.querySelector('#slider-' + misi.parameterKunci).value);
+    const terc = perbaruiVisualMisi(sesiARAktif, misiId, valK, getParams());
+    doUpdate(terc);
   }
 }
 
