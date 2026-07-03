@@ -1101,4 +1101,5 @@ body.colorblind-mode .bar-fill { background: linear-gradient(90deg, #214e9e, #f8
 .badge.paham { background:#e8faf2; color:#2d8b5e; }
 .badge.menebak { background:#fff8e6; color:#b8860b; }
 .badge.miskonsepsi { background:#ffeef1; color:#c73e5a; }
-.badge.tidak-paham { background:var(--soft); color:var(--muted); }
+.badge.tidak-paham { background:var(--soft); color:var(--muted); }@ m e d i a   p r i n t   {   . p d f - o n l y - s e c t i o n   {   d i s p l a y :   b l o c k   ! i m p o r t a n t ;   }   . p d f - o n l y - h e a d e r   {   d i s p l a y :   b l o c k   ! i m p o r t a n t ;   }   }  
+ 
