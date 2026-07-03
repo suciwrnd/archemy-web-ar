@@ -5,7 +5,10 @@
 /* ===== BASE STAGE ===== */
 .webar-stage {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100dvh;
   background: #000;
   display: flex;
   flex-direction: column;
@@ -242,6 +245,7 @@ body.colorblind-mode .webar-colorblind-btn {
   flex-shrink: 0;
   max-height: 44vh;
   overflow-y: auto;
+  padding-bottom: env(safe-area-inset-bottom, 24px);
 }
 .webar-controls::-webkit-scrollbar { width: 2px; }
 .webar-controls::-webkit-scrollbar-thumb { background: rgba(127,119,221,0.3); border-radius: 2px; }
