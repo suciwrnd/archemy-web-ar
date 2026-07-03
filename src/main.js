@@ -1529,7 +1529,6 @@ function render() {
     studentWebAR:renderStudentWebARPage, studentAdaptivePath:renderStudentAdaptivePath,
     teacherClasses:renderTeacherClasses, teacherDashboard:renderTeacherDashboard,
     teacherModules:renderTeacherModules, teacherQuiz:renderTeacherQuiz,
-    teacherCreateQuiz:renderTeacherCreateQuiz,
     teacherEditQuiz:renderTeacherEditQuiz, teacherAnalysis:renderTeacherAnalysis, teacherTopicDetail:renderTeacherTopicDetail, profile:renderProfile,
     teacherClassDetail:renderTeacherClassDetail,
   };
