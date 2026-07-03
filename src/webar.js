@@ -805,8 +805,8 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   fakeReticle.visible = false;
   scene.add(fakeReticle);
   
-  // Labu di depan kamera pada jarak yang tepat secara geometris
-  const defaultLabuPos = new THREE.Vector3(0, 0.25, -0.2);
+  // Labu di depan kamera pada jarak yang tepat secara geometris (digeser ke atas agar tidak ketutup UI)
+  const defaultLabuPos = new THREE.Vector3(0, 0.45, -0.2);
   
   setTimeout(() => {
     if (!sudahDitempatkan) fakeReticle.visible = true;
@@ -946,10 +946,9 @@ export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, params) {
     }
   }
 
-  // Scale dihitung geometris: kamera z=1.2, labu z=-0.2, FOV=60 → layar ~1.73 unit
-  // Labu tinggi 0.78 unit, target ~55% layar → scale ≈ 1.0
+  // Scale diperkecil sedikit agar muat di atas panel UI HP
   const targetVolume = (params && typeof params === 'object') ? params.vol : (data.parameterKunci === 'volume' ? nilaiSekarang : 3.0);
-  const baseScale = 1.0;
+  const baseScale = 0.65;
   const scale = Math.max(0.4, targetVolume / 3.0) * baseScale;
   if (sesiAR.labu) sesiAR.labu.userData.targetScale = scale;
   
