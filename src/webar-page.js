@@ -3,7 +3,7 @@
    ========================================================================== */
 
 import {
-  MISI_DATA, PHASE,
+  MISI_DATA, CHECKPOINT,
   deteksiModeAR, mulaiSesiARjs, mulaiSesiWebXR,
   requestSensorPermission, soundEngine
 } from './webar.js';
@@ -149,23 +149,6 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         <button class="exp-btn" data-tool="compress"><span class="exp-btn-icon">📦</span>Naikkan Tekanan</button>
       </div>
 
-      <!-- Quiz MCQ -->
-      <div class="quiz-overlay" id="quizOverlay" style="display:none">
-        <div class="quiz-card">
-          <div class="quiz-header">
-            <div class="quiz-icon">🧠</div>
-            <div class="quiz-label">Pertanyaan Pemahaman</div>
-          </div>
-          <div class="quiz-question">Mengapa molekulmu terus berubah bolak-balik tanpa pernah berhenti?</div>
-          <div class="quiz-options">
-            <button class="quiz-btn" data-ans="A">Reaksi belum selesai dan masih mencari bentuk akhirnya.</button>
-            <button class="quiz-btn" data-ans="B">Molekul bergerak secara acak tanpa pola.</button>
-            <button class="quiz-btn" data-ans="C">Laju reaksi maju = laju reaksi balik, keduanya terjadi bersamaan.</button>
-            <button class="quiz-btn" data-ans="D">Produk selalu lebih stabil, tapi terus terurai karena energi rendah.</button>
-          </div>
-        </div>
-      </div>
-
       <!-- Challenge -->
       <div class="challenge-overlay" id="challengeOverlay" style="display:none">
         <div class="challenge-card">
@@ -216,7 +199,6 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   const eqFwdPct   = container.querySelector('#eqFwdPct');
   const eqRevPct   = container.querySelector('#eqRevPct');
   const expPanel   = container.querySelector('#expPanel');
-  const quizOvl    = container.querySelector('#quizOverlay');
   const challOvl   = container.querySelector('#challengeOverlay');
   const reflOvl    = container.querySelector('#reflectionOverlay');
 
@@ -238,20 +220,17 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 
   // Phase status labels
   const PHASE_LABEL = {
-    [PHASE.ENTERING]:   '🚀 Memasuki Dunia Molekul...',
-    [PHASE.JOURNEY_1]:  '🔵 Perjalanan — Menuju Titik Tumbukan Pertama',
-    [PHASE.REACTION_1]: '⚡ Reaksi Terjadi!',
-    [PHASE.JOURNEY_2]:  '🔵 Perjalanan — Berlanjut...',
-    [PHASE.REACTION_2]: '💥 Ikatan Terputus!',
-    [PHASE.JOURNEY_3]:  '🔵 Perjalanan — Mendekati Akhir Rute',
-    [PHASE.REACTION_3]: '⚡ Reaksi Lagi!',
-    [PHASE.PAUSE]:      '⏸ Berhenti Sejenak...',
-    [PHASE.ZOOMOUT]:    '🌍 Melihat Sistem Secara Keseluruhan',
-    [PHASE.QUIZ]:       '🧠 Pertanyaan Pemahaman',
-    [PHASE.EXPERIMENT]: '🧪 Eksperimen Le Chatelier',
-    [PHASE.CHALLENGE]:  '🎯 Challenge',
-    [PHASE.REFLECTION]: '✨ Refleksi',
-    'TOOL_USED':        '⚗️ Pengamatan Efek',
+    [CHECKPOINT.START]:      '🚀 Memasuki Dunia Molekul...',
+    [CHECKPOINT.OBSERVE]:    '🔵 Mengamati Pergerakan Kinetik',
+    [CHECKPOINT.FAIL_BUMP]:  '⚠️ Tumbukan Gagal',
+    [CHECKPOINT.SUCCESS]:    '⚡ Reaksi Terjadi! Ikatan Terbentuk',
+    [CHECKPOINT.BREAK]:      '💥 Terurai Kembali!',
+    [CHECKPOINT.LOOP]:       '🔄 Kesetimbangan Berlangsung...',
+    [CHECKPOINT.ZOOMOUT]:    '🌍 Melihat Sistem Keseluruhan',
+    [CHECKPOINT.EXPERIMENT]: '🧪 Eksperimen Le Chatelier',
+    [CHECKPOINT.CHALLENGE]:  '🎯 Challenge',
+    [CHECKPOINT.REFLECTION]: '✨ Refleksi',
+    'TOOL':                  '⚗️ Pengamatan Efek',
   };
 
   // Global HUD update callbacks
@@ -259,7 +238,6 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     hudForm.style.display = 'flex';
     hudFormVal.textContent = isProduct ? `🟡 ${name} (Produk)` : `🔵 ${name} (Reaktan)`;
     hudFormVal.className = 'hud-form-value ' + (isProduct ? 'product' : 'reactant');
-    // Update reaction counter
     if (isProduct || !isProduct) {
       reactionCount++;
       hudCounterVal.textContent = reactionCount + '×';
@@ -273,30 +251,20 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   // Phase callback from engine
   function onPhase(phase, msg) {
     hudStatus.textContent = PHASE_LABEL[phase] || phase;
-    hudStatus.classList.toggle('equilibrium', phase === PHASE.ZOOMOUT || phase === PHASE.EXPERIMENT);
+    hudStatus.classList.toggle('equilibrium', phase === CHECKPOINT.ZOOMOUT || phase === CHECKPOINT.EXPERIMENT);
 
-    // Show/hide HUD elements
-    const isJourney = [PHASE.JOURNEY_1, PHASE.JOURNEY_2, PHASE.JOURNEY_3, PHASE.ENTERING].includes(phase);
-    const isReaction = [PHASE.REACTION_1, PHASE.REACTION_2, PHASE.REACTION_3].includes(phase);
+    const isJourney = phase > CHECKPOINT.START && phase <= CHECKPOINT.LOOP;
+    hudForm.style.display = isJourney ? 'flex' : 'none';
+    hudCounter.style.display = isJourney ? 'flex' : 'none';
     
-    hudForm.style.display = (isJourney || isReaction || phase === PHASE.PAUSE || phase === PHASE.ZOOMOUT) ? 'flex' : 'none';
-    hudCounter.style.display = (isJourney || isReaction || phase === PHASE.PAUSE) ? 'flex' : 'none';
-    hudEq.style.display = (phase === PHASE.ZOOMOUT || phase === PHASE.EXPERIMENT || phase === 'TOOL_USED') ? '' : 'none';
-    expPanel.style.display = (phase === PHASE.EXPERIMENT || phase === 'TOOL_USED') ? 'flex' : 'none';
-    challOvl.style.display = (phase === PHASE.CHALLENGE) ? 'flex' : 'none';
+    hudEq.style.display = (phase >= CHECKPOINT.ZOOMOUT || phase === 'TOOL') ? '' : 'none';
+    expPanel.style.display = (phase >= CHECKPOINT.EXPERIMENT || phase === 'TOOL') ? 'flex' : 'none';
+    challOvl.style.display = (phase === CHECKPOINT.CHALLENGE) ? 'flex' : 'none';
 
-    // AI message
     if (msg) setAI(msg, true);
-    else if (isReaction && msg === null) setAI('', false); // Silent during reaction
-    else if (!msg) setAI('', false);
+    else setAI('', false);
 
-    // Quiz trigger
-    if (phase === PHASE.QUIZ) {
-      setTimeout(() => { quizOvl.style.display = 'flex'; setAI(''); }, 500);
-    }
-
-    // Reflection
-    if (phase === PHASE.REFLECTION) {
+    if (phase === CHECKPOINT.REFLECTION) {
       reflOvl.style.display = 'flex';
       challOvl.style.display = 'none';
     }
