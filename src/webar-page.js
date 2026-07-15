@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ARCHEMY WEBAR PAGE v6.0 - Rollercoaster UI
+   ARCHEMY WEBAR PAGE v7.0 - Interactive Confusion
    ========================================================================== */
 
 import { MISI_DATA, AR_STATE, deteksiModeAR, mulaiSesiWebXR, mulaiSesiARjs, requestSensorPermission } from './webar.js';
@@ -13,9 +13,11 @@ export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
     const isRec = recommendedIds.includes(id);
     const isDone = viewedMisi.includes(id);
     return `
-      <div class="misi-card ${isRec ? 'misi-recommended' : ''} ${isDone ? 'misi-done' : ''}" data-misi="${id}">
-        ${isRec ? '<div class="misi-ai-badge">Prioritas AI</div>' : ''}
-        ${isDone ? '<div class="misi-done-badge">&#10003; Selesai</div>' : ''}
+      <div class="misi-card" data-misi="${id}">
+        <div class="misi-badge-container">
+          ${isRec ? '<div class="misi-ai-badge">Prioritas AI</div>' : ''}
+          ${isDone ? '<div class="misi-done-badge">&#10003; Selesai</div>' : ''}
+        </div>
         <h3 class="misi-judul">${misi.judul}</h3>
         <code class="misi-persamaan">${misi.persamaan}</code>
       </div>`;
@@ -55,26 +57,18 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
       <!-- Kiri Tengah -->
       <div class="hud-mid-left" id="hudCurrentForm" style="display:none">
         <div class="form-label">Current Form</div>
-        <div class="form-value" id="currentFormValue">&#128309; Reactant</div>
+        <div class="form-value reactant" id="currentFormValue">&#128309; Loading...</div>
       </div>
 
-      <!-- Kanan Atas -->
+      <!-- Kanan Atas (Misi Teks Baru) -->
       <div class="hud-top-right" id="hudMission" style="display:none">
         <div class="mission-label">Mission</div>
-        <div class="mission-value" id="missionValue">Find ${misi.target_pasangan || 'Target'}</div>
+        <div class="mission-value" id="missionValue">Temukan mengapa molekulmu tidak pernah berhenti berubah.</div>
       </div>
 
-      <!-- Bawah Tengah: Equilibrium (Pindah ke bawah agar tidak overlap) -->
-      <div class="hud-bottom-eq" id="hudEquilibrium" style="display:none">
-        <div class="eq-title">Equilibrium</div>
-        <div class="eq-row">
-          <span class="eq-label">Forward &#10142;</span>
-          <div class="eq-track"><div class="eq-fill forward" id="barForward" style="width:50%"></div></div>
-        </div>
-        <div class="eq-row">
-          <span class="eq-label">&#11013; Reverse</span>
-          <div class="eq-track reverse"><div class="eq-fill backward" id="barReverse" style="width:50%"></div></div>
-        </div>
+      <!-- Status Tengah Atas (Loading / Dynamic Equilibrium) -->
+      <div class="hud-status-top" id="hudStatusTop" style="display:none">
+        Reaction Status: Loading...
       </div>
 
       <!-- AI Panel -->
@@ -83,7 +77,20 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         <div class="ai-speech" id="webarAiSpeech">...</div>
       </div>
 
-      <!-- Kiri Bawah: Action Bar -->
+      <!-- Kuis Overlay (Momen Eureka) -->
+      <div class="webar-quiz-overlay" id="webarQuizOverlay" style="display:none">
+        <div class="quiz-card">
+          <div class="quiz-question">Menurutmu, mengapa molekulmu terus berubah bolak-balik tanpa henti?</div>
+          <div class="quiz-options">
+            <button class="quiz-btn" data-ans="A">Reaksi belum selesai dan sedang mencari bentuk akhir.</button>
+            <button class="quiz-btn" data-ans="B">Molekul bergerak acak tanpa pola pasti.</button>
+            <button class="quiz-btn" data-ans="C">Reaksi telah mencapai kesetimbangan, laju maju & balik sama.</button>
+            <button class="quiz-btn" data-ans="D">Bentuk produk selalu lebih stabil daripada reaktan.</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kiri Bawah: Action Bar (Le Chatelier) -->
       <div class="webar-action-bar" id="webarActionBar" style="display:none">
         <button class="action-btn" id="btnHeat" data-tool="heat">&#128293;<span>Heat</span></button>
         <button class="action-btn" id="btnCool" data-tool="cool">&#10052;<span>Cool</span></button>
@@ -101,8 +108,8 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
       <div class="webar-success-popup" id="webarSuccessPopup" style="display:none">
         <div class="webar-success-card">
           <div class="success-icon">&#10024;</div>
-          <h2>Kesetimbangan Tercapai</h2>
-          <button class="btn-primary" id="btnClaimWebar">Selesai</button>
+          <h2>Eksperimen Selesai</h2>
+          <button class="btn-primary" id="btnClaimWebar">Tutup Simulator</button>
         </div>
       </div>
     </div>`;
@@ -114,12 +121,14 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   const hudForm = container.querySelector('#hudCurrentForm');
   const formValue = container.querySelector('#currentFormValue');
   const hudMission = container.querySelector('#hudMission');
-  const hudEq = container.querySelector('#hudEquilibrium');
-  const barForward = container.querySelector('#barForward');
-  const barReverse = container.querySelector('#barReverse');
+  const hudStatusTop = container.querySelector('#hudStatusTop');
   
   const aiPanel = container.querySelector('#webarAiPanel');
   const aiSpeech = container.querySelector('#webarAiSpeech');
+  
+  const quizOverlay = container.querySelector('#webarQuizOverlay');
+  const quizBtns = container.querySelectorAll('.quiz-btn');
+  
   const actionBar = container.querySelector('#webarActionBar');
   const drivingCtrls = container.querySelector('#webarDrivingControls');
   const successPopup = container.querySelector('#webarSuccessPopup');
@@ -142,26 +151,51 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     formValue.className = isProduct ? 'form-value product' : 'form-value reactant';
   };
 
-  window._updateHUDEq = (forwardPct, reversePct) => {
-    barForward.style.width = forwardPct + '%';
-    barReverse.style.width = reversePct + '%';
-  };
-
   function onStateChange(state, aiText) {
     if (aiText) setAI(aiText);
     scanOverlay.style.display = (state === AR_STATE.SCAN) ? 'flex' : 'none';
     
-    if (state === AR_STATE.MOLECULAR_JOURNEY || state === AR_STATE.REACTION_EVENT || state === AR_STATE.EXPERIMENT) {
-      hudForm.style.display = 'flex'; hudMission.style.display = 'flex'; hudEq.style.display = 'flex';
+    if (state === AR_STATE.MOLECULAR_JOURNEY || state === AR_STATE.DYNAMIC_EQUILIBRIUM || state === AR_STATE.EXPERIMENT) {
+      hudForm.style.display = 'flex'; hudMission.style.display = 'flex'; hudStatusTop.style.display = 'block';
     } else {
-      hudForm.style.display = 'none'; hudMission.style.display = 'none'; hudEq.style.display = 'none';
+      hudForm.style.display = 'none'; hudMission.style.display = 'none'; hudStatusTop.style.display = 'none';
     }
 
-    actionBar.style.display = (state === AR_STATE.EXPERIMENT) ? 'flex' : 'none';
-    drivingCtrls.style.display = (state === AR_STATE.MOLECULAR_JOURNEY) ? 'block' : 'none';
+    if (state === AR_STATE.DYNAMIC_EQUILIBRIUM) {
+      hudStatusTop.innerHTML = '&#9878; Dynamic Equilibrium';
+      hudStatusTop.classList.add('glow');
+      setTimeout(() => { quizOverlay.style.display = 'flex'; drivingCtrls.style.display = 'none'; }, 2000);
+    }
+
+    if (state === AR_STATE.EXPERIMENT) {
+      actionBar.style.display = 'flex';
+      drivingCtrls.style.display = 'block'; // Bisa nyetir lagi
+    } else {
+      actionBar.style.display = 'none';
+    }
     
-    if (state === AR_STATE.REFLECTION) setTimeout(() => successPopup.style.display = 'flex', 1500);
+    if (state === AR_STATE.MOLECULAR_JOURNEY) {
+      drivingCtrls.style.display = 'block';
+    }
+
+    if (state === AR_STATE.REFLECTION) setTimeout(() => successPopup.style.display = 'flex', 2000);
   }
+
+  // Quiz Logic
+  quizBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const ans = e.target.dataset.ans;
+      if (ans === 'C') {
+        e.target.classList.add('correct');
+        setTimeout(() => {
+          quizOverlay.style.display = 'none';
+          if (sesiARAktif && sesiARAktif.onQuizAnswered) sesiARAktif.onQuizAnswered();
+        }, 1500);
+      } else {
+        e.target.classList.add('wrong');
+      }
+    });
+  });
 
   function resizeCanvas() {
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -206,6 +240,6 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 
 export function hentikanSesiAR() {
   if (sesiARAktif) { sesiARAktif.hentikan(); sesiARAktif = null; }
-  window._updateHUDForm = null; window._updateHUDEq = null; window._getDrivingInput = null;
+  window._updateHUDForm = null; window._getDrivingInput = null;
   window.removeEventListener('resize', () => {});
 }
