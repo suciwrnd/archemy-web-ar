@@ -174,3 +174,31 @@
   color: #fff; font-size: 15px; font-weight: 700; padding: 14px 32px; width: 100%; cursor: pointer;
   box-shadow: 0 6px 20px rgba(16,185,129,0.35); margin-top: 20px;
 }
+
+/* ==========================================================================
+   PILIH EKSPERIMEN UI
+   ========================================================================== */
+.webar-pilih-misi {
+  position: absolute; inset: 0; z-index: 100;
+  background: #0f172a; color: #f1f5f9; padding: 24px 20px; overflow-y: auto;
+}
+.pilih-misi-header { margin-bottom: 24px; }
+.pilih-misi-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #818cf8; margin-bottom: 4px; }
+.pilih-misi-subtitle { font-size: 24px; font-weight: 800; color: #fff; margin: 0; }
+.misi-grid { display: flex; flex-direction: column; gap: 16px; }
+.misi-card {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 16px; padding: 20px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 10px;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+.misi-card:active { transform: scale(0.97); }
+.misi-card-header { display: flex; justify-content: space-between; align-items: center; }
+.misi-number { font-size: 11px; font-weight: 700; background: rgba(129, 140, 248, 0.2); color: #a5b4fc; padding: 4px 8px; border-radius: 6px; }
+.misi-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; margin-left: 6px; }
+.misi-badge.rec { background: rgba(251, 191, 36, 0.2); color: #fcd34d; }
+.misi-badge.done { background: rgba(52, 211, 153, 0.2); color: #6ee7b7; }
+.misi-judul { font-size: 16px; font-weight: 700; color: #fff; line-height: 1.4; }
+.misi-persamaan { font-size: 13px; font-family: monospace; color: #94a3b8; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px; }

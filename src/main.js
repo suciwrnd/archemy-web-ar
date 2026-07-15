@@ -253,7 +253,8 @@ function toast(msg) { clearTimeout(toastTimer); toastEl.textContent=msg; toastEl
 function setRole(r) { state.role=r; saveState(); render(); }
 function go(page) {
   if (state.page === 'studentWebAR' && page !== 'studentWebAR') hentikanSesiAR();
-  state.page=page;
+  state.page = page;
+  if (page !== 'studentModules') state.activeModule = null;
   if (!['studentQuiz', 'studentQuizPage'].includes(page)) { state.selectedOption=null; state.confidence=null; }
   saveState(); render();
   requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'instant'}));
