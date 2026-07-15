@@ -4,7 +4,7 @@
    → evaluasi → analitik guru) tersambung.
    ========================================================================== */
 
-import { renderPilihMisi, renderHalamanAR, hentikanSesiAR } from './webar-page.js';
+import { renderPilihMisi, renderHalamanAR, renderHook, hentikanSesiAR } from './webar-page.js';
 import { MISI_DATA } from './webar.js';
 
 /* --------------------------------------------------------------------------
@@ -188,7 +188,7 @@ const BADGE_DEFS = {
 const defaultState = {
   role:'siswa', page:'login', joinedClass:false, selectedClassIndex:0,
   activeModuleFilter:'all', activeModule:null,
-  webarMisiAktif:null, viewedMisi:[],
+  webarMisiAktif:null, webarHookMisi:null, viewedMisi:[],
   currentSetIndex:0, currentTier:1, currentBloomLevel:1, quizResults:[], selectedOption:null, confidence:null,
   quizTimeLeft:600, quizTimerActive:false, colorblind:false,
   // Gamification
@@ -1038,22 +1038,34 @@ function renderStudentResult() {
 function renderStudentWebARPage() {
   const recMisiIds = (state.aiRecommendations||[]).filter(r=>r.type==='misi').map(r=>r.id);
 
-  if (!state.webarMisiAktif) {
+  if (!state.webarMisiAktif && !state.webarHookMisi) {
+    // Step 1: Pilih Misi
     pageWrap(`${header({back:true,titleBackPage:'studentDashboard',coins:false})}<div id="webarContainer"></div>`, {noNav:true});
     const container = document.getElementById('webarContainer');
     renderPilihMisi(container, (misiId) => {
-      state.webarMisiAktif = misiId;
-      if (!state.viewedMisi) state.viewedMisi = [];
-      if (!state.viewedMisi.includes(misiId)) state.viewedMisi.push(misiId);
+      state.webarHookMisi = misiId;
       saveState(); render();
     }, recMisiIds);
-  } else {
+  } else if (state.webarHookMisi && !state.webarMisiAktif) {
+    // Step 2: Hook Screen (Curiosity Question)
     app.innerHTML = '';
-    renderHalamanAR(app, state.webarMisiAktif, () => {
-      // Gamifikasi: award saat misi selesai
-      awardPoints(50, 'misi WebAR selesai');
-      checkAndAwardBadges('ar');
+    renderHook(app, state.webarHookMisi, () => {
+      state.webarMisiAktif = state.webarHookMisi;
+      state.webarHookMisi = null;
+      if (!state.viewedMisi) state.viewedMisi = [];
+      if (!state.viewedMisi.includes(state.webarMisiAktif)) state.viewedMisi.push(state.webarMisiAktif);
+      saveState(); render();
+    });
+  } else {
+    // Step 3: AR Session
+    app.innerHTML = '';
+    renderHalamanAR(app, state.webarMisiAktif, (result) => {
+      if (result?.completed) {
+        awardPoints(50, 'misi WebAR selesai');
+        checkAndAwardBadges('ar');
+      }
       state.webarMisiAktif = null;
+      state.webarHookMisi = null;
       saveState(); render();
     });
   }

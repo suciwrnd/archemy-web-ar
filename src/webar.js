@@ -1,607 +1,902 @@
 import * as THREE from 'three';
 
 /* ==========================================================================
-   ARCHEMY WEBAR ENGINE v7.0 - Quantum Space & Infinite Confusion
+   ARCHEMY WEBAR ENGINE v8.0 — PhET-Grade 3D Molecular Simulator
+   
+   Philosophy: Students EXPERIENCE equilibrium, not just watch it.
+   Architecture: Scene-managed, state-driven, pedagogically sequenced.
    ========================================================================== */
 
 export function requestSensorPermission() {
-  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+  if (typeof DeviceOrientationEvent !== 'undefined' && 
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().catch(() => {});
   }
 }
 
 // ---------------------------------------------------------------------------
-// MISI DATA
+// MISI DATA — Rich pedagogical content
 // ---------------------------------------------------------------------------
 export const MISI_DATA = {
   misi1: {
-    judul: 'Misi 1: Gas Iodin',
-    persamaan: 'H\u2082(g) + I\u2082(g) \u21cc 2HI(g)',
-    ai: {
-      OVERVIEW:          'Sistem belum setimbang.',
-      INVESTIGATE:       'Tap portal untuk masuk.',
-      MOLECULAR_JOURNEY: 'Tahan GAS untuk melaju. Perhatikan apa yang terjadi saat kamu menabrak sesuatu!',
-      DYNAMIC_EQUILIBRIUM:'Tunggu, mengapa bentukmu kembali seperti semula? Jawab kuis di layar.',
-      EXPERIMENT:        'Bagus! Sekarang, amati apa yang terjadi pada rintangan di depan saat kamu menekan tombol HEAT.',
-      REFLECTION:        'Pola rintangan berubah! Inilah efek pergeseran kesetimbangan (Le Chatelier).',
-    },
-    target_jenis: 'I2', target_pasangan: 'H2', produk: 'HI', tool: 'heat'
+    judul: 'Reaksi Gas Iodin',
+    persamaan: 'H₂(g) + I₂(g) ⇌ 2HI(g)',
+    hook: 'Gurumu mengatakan reaksi sudah setimbang. Tapi... apakah reaksi benar-benar berhenti?',
+    ai_journey: 'Perhatikan apa yang terjadi...',
+    ai_zoomout: 'Walaupun setiap molekul terus berubah, jumlah keseluruhan tetap sama. Inilah kesetimbangan dinamis.',
+    ai_experiment: 'Sekarang kamu bisa mengubah kondisi sistem. Apa yang terjadi jika suhu dinaikkan?',
+    challenge_q: 'Reaksi H₂ + I₂ ⇌ 2HI bersifat endoterm. Bagaimana cara memperbanyak produk HI?',
+    challenge_opts: [
+      { text: '🔥 Naikkan suhu', correct: true },
+      { text: '❄️ Turunkan suhu', correct: false },
+      { text: '📦 Tambah tekanan', correct: false },
+    ],
+    challenge_explanation: 'Karena reaksi endoterm menyerap panas, menaikkan suhu menggeser kesetimbangan ke arah produk sesuai Asas Le Chatelier.',
+    reflection_q: 'Setelah semua yang kamu alami tadi, apakah reaksi pada sistem setimbang benar-benar berhenti?',
+    reflection_opts: [
+      { text: 'Ya, reaksi berhenti karena sudah setimbang', correct: false },
+      { text: 'Tidak, reaksi maju dan balik terus berlangsung dengan laju yang sama', correct: true },
+      { text: 'Tidak, tapi hanya reaksi maju yang berlangsung', correct: false },
+    ],
+    reflection_explanation: 'Kesetimbangan dinamis berarti reaksi maju dan balik terus berlangsung secara bersamaan, namun dengan laju yang sama sehingga konsentrasi tampak tidak berubah.',
+    jenis: 'H2', pasangan: 'I2', produk: 'HI',
+    deltaH: 'endoterm', // affects Le Chatelier direction
+    tool_correct: 'heat',
   },
   misi2: {
-    judul: 'Misi 2: Smog Kota',
-    persamaan: '2NO\u2082(g) \u21cc N\u2082O\u2084(g)',
-    ai: {
-      OVERVIEW:          'Gas NO\u2082 beracun.',
-      INVESTIGATE:       'Masuk ke portal.',
-      MOLECULAR_JOURNEY: 'Tahan GAS. Amati siklus perubahan molekulmu.',
-      DYNAMIC_EQUILIBRIUM:'Apakah kamu menyadari polanya? Jawab kuis ini.',
-      EXPERIMENT:        'Tepat sekali. Coba tekan tombol COMPRESS dan rasakan perubahan di sekitarmu.',
-      REFLECTION:        'Rasio gerbang berubah drastis! Kesetimbangan bergeser ke arah produk.',
-    },
-    target_jenis: 'NO2', target_pasangan: 'NO2', produk: 'N2O4', tool: 'compress'
+    judul: 'Smog Kota — Dinitrogen Tetroksida',
+    persamaan: '2NO₂(g) ⇌ N₂O₄(g)',
+    hook: 'Gas NO₂ menyebabkan smog berbahaya. Dapatkah kita menguranginya tanpa menghilangkannya?',
+    ai_journey: 'Kamu adalah molekul NO₂. Amati apa yang terjadi padamu...',
+    ai_zoomout: 'Kamu melihat sistem secara utuh. Forward rate dan reverse rate seimbang — inilah kesetimbangan dinamis.',
+    ai_experiment: 'Reaksi ini eksoterm. Jika tekanan dinaikkan, kemana kesetimbangan akan bergeser?',
+    challenge_q: 'Reaksi 2NO₂ ⇌ N₂O₄ menghasilkan produk yang memiliki lebih sedikit mol gas. Untuk memperbanyak N₂O₄, caranya adalah?',
+    challenge_opts: [
+      { text: '📦 Naikkan tekanan', correct: true },
+      { text: '🔥 Naikkan suhu', correct: false },
+      { text: '❄️ Turunkan suhu dan turunkan tekanan', correct: false },
+    ],
+    challenge_explanation: 'Menaikkan tekanan menggeser kesetimbangan ke arah yang memiliki mol gas lebih sedikit (produk N₂O₄), sesuai Asas Le Chatelier.',
+    reflection_q: 'Mengapa jumlah NO₂ dan N₂O₄ tidak berubah meski reaksinya terus berlangsung?',
+    reflection_opts: [
+      { text: 'Karena reaksinya sudah berhenti total', correct: false },
+      { text: 'Karena laju pembentukan sama dengan laju penguraian', correct: true },
+      { text: 'Karena molekulnya terlalu kecil untuk bergerak', correct: false },
+    ],
+    reflection_explanation: 'Pada kesetimbangan dinamis, laju reaksi maju (pembentukan N₂O₄) sama persis dengan laju reaksi balik (penguraian N₂O₄), sehingga jumlah keduanya tampak tetap.',
+    jenis: 'NO2', pasangan: 'NO2', produk: 'N2O4',
+    deltaH: 'eksoterm',
+    tool_correct: 'compress',
   },
   misi3: {
-    judul: 'Misi 3: Pabrik Amonia',
-    persamaan: 'N\u2082(g) + 3H\u2082(g) \u21cc 2NH\u2083(g)',
-    ai: {
-      OVERVIEW:          'Produksi amonia.',
-      INVESTIGATE:       'Tap untuk masuk.',
-      MOLECULAR_JOURNEY: 'Tancap gas. Jangan berhenti mengamati.',
-      DYNAMIC_EQUILIBRIUM:'Mengapa reaksinya seolah tidak pernah selesai?',
-      EXPERIMENT:        'Gunakan tombol ADD untuk menambah Reaktan. Apa yang terjadi pada jalan di depan?',
-      REFLECTION:        'Lintasan dipenuhi gerbang pembentuk Produk! Kesetimbangan bergeser.',
-    },
-    target_jenis: 'N2', target_pasangan: 'H2', produk: 'NH3', tool: 'add'
+    judul: 'Sintesis Amonia — Proses Haber',
+    persamaan: 'N₂(g) + 3H₂(g) ⇌ 2NH₃(g)',
+    hook: 'Proses Haber menghasilkan pupuk untuk seluruh dunia. Bagaimana setengah miliar manusia bisa hidup dari satu reaksi kimia?',
+    ai_journey: 'Kamu adalah molekul N₂. Ikuti perjalananmu...',
+    ai_zoomout: 'Di pabrik Haber nyata, juta-juta molekul sepertimu bereaksi setiap detik. Dan selalu setimbang.',
+    ai_experiment: 'Reaksi ini eksoterm dan menghasilkan lebih sedikit mol gas. Bagaimana kondisi optimal?',
+    challenge_q: 'Pabrik Haber beroperasi pada 400-500°C dan 200 atm. Mengapa tekanan tinggi dipilih untuk memperbanyak NH₃?',
+    challenge_opts: [
+      { text: 'Karena sisi produk memiliki lebih sedikit mol gas (2 mol vs 4 mol)', correct: true },
+      { text: 'Karena tekanan tinggi membuat molekul lebih cepat', correct: false },
+      { text: 'Karena NH₃ lebih stabil pada tekanan tinggi', correct: false },
+    ],
+    challenge_explanation: 'Menurut Le Chatelier, tekanan tinggi menggeser kesetimbangan ke sisi dengan mol gas lebih sedikit. Sisi produk (2 mol NH₃) lebih sedikit dari sisi reaktan (4 mol N₂ + H₂), maka produk bertambah.',
+    reflection_q: 'Di pabrik Haber, hasil NH₃ selalu dikeluarkan dari reaktor secara kontinyu. Ini menyebabkan?',
+    reflection_opts: [
+      { text: 'Reaksi berhenti karena produknya habis', correct: false },
+      { text: 'Kesetimbangan bergeser ke kanan, menghasilkan lebih banyak NH₃', correct: true },
+      { text: 'Reaktan habis terpakai tanpa bisa diregenerasi', correct: false },
+    ],
+    reflection_explanation: 'Mengambil produk berarti konsentrasi produk berkurang. Sistem merespons dengan menggeser kesetimbangan ke kanan (membuat lebih banyak produk) — prinsip inilah yang membuat proses Haber efisien.',
+    jenis: 'N2', pasangan: 'H2', produk: 'NH3',
+    deltaH: 'eksoterm',
+    tool_correct: 'compress',
   }
 };
 
 export const AR_STATE = {
-  SCAN: 'SCAN', REACTION_PORTAL: 'REACTION_PORTAL', OVERVIEW: 'OVERVIEW',
-  INVESTIGATE: 'INVESTIGATE', PORTAL_ZOOM: 'PORTAL_ZOOM', MOLECULAR_JOURNEY: 'MOLECULAR_JOURNEY',
-  DYNAMIC_EQUILIBRIUM: 'DYNAMIC_EQUILIBRIUM', EXPERIMENT: 'EXPERIMENT', REFLECTION: 'REFLECTION'
+  SCAN:          'SCAN',
+  HOOK:          'HOOK',
+  PORTAL:        'PORTAL',
+  ENTERING:      'ENTERING',
+  JOURNEY:       'JOURNEY',
+  ZOOMOUT:       'ZOOMOUT',
+  EXPERIMENT:    'EXPERIMENT',
+  CHALLENGE:     'CHALLENGE',
+  REFLECTION:    'REFLECTION',
 };
 
-export class ARStateMachine {
-  constructor() { this.state = AR_STATE.SCAN; this._listeners = {}; }
-  setState(newState) {
-    const prev = this.state; this.state = newState;
-    if (this._listeners[newState]) this._listeners[newState].forEach(fn => fn(prev));
-  }
-  on(state, fn) {
-    if (!this._listeners[state]) this._listeners[state] = [];
-    this._listeners[state].push(fn); return this;
-  }
-  is(state) { return this.state === state; }
-}
-
-class ARSoundEngine {
-  constructor() { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { this.ctx = null; } }
-  _resume() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); }
-  whoosh() {
-    if (!this.ctx) return; this._resume();
-    const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
-    osc.connect(gain); gain.connect(this.ctx.destination);
-    osc.frequency.setValueAtTime(700, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(150, this.ctx.currentTime + 0.5);
-    gain.gain.setValueAtTime(0.25, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.5);
-    osc.start(); osc.stop(this.ctx.currentTime + 0.5);
-  }
-  bondForm() {
-    if (!this.ctx) return; this._resume();
-    [523, 659, 784].forEach((freq, i) => {
-      const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
-      osc.connect(gain); gain.connect(this.ctx.destination);
-      osc.type = 'sine'; osc.frequency.value = freq;
-      const t = this.ctx.currentTime + i * 0.07;
-      gain.gain.setValueAtTime(0, t); gain.gain.linearRampToValueAtTime(0.18, t + 0.05); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-      osc.start(t); osc.stop(t + 0.5);
-    });
-  }
-  bondBreak() {
-    if (!this.ctx) return; this._resume();
-    const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.12, this.ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2) * 0.2;
-    const src = this.ctx.createBufferSource(); src.buffer = buf;
-    const filter = this.ctx.createBiquadFilter(); filter.type = 'highpass'; filter.frequency.value = 2000;
-    src.connect(filter); filter.connect(this.ctx.destination); src.start();
-  }
-  missionComplete() {
-    if (!this.ctx) return; this._resume();
-    [523, 659, 784, 1047].forEach((freq, i) => {
-      const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
-      osc.connect(gain); gain.connect(this.ctx.destination);
-      osc.frequency.value = freq;
-      const t = this.ctx.currentTime + i * 0.15;
-      gain.gain.setValueAtTime(0.22, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
-      osc.start(t); osc.stop(t + 0.8);
-    });
-  }
-}
-export const soundEngine = new ARSoundEngine();
-
 // ---------------------------------------------------------------------------
-// ATOM COLORS & RADII
+// SOUND ENGINE
 // ---------------------------------------------------------------------------
-const ATOM_WARNA = { H: 0xe0e0e0, I: 0x9f1aff, N: 0x3b82f6, O: 0xef4444, C: 0x525252, Ca: 0x94a3b8 };
-const ATOM_RADIUS = { H: 0.045, I: 0.085, N: 0.07, O: 0.06, C: 0.075, Ca: 0.095 };
-
-function buatAtomMesh(simbol) {
-  const r = ATOM_RADIUS[simbol] || 0.06; const col = ATOM_WARNA[simbol] || 0x888888;
-  const mat = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.1, roughness: 0.3, metalness: 0.2 });
-  const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 28, 28), mat); mesh.castShadow = true; return mesh;
-}
-function buatBondMesh(p1, p2) {
-  const dist = p1.distanceTo(p2); if (dist < 0.005) return null;
-  const geo = new THREE.CylinderGeometry(0.012, 0.012, dist, 8);
-  const mat = new THREE.MeshStandardMaterial({ color: 0xd4d4d4, roughness: 0.4, metalness: 0.2 });
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.copy(p1).lerp(p2, 0.5); mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), p2.clone().sub(p1).normalize());
-  return mesh;
-}
-
-const RESEP_MOLEKUL = {
-  H2: [['H',-0.05,0,0],['H',0.05,0,0]], I2: [['I',-0.07,0,0],['I',0.07,0,0]], HI: [['H',-0.055,0,0],['I',0.055,0,0]],
-  N2: [['N',-0.05,0,0],['N',0.05,0,0]], H2O: [['O',0,0,0],['H',-0.06,-0.05,0],['H',0.06,-0.05,0]],
-  NO2: [['N',0,0,0],['O',-0.065,0.055,0],['O',0.065,0.055,0]],
-  N2O4: [['N',-0.04,0,0],['N',0.04,0,0],['O',-0.10,0.05,0],['O',-0.10,-0.05,0],['O',0.10,0.05,0],['O',0.10,-0.05,0]],
-  NH3: [['N',0,0.04,0],['H',-0.055,-0.025,0.03],['H',0.055,-0.025,0.03],['H',0,-0.025,-0.06]]
-};
-
-export function buatMolekul(jenis) {
-  const atoms = RESEP_MOLEKUL[jenis]; const grup = new THREE.Group(); grup.userData.jenis = jenis;
-  if (atoms) {
-    const positions = atoms.map(([sym, x, y, z]) => {
-      const atom = buatAtomMesh(sym); atom.position.set(x, y, z); atom.userData.simbol = sym; grup.add(atom);
-      return new THREE.Vector3(x, y, z);
-    });
-    for (let i = 0; i < positions.length - 1; i++) {
-      for (let j = i + 1; j < positions.length; j++) {
-        if (positions[i].distanceTo(positions[j]) < 0.16) { const b = buatBondMesh(positions[i], positions[j]); if (b) grup.add(b); }
-      }
-    }
-  } else { const sym = jenis.replace(/[0-9]/g, '').slice(0, 2) || 'C'; grup.add(buatAtomMesh(sym)); }
-  grup.scale.setScalar(0.8);
-  return grup;
-}
-
-function createTextSprite(message, colorHex) {
-  const cvs = document.createElement('canvas'); cvs.width = 256; cvs.height = 64; const ctx = cvs.getContext('2d');
-  ctx.font = 'Bold 40px Poppins, sans-serif'; ctx.fillStyle = colorHex;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(message, 128, 32);
-  const mat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cvs), transparent: true, depthTest: false });
-  const sprite = new THREE.Sprite(mat); sprite.scale.set(0.6, 0.15, 1); return sprite;
-}
-
-// ---------------------------------------------------------------------------
-// DEVICE ORIENTATION (TRUE AR CAMERA)
-// ---------------------------------------------------------------------------
-class CustomDeviceOrientationControls {
-  constructor(camera) {
-    this.camera = camera; this.enabled = true; this.deviceOrientation = {}; this.screenOrientation = 0;
-    const onDO = (e) => this.deviceOrientation = e;
-    const onSO = () => this.screenOrientation = window.orientation || 0;
-    window.addEventListener('orientationchange', onSO); window.addEventListener('deviceorientation', onDO);
-    onSO();
-    this.euler = new THREE.Euler(); this.q0 = new THREE.Quaternion();
-    this.q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5)); this.zee = new THREE.Vector3(0, 0, 1);
+class SoundEngine {
+  constructor() {
+    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch { this.ctx = null; }
   }
-  update() {
-    if (!this.enabled) return;
-    const alpha = this.deviceOrientation.alpha ? THREE.MathUtils.degToRad(this.deviceOrientation.alpha) : 0;
-    const beta = this.deviceOrientation.beta ? THREE.MathUtils.degToRad(this.deviceOrientation.beta) : 0;
-    const gamma = this.deviceOrientation.gamma ? THREE.MathUtils.degToRad(this.deviceOrientation.gamma) : 0;
-    const orient = this.screenOrientation ? THREE.MathUtils.degToRad(this.screenOrientation) : 0;
-    this.euler.set(beta, alpha, -gamma, 'YXZ');
-    this.camera.quaternion.setFromEuler(this.euler);
-    this.camera.quaternion.multiply(this.q1);
-    this.camera.quaternion.multiply(this.q0.setFromAxisAngle(this.zee, -orient));
-  }
-}
-
-// ---------------------------------------------------------------------------
-// QUANTUM SPACE 3D ENVIRONMENT (Immersive Runner)
-// ---------------------------------------------------------------------------
-class QuantumSpace {
-  constructor(scene) {
-    this.scene = scene;
-    this.container = new THREE.Group();
-    this.container.visible = false;
-    scene.add(this.container);
-
-    // 1. Nebula Skybox (Ribuan Partikel)
-    const skyGeo = new THREE.BufferGeometry();
-    const skyCount = 3000;
-    const skyPos = new Float32Array(skyCount * 3);
-    for(let i=0; i<skyCount*3; i++) skyPos[i] = (Math.random() - 0.5) * 80;
-    skyGeo.setAttribute('position', new THREE.BufferAttribute(skyPos, 3));
-    const skyMat = new THREE.PointsMaterial({ color: 0x93c5fd, size: 0.08, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending });
-    this.skybox = new THREE.Points(skyGeo, skyMat);
-    this.container.add(this.skybox);
-
-    // 2. Solid Energy Bridge (Rel 3D)
-    // We make a long box that scrolls its texture to fake infinite movement
-    const bridgeGeo = new THREE.BoxGeometry(1.5, 0.1, 100);
-    const cvs = document.createElement('canvas'); cvs.width = 128; cvs.height = 512;
-    const ctx = cvs.getContext('2d');
-    ctx.fillStyle = '#02040a'; ctx.fillRect(0,0,128,512);
-    ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 4;
-    for(let y=0; y<512; y+=64) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(128,y); ctx.stroke(); }
-    ctx.beginPath(); ctx.moveTo(64,0); ctx.lineTo(64,512); ctx.stroke();
-    
-    this.bridgeTex = new THREE.CanvasTexture(cvs);
-    this.bridgeTex.wrapS = THREE.RepeatWrapping; this.bridgeTex.wrapT = THREE.RepeatWrapping;
-    this.bridgeTex.repeat.set(1, 20);
-    
-    const bridgeMat = new THREE.MeshStandardMaterial({ map: this.bridgeTex, color: 0xaaaaaa, emissive: 0x0ea5e9, emissiveIntensity: 0.2, roughness: 0.1, metalness: 0.8 });
-    this.bridge = new THREE.Mesh(bridgeGeo, bridgeMat);
-    this.bridge.position.set(0, -0.4, -40);
-    this.container.add(this.bridge);
-
-    // 3. Floating 3D Quantum Rocks (Asteroids)
-    this.rocks = [];
-    const rockGeo = new THREE.DodecahedronGeometry(0.8, 0); // Low poly
-    const rockMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8, metalness: 0.3, flatShading: true });
-    
-    for(let i=0; i<30; i++) {
-      const rock = new THREE.Mesh(rockGeo, rockMat);
-      this.resetRock(rock);
-      rock.position.z = -Math.random() * 80; // scatter initially
-      this.rocks.push(rock);
-      this.container.add(rock);
-    }
-
-    // 4. Lights
-    const hemiLight = new THREE.HemisphereLight(0x7df9ff, 0x02040a, 0.8);
-    this.container.add(hemiLight);
-  }
-
-  resetRock(rock) {
-    const side = Math.random() > 0.5 ? 1 : -1;
-    rock.position.set(side * (1.5 + Math.random() * 3), (Math.random() - 0.5) * 4, -80 - Math.random() * 20);
-    rock.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
-    rock.scale.setScalar(0.5 + Math.random() * 1.2);
-    rock.userData.rotSpeed = new THREE.Vector3((Math.random()-0.5)*2, (Math.random()-0.5)*2, (Math.random()-0.5)*2);
-  }
-
-  setVisible(v) { this.container.visible = v; }
+  _r() { if (this.ctx?.state === 'suspended') this.ctx.resume(); }
   
-  update(dt, velocity) {
-    if(!this.container.visible) return;
-    
-    // Scroll Bridge Texture
-    this.bridgeTex.offset.y -= velocity * dt * 0.5;
-    
-    // Move Rocks towards camera
-    this.rocks.forEach(rock => {
-      rock.position.z += velocity * dt * 10; // 10 is scale factor for world speed
-      rock.rotation.x += rock.userData.rotSpeed.x * dt;
-      rock.rotation.y += rock.userData.rotSpeed.y * dt;
-      if(rock.position.z > 5) this.resetRock(rock); // Recycle behind camera
+  whoosh() {
+    if (!this.ctx) return; this._r();
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.connect(g); g.connect(this.ctx.destination);
+    o.frequency.setValueAtTime(800, this.ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.6);
+    g.gain.setValueAtTime(0.2, this.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.6);
+    o.start(); o.stop(this.ctx.currentTime + 0.6);
+  }
+  
+  bondForm() {
+    if (!this.ctx) return; this._r();
+    [523, 659, 784, 1047].forEach((f, i) => {
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+      o.connect(g); g.connect(this.ctx.destination);
+      o.type = 'sine'; o.frequency.value = f;
+      const t = this.ctx.currentTime + i * 0.08;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.12, t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+      o.start(t); o.stop(t + 0.5);
     });
-
-    this.skybox.rotation.y += dt * 0.01;
+  }
+  
+  bondBreak() {
+    if (!this.ctx) return; this._r();
+    const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.1, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2-1) * Math.pow(1-i/d.length, 1.5) * 0.15;
+    const s = this.ctx.createBufferSource(); s.buffer = buf;
+    const f = this.ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1500;
+    s.connect(f); f.connect(this.ctx.destination); s.start();
+  }
+  
+  success() {
+    if (!this.ctx) return; this._r();
+    [523, 659, 784, 1047, 1319].forEach((f, i) => {
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+      o.connect(g); g.connect(this.ctx.destination);
+      o.frequency.value = f;
+      const t = this.ctx.currentTime + i * 0.12;
+      g.gain.setValueAtTime(0.15, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+      o.start(t); o.stop(t + 0.8);
+    });
   }
 }
+export const soundEngine = new SoundEngine();
 
 // ---------------------------------------------------------------------------
-// INFINITE RUNNER & CONFUSION LOGIC
+// MOLECULE FACTORY — Chemically accurate 3D structures
 // ---------------------------------------------------------------------------
-class InfiniteRunnerSystem {
-  constructor(scene, misiData, onStateChange) {
-    this.scene = scene;
-    this.misiData = misiData;
-    this.onStateChange = onStateChange;
-    
-    this.playerMolecule = null;
-    this.isProduct = false;
-    this.velocity = 0; 
-    
-    this.gates = []; // Gerbang (Biru/Merah)
-    this.loopCount = 0;
-    
-    // Le Chatelier factor: 
-    // 0 = balance (50% red, 50% blue)
-    // -1 = favor reactant (90% red)
-    // +1 = favor product (90% blue)
-    this.equilibriumShift = 0; 
+const ATOM_CONFIG = {
+  H:  { color: 0xe8e8e8, emissive: 0x333333, r: 0.06  },
+  I:  { color: 0x9333ea, emissive: 0x4a0080, r: 0.10  },
+  N:  { color: 0x3b82f6, emissive: 0x1e3a5f, r: 0.085 },
+  O:  { color: 0xef4444, emissive: 0x5f1e1e, r: 0.075 },
+  Cl: { color: 0x22c55e, emissive: 0x0f3f1e, r: 0.08  },
+};
+
+const MOLECULE_GEOMETRY = {
+  H2:   [['H',-0.065,0,0],['H',0.065,0,0]],
+  I2:   [['I',-0.09,0,0],['I',0.09,0,0]],
+  HI:   [['H',-0.07,0,0],['I',0.08,0,0]],
+  N2:   [['N',-0.065,0,0],['N',0.065,0,0]],
+  NO2:  [['N',0,0,0],['O',-0.075,0.065,0],['O',0.075,0.065,0]],
+  N2O4: [['N',-0.055,0,0],['N',0.055,0,0],['O',-0.115,0.06,0],['O',-0.115,-0.06,0],['O',0.115,0.06,0],['O',0.115,-0.06,0]],
+  NH3:  [['N',0,0.055,0],['H',-0.06,-0.025,0.045],['H',0.06,-0.025,0.045],['H',0,-0.025,-0.07]],
+};
+
+function makeMoleculeMesh(type) {
+  const defs = MOLECULE_GEOMETRY[type];
+  const group = new THREE.Group();
+  group.userData.type = type;
+  
+  if (!defs) {
+    // Fallback: single sphere
+    const sym = type.replace(/\d/g, '').slice(0, 2);
+    const cfg = ATOM_CONFIG[sym] || { color: 0xaaaaaa, emissive: 0x333333, r: 0.07 };
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(cfg.r, 32, 32),
+      new THREE.MeshStandardMaterial({ color: cfg.color, emissive: cfg.emissive, roughness: 0.2, metalness: 0.3 })
+    );
+    group.add(m);
+    return group;
   }
-
-  initPlayer() {
-    this.isProduct = false;
-    this.playerMolecule = buatMolekul(this.misiData.target_jenis);
-    this.playerMolecule.position.set(0, 0, -1);
-    this.scene.add(this.playerMolecule);
-
-    const youSprite = createTextSprite("⭐ YOU", '#7df9ff');
-    youSprite.position.set(0, 0.25, 0);
-    this.playerMolecule.add(youSprite);
-    
-    if(window._updateHUDForm) window._updateHUDForm(false, this.misiData.target_jenis);
-  }
-
-  spawnGate() {
-    // Tentukan jenis gerbang berdasarkan shift
-    let wantBlue = Math.random() > 0.5;
-    if(this.equilibriumShift < 0) wantBlue = Math.random() > 0.8; // Sulit dapat biru (sering merah/pecah)
-    if(this.equilibriumShift > 0) wantBlue = Math.random() > 0.2; // Sering biru (gabung)
-
-    // Jika sedang Reaktan, kita butuh Biru untuk bergabung. Jika Merah, tidak terjadi apa-apa.
-    // Jika sedang Produk, kita butuh Merah untuk pecah.
-    // Agar produktif (selalu berubah), kita paksa spawn yang belawanan jika sedang mode Normal (shift=0).
-    if(this.equilibriumShift === 0) {
-      wantBlue = !this.isProduct; // Selalu paksa berubah bolak-balik
-    }
-
-    const isCombine = wantBlue;
-    
-    const gateGroup = new THREE.Group();
-    gateGroup.position.set(0, 0, -40); // Muncul jauh di depan
-    gateGroup.userData = { isCombine, hit: false };
-
-    // Visual Gerbang
-    const color = isCombine ? 0x3b82f6 : 0xef4444;
-    const ringGeo = new THREE.TorusGeometry(0.5, 0.03, 16, 50);
-    const ringMat = new THREE.MeshBasicMaterial({ color, transparent:true, opacity: 0.8 });
-    const ring = new THREE.Mesh(ringGeo, ringMat);
-    gateGroup.add(ring);
-
-    // Isi Gerbang
-    if(isCombine) {
-      const partner = buatMolekul(this.misiData.target_pasangan);
-      gateGroup.add(partner);
-    } else {
-      // Energy barrier visual
-      const barrier = new THREE.Mesh(
-        new THREE.PlaneGeometry(1, 1),
-        new THREE.MeshBasicMaterial({ color: 0xef4444, transparent:true, opacity: 0.4, side: THREE.DoubleSide })
-      );
-      gateGroup.add(barrier);
-    }
-
-    this.gates.push(gateGroup);
-    this.scene.add(gateGroup);
-  }
-
-  triggerTransform(toProduct) {
-    this.isProduct = toProduct;
-    this.loopCount++;
-
-    const pos = this.playerMolecule.position.clone();
-    this.scene.remove(this.playerMolecule);
-
-    const newJenis = toProduct ? this.misiData.produk : this.misiData.target_jenis;
-    this.playerMolecule = buatMolekul(newJenis);
-    this.playerMolecule.position.copy(pos);
-    this.scene.add(this.playerMolecule);
-    
-    const color = toProduct ? '#fde047' : '#7df9ff';
-    const youSprite = createTextSprite("⭐ YOU", color);
-    youSprite.position.set(0, 0.25, 0);
-    this.playerMolecule.add(youSprite);
-
-    if(window._updateHUDForm) window._updateHUDForm(toProduct, newJenis);
-
-    // Efek Transisi
-    if(toProduct) {
-      soundEngine.bondForm();
-      buatBurst(this.scene, pos, 0x3b82f6);
-    } else {
-      soundEngine.bondBreak();
-      buatBurst(this.scene, pos, 0xef4444);
-    }
-
-    // Productive Confusion Trigger
-    if (this.loopCount === 3 && this.equilibriumShift === 0) {
-      if (this.onStateChange) this.onStateChange(AR_STATE.DYNAMIC_EQUILIBRIUM, this.misiData.ai.DYNAMIC_EQUILIBRIUM);
-    }
-  }
-
-  update(dt, input) {
-    // Handle Gas
-    if (input.gas) {
-      this.velocity = Math.min(this.velocity + dt * 2, 1.0); // max speed 1.0
-    } else {
-      this.velocity = Math.max(this.velocity - dt * 2, 0);
-    }
-
-    if (this.velocity === 0) return;
-
-    // Wobble molecule
-    if(this.playerMolecule) {
-      this.playerMolecule.position.y = (Math.sin(Date.now() * 0.005) * 0.05);
-      this.playerMolecule.rotation.y = (Math.sin(Date.now() * 0.002) * 0.1);
-    }
-
-    // Spawn Gates randomly based on distance traveled
-    if (Math.random() < this.velocity * dt * 0.8) {
-      // Pastikan jarak antar gerbang cukup jauh
-      if(this.gates.length === 0 || this.gates[this.gates.length-1].position.z > -30) {
-        this.spawnGate();
-      }
-    }
-
-    // Move Gates
-    for(let i = this.gates.length - 1; i >= 0; i--) {
-      const g = this.gates[i];
-      g.position.z += this.velocity * dt * 10;
-      
-      // Collision Check (Molecule is at z = -1)
-      if (!g.userData.hit && g.position.z > -1.2 && g.position.z < -0.8) {
-        g.userData.hit = true;
-        if(g.userData.isCombine && !this.isProduct) {
-          this.triggerTransform(true);
-        } else if(!g.userData.isCombine && this.isProduct) {
-          this.triggerTransform(false);
-        }
-      }
-
-      // Remove behind camera
-      if(g.position.z > 2) {
-        this.scene.remove(g);
-        this.gates.splice(i, 1);
+  
+  const positions = [];
+  defs.forEach(([sym, x, y, z]) => {
+    const cfg = ATOM_CONFIG[sym] || { color: 0xaaaaaa, emissive: 0x333333, r: 0.07 };
+    const mat = new THREE.MeshStandardMaterial({
+      color: cfg.color, emissive: cfg.emissive, emissiveIntensity: 0.15,
+      roughness: 0.15, metalness: 0.4,
+    });
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(cfg.r, 32, 32), mat);
+    mesh.position.set(x, y, z);
+    mesh.castShadow = true;
+    group.add(mesh);
+    positions.push({ pos: new THREE.Vector3(x, y, z), sym });
+  });
+  
+  // Draw bonds
+  for (let i = 0; i < positions.length; i++) {
+    for (let j = i + 1; j < positions.length; j++) {
+      const dist = positions[i].pos.distanceTo(positions[j].pos);
+      if (dist < 0.22) {
+        const dir = positions[j].pos.clone().sub(positions[i].pos).normalize();
+        const mid = positions[i].pos.clone().lerp(positions[j].pos, 0.5);
+        const mat = new THREE.MeshStandardMaterial({ color: 0xb0b0b0, roughness: 0.3, metalness: 0.5 });
+        const bond = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, dist, 10), mat);
+        bond.position.copy(mid);
+        bond.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+        group.add(bond);
       }
     }
   }
+  
+  group.scale.setScalar(0.85);
+  return group;
 }
 
-// ---------------------------------------------------------------------------
-// HELPER EFFECTS
-// ---------------------------------------------------------------------------
-function buatBurst(scene, position, colorHex, count = 20) {
-  const p = [];
-  for (let i=0; i<count; i++) {
-    const m = new THREE.Mesh(new THREE.SphereGeometry(0.015, 5, 5), new THREE.MeshBasicMaterial({ color: colorHex, transparent: true }));
-    m.position.copy(position); scene.add(m);
-    p.push({ m, vel: new THREE.Vector3((Math.random()-0.5)*0.2, (Math.random()-0.5)*0.2, (Math.random()-0.5)*0.2), life: 0 });
+function makeLabelSprite(text, color = '#7df9ff') {
+  const c = document.createElement('canvas');
+  c.width = 300; c.height = 70;
+  const ctx = c.getContext('2d');
+  ctx.font = 'bold 38px Inter, sans-serif';
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, 150, 35);
+  const mat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false });
+  const s = new THREE.Sprite(mat);
+  s.scale.set(0.7, 0.16, 1);
+  return s;
+}
+
+function burstEffect(scene, pos, color = 0x4fc3f7, count = 20) {
+  const particles = [];
+  for (let i = 0; i < count; i++) {
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(0.012, 6, 6),
+      new THREE.MeshBasicMaterial({ color, transparent: true })
+    );
+    m.position.copy(pos);
+    scene.add(m);
+    const vel = new THREE.Vector3(
+      (Math.random()-0.5) * 0.25,
+      (Math.random()-0.5) * 0.25,
+      (Math.random()-0.5) * 0.25
+    );
+    particles.push({ m, vel, life: 0 });
   }
-  const t = setInterval(() => {
-    let a = false;
-    p.forEach(x => {
-      x.life += 0.05; x.vel.y -= 0.001; x.m.position.addScaledVector(x.vel, 1); x.m.material.opacity = Math.max(0, 1 - x.life * 2);
-      if (x.life < 0.5) a = true;
+  const id = setInterval(() => {
+    let alive = false;
+    particles.forEach(p => {
+      p.life += 0.04;
+      p.vel.y -= 0.002;
+      p.m.position.addScaledVector(p.vel, 1);
+      p.m.material.opacity = Math.max(0, 1 - p.life * 2.5);
+      if (p.life < 0.4) alive = true;
     });
-    if (!a) { clearInterval(t); p.forEach(x => scene.remove(x.m)); }
+    if (!alive) { clearInterval(id); particles.forEach(p => scene.remove(p.m)); }
   }, 16);
 }
 
 // ---------------------------------------------------------------------------
-// MAIN SESSION
+// DEVICE ORIENTATION CONTROLS
 // ---------------------------------------------------------------------------
-export async function mulaiSesiARjs(canvas, videoEl, misiId, onStateChange) {
+class DeviceOrientationControls {
+  constructor(camera) {
+    this.camera = camera;
+    this.enabled = true;
+    this.deviceOrientation = {};
+    this.screenOrientation = 0;
+    this.q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
+    this.zee = new THREE.Vector3(0, 0, 1);
+    this.q0 = new THREE.Quaternion();
+    
+    const onDO = e => this.deviceOrientation = e;
+    const onSO = () => this.screenOrientation = window.orientation || 0;
+    window.addEventListener('deviceorientation', onDO);
+    window.addEventListener('orientationchange', onSO);
+    onSO();
+  }
+  update() {
+    if (!this.enabled) return;
+    const { alpha, beta, gamma } = this.deviceOrientation;
+    const a = alpha ? THREE.MathUtils.degToRad(alpha) : 0;
+    const b = beta  ? THREE.MathUtils.degToRad(beta)  : 0;
+    const g = gamma ? THREE.MathUtils.degToRad(gamma) : 0;
+    const o = THREE.MathUtils.degToRad(this.screenOrientation);
+    const e = new THREE.Euler(b, a, -g, 'YXZ');
+    this.camera.quaternion.setFromEuler(e);
+    this.camera.quaternion.multiply(this.q1);
+    this.camera.quaternion.multiply(this.q0.setFromAxisAngle(this.zee, -o));
+  }
+}
+
+// ---------------------------------------------------------------------------
+// MOLECULAR WORLD — The 3D simulation environment
+// ---------------------------------------------------------------------------
+class MolecularWorld {
+  constructor(scene) {
+    this.scene = scene;
+    this.root = new THREE.Group();
+    this.root.visible = false;
+    scene.add(this.root);
+    
+    // Ambient particles (background molecules)
+    this._buildBackground();
+    
+    // Molecule pool for system simulation
+    this.systemMolecules = [];
+    this.playerMesh = null;
+    this.playerLabel = null;
+    this.playerType = null;
+    
+    // Simulation state
+    this.simTime = 0;
+    this.equilibriumShift = 0; // -1 to +1 (negative = more reactant)
+    this.isSystemView = false;
+  }
+  
+  _buildBackground() {
+    // Stars
+    const starGeo = new THREE.BufferGeometry();
+    const starCount = 2000;
+    const starPos = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount * 3; i++) starPos[i] = (Math.random() - 0.5) * 60;
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    const starMat = new THREE.PointsMaterial({ color: 0xaac4ff, size: 0.06, transparent: true, opacity: 0.7 });
+    this.stars = new THREE.Points(starGeo, starMat);
+    this.root.add(this.stars);
+    
+    // Ambient floating dust particles
+    const dustGeo = new THREE.BufferGeometry();
+    const dustCount = 300;
+    const dustPos = new Float32Array(dustCount * 3);
+    for (let i = 0; i < dustCount * 3; i++) dustPos[i] = (Math.random() - 0.5) * 8;
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+    const dustMat = new THREE.PointsMaterial({
+      color: 0x4fc3f7, size: 0.025, transparent: true, opacity: 0.4,
+      blending: THREE.AdditiveBlending
+    });
+    this.dust = new THREE.Points(dustGeo, dustMat);
+    this.root.add(this.dust);
+    
+    // Subtle grid floor
+    const grid = new THREE.GridHelper(20, 20, 0x0c2a3a, 0x0c1f2a);
+    grid.position.y = -1.5;
+    this.root.add(grid);
+    
+    // Lights
+    this.root.add(new THREE.AmbientLight(0x334466, 1.2));
+    const kl = new THREE.DirectionalLight(0x7dd3fc, 3);
+    kl.position.set(3, 5, 2); kl.castShadow = true;
+    this.root.add(kl);
+    const fl = new THREE.DirectionalLight(0x818cf8, 1.5);
+    fl.position.set(-3, -1, -3);
+    this.root.add(fl);
+    const pl = new THREE.PointLight(0x4fc3f7, 2, 8);
+    pl.position.set(0, 2, 0);
+    this.root.add(pl);
+  }
+  
+  setVisible(v) { this.root.visible = v; }
+  
+  initPlayer(misiData) {
+    if (this.playerMesh) this.root.remove(this.playerMesh);
+    this.playerType = misiData.jenis;
+    this.playerMesh = makeMoleculeMesh(misiData.jenis);
+    this.playerMesh.position.set(0, 0, -0.8);
+    this.root.add(this.playerMesh);
+    
+    this.playerLabel = makeLabelSprite('⭐ YOU', '#7df9ff');
+    this.playerLabel.position.set(0, 0.3, 0);
+    this.playerMesh.add(this.playerLabel);
+  }
+  
+  morphPlayer(newType, scene) {
+    const wasPos = this.playerMesh ? this.playerMesh.position.clone() : new THREE.Vector3(0,0,-0.8);
+    if (this.playerMesh) this.root.remove(this.playerMesh);
+    
+    this.playerType = newType;
+    this.playerMesh = makeMoleculeMesh(newType);
+    this.playerMesh.position.copy(wasPos);
+    this.root.add(this.playerMesh);
+    
+    const labelColor = (newType !== CURRENT_MISI_DATA?.jenis) ? '#fde68a' : '#7df9ff';
+    this.playerLabel = makeLabelSprite('⭐ YOU', labelColor);
+    this.playerLabel.position.set(0, 0.3, 0);
+    this.playerMesh.add(this.playerLabel);
+    
+    return wasPos;
+  }
+  
+  // Spawn background molecules for system simulation view
+  initSystemView(misiData, forwardRatio = 0.5) {
+    this.systemMolecules.forEach(m => this.root.remove(m.mesh));
+    this.systemMolecules = [];
+    
+    const total = 18;
+    for (let i = 0; i < total; i++) {
+      const isProduct = i / total < forwardRatio;
+      const type = isProduct ? misiData.produk : misiData.jenis;
+      const mesh = makeMoleculeMesh(type);
+      
+      const angle = (i / total) * Math.PI * 2;
+      const r = 1.5 + Math.random() * 2;
+      mesh.position.set(
+        Math.cos(angle) * r,
+        (Math.random() - 0.5) * 2,
+        Math.sin(angle) * r - 2
+      );
+      mesh.userData.floatOffset = Math.random() * Math.PI * 2;
+      mesh.userData.type = type;
+      mesh.userData.isProduct = isProduct;
+      mesh.userData.reactionTimer = Math.random() * 4; // stagger reactions
+      
+      this.systemMolecules.push({ mesh, type, isProduct });
+      this.root.add(mesh);
+    }
+  }
+  
+  updateSystemMolecules(dt, misiData, shift) {
+    // Probabilistic reaction loop — Leaping to equilibrium
+    const baseRate = 0.3; // reactions per second
+    const fwdRate = baseRate * (1 + shift);    // forward (reactant → product)
+    const revRate = baseRate * (1 - shift);    // reverse (product → reactant)
+    
+    this.systemMolecules.forEach((mol, idx) => {
+      mol.mesh.userData.reactionTimer -= dt;
+      
+      if (mol.mesh.userData.reactionTimer <= 0) {
+        const toProduct = Math.random() < fwdRate / (fwdRate + revRate);
+        
+        if (!mol.isProduct && toProduct) {
+          // React forward
+          this.root.remove(mol.mesh);
+          mol.type = misiData.produk;
+          mol.isProduct = true;
+          mol.mesh = makeMoleculeMesh(misiData.produk);
+          mol.mesh.position.copy(this.systemMolecules[idx].mesh?.position || new THREE.Vector3());
+          this.root.add(mol.mesh);
+          burstEffect(this.scene, mol.mesh.position.clone(), 0x3b82f6, 8);
+        } else if (mol.isProduct && !toProduct) {
+          // React backward
+          this.root.remove(mol.mesh);
+          mol.type = misiData.jenis;
+          mol.isProduct = false;
+          mol.mesh = makeMoleculeMesh(misiData.jenis);
+          mol.mesh.position.copy(this.systemMolecules[idx].mesh?.position || new THREE.Vector3());
+          this.root.add(mol.mesh);
+          burstEffect(this.scene, mol.mesh.position.clone(), 0xfbbf24, 8);
+        }
+        
+        mol.mesh.userData.reactionTimer = 1.5 + Math.random() * 2.5;
+      }
+      
+      // Float animation
+      const t = Date.now() * 0.001 + mol.mesh.userData.floatOffset;
+      mol.mesh.position.y += Math.sin(t * 0.8) * dt * 0.05;
+      mol.mesh.rotation.y += dt * 0.3;
+    });
+  }
+  
+  // Count products in system
+  getProductRatio() {
+    if (this.systemMolecules.length === 0) return 0.5;
+    const products = this.systemMolecules.filter(m => m.isProduct).length;
+    return products / this.systemMolecules.length;
+  }
+  
+  update(dt) {
+    if (!this.root.visible) return;
+    this.simTime += dt;
+    
+    // Rotate stars slowly
+    this.stars.rotation.y += dt * 0.01;
+    this.stars.rotation.x += dt * 0.003;
+    
+    // Animate dust
+    this.dust.rotation.y += dt * 0.05;
+    
+    // Float player
+    if (this.playerMesh && !this.isSystemView) {
+      this.playerMesh.position.y = Math.sin(this.simTime * 0.8) * 0.04;
+      this.playerMesh.rotation.y += dt * 0.3;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// MOLECULAR JOURNEY — The pedagogical core
+// ---------------------------------------------------------------------------
+class MolecularJourney {
+  constructor(scene, world, misiData, onStateChange) {
+    this.scene = scene;
+    this.world = world;
+    this.misiData = misiData;
+    this.onStateChange = onStateChange;
+    
+    this.collisionCount = 0;
+    this.maxCollisions = 3; // Confuse them 3 times, then reveal truth
+    this.isTransforming = false;
+    
+    // Nearby molecules (partners that will react with us)
+    this.nearbyMolecules = [];
+    this._spawnNearby();
+  }
+  
+  _spawnNearby() {
+    // Spawn a few background molecules near player to give sense of system
+    const positions = [
+      [-0.6, 0.2, -2], [0.6, -0.1, -2.5], [-0.3, -0.3, -3],
+      [0.8, 0.3, -1.5], [-0.8, 0.1, -1.8]
+    ];
+    positions.forEach(([x, y, z]) => {
+      const type = Math.random() > 0.5 ? this.misiData.jenis : this.misiData.produk;
+      const m = makeMoleculeMesh(type);
+      m.position.set(x, y, z);
+      m.userData.floatOffset = Math.random() * Math.PI * 2;
+      m.userData.type = type;
+      this.nearbyMolecules.push(m);
+      this.world.root.add(m);
+    });
+  }
+  
+  // Called on collision with another molecule (auto-triggered)
+  triggerCollision(cb_onComplete) {
+    if (this.isTransforming) return;
+    this.isTransforming = true;
+    this.collisionCount++;
+    
+    const wasReactant = this.world.playerType === this.misiData.jenis;
+    const newType = wasReactant ? this.misiData.produk : this.misiData.jenis;
+    const pos = this.world.morphPlayer(newType, this.scene);
+    
+    if (wasReactant) {
+      soundEngine.bondForm();
+      burstEffect(this.scene, pos, 0x3b82f6);
+    } else {
+      soundEngine.bondBreak();
+      burstEffect(this.scene, pos, 0xef4444);
+    }
+    
+    if (window._updateHUDForm) {
+      window._updateHUDForm(!wasReactant, newType);
+    }
+    
+    setTimeout(() => {
+      this.isTransforming = false;
+      if (cb_onComplete) cb_onComplete(this.collisionCount);
+    }, 800);
+  }
+  
+  update(dt) {
+    // Animate nearby molecules
+    this.nearbyMolecules.forEach(m => {
+      const t = Date.now() * 0.001 + m.userData.floatOffset;
+      m.rotation.y += dt * 0.4;
+      m.position.y += Math.sin(t * 0.6) * dt * 0.04;
+      
+      // Slow drift
+      m.position.x += Math.sin(t * 0.2 + m.userData.floatOffset) * dt * 0.02;
+      m.position.z += Math.cos(t * 0.15 + m.userData.floatOffset) * dt * 0.02;
+    });
+  }
+  
+  cleanup() {
+    this.nearbyMolecules.forEach(m => this.world.root.remove(m));
+    this.nearbyMolecules = [];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// CAMERA MANAGER — Chase cam + Zoom Out sequence
+// ---------------------------------------------------------------------------
+class CameraManager {
+  constructor(camera, cameraRig) {
+    this.camera = camera;
+    this.rig = cameraRig;
+    this.mode = 'follow'; // 'follow' | 'zoomout' | 'free'
+    
+    // Chase cam config: behind and above the molecule
+    this.followOffset = new THREE.Vector3(0, 0.35, 1.0);
+    this.target = new THREE.Vector3(0, 0, -1);
+    this._t = 0;
+  }
+  
+  setFollowMode() {
+    this.mode = 'follow';
+  }
+  
+  zoomOut(onComplete) {
+    this.mode = 'zoomout';
+    const startPos = this.rig.position.clone();
+    const endPos = new THREE.Vector3(0, 3.5, 2);
+    let t = 0;
+    const dur = 3.0;
+    
+    const tick = setInterval(() => {
+      t += 0.016;
+      const p = Math.min(t / dur, 1);
+      const eased = p < 0.5 ? 2*p*p : -1+(4-2*p)*p;
+      this.rig.position.lerpVectors(startPos, endPos, eased);
+      if (p >= 1) {
+        clearInterval(tick);
+        if (onComplete) onComplete();
+      }
+    }, 16);
+  }
+  
+  update(dt, playerPos) {
+    if (this.mode === 'follow' && playerPos) {
+      // Smooth chase: position rig behind/above player
+      const targetPos = playerPos.clone().add(this.followOffset);
+      this.rig.position.lerp(targetPos, Math.min(1, dt * 5));
+      
+      // Camera looks at player molecule
+      const worldTarget = playerPos.clone();
+      const camWorldPos = new THREE.Vector3();
+      this.camera.getWorldPosition(camWorldPos);
+      const lookDir = worldTarget.sub(camWorldPos).normalize();
+      // Don't force lookAt during gyro mode — gyro handles it
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// MAIN AR SESSION
+// ---------------------------------------------------------------------------
+let CURRENT_MISI_DATA = null;
+
+export async function mulaiSesiARjs(canvas, videoEl, misiId, callbacks) {
+  CURRENT_MISI_DATA = MISI_DATA[misiId] || MISI_DATA.misi1;
+  const misi = CURRENT_MISI_DATA;
+  
+  // Camera access
   let isTrueAR = false;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
     videoEl.srcObject = stream;
-    videoEl.play().catch(e => console.warn('autoplay blocked:', e));
+    await videoEl.play().catch(() => {});
     isTrueAR = true;
-  } catch(e) { console.warn('Camera unavailable.'); }
-
+  } catch { console.warn('Camera not available — using virtual environment.'); }
+  
+  // THREE.js setup
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
   renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-
+  
   const scene = new THREE.Scene();
   
-  // Kamera
+  // Camera Rig (Physical position) + Camera (Rotation from gyro/drag)
   const cameraRig = new THREE.Group();
-  cameraRig.position.set(0, 0.5, 1.5); // Posisi bahu atas belakang
+  cameraRig.position.set(0, 0.35, 1.0);
   scene.add(cameraRig);
   
   const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.01, 100);
-  camera.rotation.x = -0.15; // Menunduk sedikit menatap rel
   cameraRig.add(camera);
-
-  const deviceControls = new CustomDeviceOrientationControls(camera);
   
-  // Drag Fallback
-  let isDragging = false; let prevX = 0; let prevY = 0;
-  canvas.addEventListener('mousedown', e => { isDragging = true; prevX = e.clientX; prevY = e.clientY; });
+  const gyroControls = new DeviceOrientationControls(camera);
+  
+  // Drag fallback for desktop/laptop
+  let isDrag = false, dragX = 0, dragY = 0;
+  let camYaw = 0, camPitch = -0.1;
+  canvas.addEventListener('mousedown', e => { isDrag = true; dragX = e.clientX; dragY = e.clientY; });
   canvas.addEventListener('mousemove', e => {
-    if (!isDragging || isTrueAR) return;
-    camera.rotation.y -= (e.clientX - prevX) * 0.005;
-    camera.rotation.x -= (e.clientY - prevY) * 0.005;
-    camera.rotation.order = 'YXZ';
-    prevX = e.clientX; prevY = e.clientY;
+    if (!isDrag || isTrueAR) return;
+    camYaw   -= (e.clientX - dragX) * 0.004; dragX = e.clientX;
+    camPitch -= (e.clientY - dragY) * 0.004; dragY = e.clientY;
+    camPitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, camPitch));
+    camera.rotation.set(camPitch, camYaw, 0, 'YXZ');
   });
-  window.addEventListener('mouseup', () => isDragging = false);
+  window.addEventListener('mouseup', () => isDrag = false);
+  
+  // Portal
+  const portalGroup = new THREE.Group();
+  scene.add(portalGroup);
+  const portalRing = new THREE.Mesh(
+    new THREE.TorusGeometry(0.3, 0.015, 16, 100),
+    new THREE.MeshBasicMaterial({ color: 0x4fc3f7, transparent: true, opacity: 0.9 })
+  );
+  portalRing.rotation.x = -Math.PI / 2;
+  portalGroup.add(portalRing);
+  let portalPlaced = false;
+  portalGroup.visible = false;
 
-  const sm = new ARStateMachine();
-  const misiData = MISI_DATA[misiId] || MISI_DATA['misi1'];
+  // Reticle
+  const reticle = new THREE.Mesh(
+    new THREE.RingGeometry(0.06, 0.08, 32).rotateX(-Math.PI / 2),
+    new THREE.MeshBasicMaterial({ color: 0x4fc3f7, transparent: true, opacity: 0.8 })
+  );
+  scene.add(reticle);
+
+  // Molecular World
+  const world = new MolecularWorld(scene);
   
-  const qSpace = new QuantumSpace(scene);
-  const runner = new InfiniteRunnerSystem(scene, misiData, (newState, msg) => {
-    sm.setState(newState);
-  });
+  // Camera Manager
+  const camMgr = new CameraManager(camera, cameraRig);
   
+  // State Machine
+  let state = AR_STATE.SCAN;
+  let journey = null;
+  let collisionTimer = 0;
+  const COLLISION_INTERVAL = 2.8; // seconds between auto-collisions
+  
+  // Equilibrium bars state
+  let eqFwd = 50, eqRev = 50;
+  let systemViewActive = false;
   let berjalan = true;
-
-  // Initial State Flow
-  setTimeout(() => sm.setState(AR_STATE.OVERVIEW), 1000);
-
-  sm.on(AR_STATE.OVERVIEW, () => {
-    if (onStateChange) onStateChange(AR_STATE.OVERVIEW, misiData.ai.OVERVIEW);
-    setTimeout(() => sm.setState(AR_STATE.INVESTIGATE), 2000);
-  });
-
-  sm.on(AR_STATE.INVESTIGATE, () => {
-    if (onStateChange) onStateChange(AR_STATE.INVESTIGATE, misiData.ai.INVESTIGATE);
-    setTimeout(() => sm.setState(AR_STATE.PORTAL_ZOOM), 2000);
-  });
-
-  sm.on(AR_STATE.PORTAL_ZOOM, () => {
+  
+  const _cb = callbacks || {};
+  
+  function setState(newState, aiMsg) {
+    state = newState;
+    if (_cb.onState) _cb.onState(newState, aiMsg);
+  }
+  
+  function enterPortal() {
+    portalGroup.visible = false;
+    reticle.visible = false;
+    world.setVisible(true);
+    if (videoEl) { videoEl.style.transition = 'opacity 1s'; videoEl.style.opacity = '0'; }
     soundEngine.whoosh();
-    qSpace.setVisible(true);
-    if (videoEl) videoEl.style.opacity = '0'; // Masuk ke Quantum Space (VR mode)
-    runner.initPlayer();
     
-    if (onStateChange) onStateChange(AR_STATE.PORTAL_ZOOM, '');
-    setTimeout(() => sm.setState(AR_STATE.MOLECULAR_JOURNEY), 1500);
+    world.initPlayer(misi);
+    journey = new MolecularJourney(scene, world, misi, null);
+    camMgr.setFollowMode();
+    
+    if (window._updateHUDForm) window._updateHUDForm(false, misi.jenis);
+    
+    setState(AR_STATE.JOURNEY, misi.ai_journey);
+  }
+  
+  function doZoomOut() {
+    journey?.cleanup();
+    
+    // Show all system molecules
+    world.isSystemView = true;
+    world.initSystemView(misi, 0.5);
+    if (window._updateHUDEq) window._updateHUDEq(50, 50);
+    systemViewActive = true;
+    
+    camMgr.zoomOut(() => {
+      setState(AR_STATE.ZOOMOUT, misi.ai_zoomout);
+      // After 3.5s of seeing the system, open experiment
+      setTimeout(() => setState(AR_STATE.EXPERIMENT, misi.ai_experiment), 4000);
+    });
+  }
+  
+  // Tap to place portal / enter
+  canvas.addEventListener('click', () => {
+    if (state === AR_STATE.SCAN && !portalPlaced) {
+      portalGroup.position.copy(reticle.position);
+      portalGroup.visible = true;
+      portalPlaced = true;
+      setState(AR_STATE.PORTAL, 'Portal terbuka! Tap lagi untuk masuk.');
+    } else if (state === AR_STATE.PORTAL) {
+      enterPortal();
+    }
   });
-
-  sm.on(AR_STATE.MOLECULAR_JOURNEY, () => {
-    if (onStateChange) onStateChange(AR_STATE.MOLECULAR_JOURNEY, misiData.ai.MOLECULAR_JOURNEY);
-  });
-
-  sm.on(AR_STATE.DYNAMIC_EQUILIBRIUM, () => {
-    // Saat kuis muncul, kecepatan ditahan
-    runner.velocity = 0.1;
-    if (onStateChange) onStateChange(AR_STATE.DYNAMIC_EQUILIBRIUM, misiData.ai.DYNAMIC_EQUILIBRIUM);
-  });
-
-  sm.on(AR_STATE.EXPERIMENT, () => {
-    if (onStateChange) onStateChange(AR_STATE.EXPERIMENT, misiData.ai.EXPERIMENT);
-  });
-
-  sm.on(AR_STATE.REFLECTION, () => {
-    soundEngine.missionComplete();
-    if (onStateChange) onStateChange(AR_STATE.REFLECTION, misiData.ai.REFLECTION);
-  });
-
-  const tools = {
-    onQuizAnswered: () => {
-      sm.setState(AR_STATE.EXPERIMENT);
-    },
-    triggerTool: (toolName) => {
-      if (!sm.is(AR_STATE.EXPERIMENT)) return;
-      if (toolName === misiData.tool) {
-        // Le Chatelier Shift: Misi 1 (Exo) + Heat = Shift Kiri (-1)
-        // Agar visualnya jelas, kita buat jalurnya dipenuhi warna merah (pemecah)
-        runner.equilibriumShift = -1; 
-        sm.setState(AR_STATE.REFLECTION);
-      } else {
-        if (onStateChange) onStateChange(AR_STATE.EXPERIMENT, "Coba alat yang lain.");
-      }
-    },
-    hentikan: () => { berjalan = false; }
-  };
-
+  
+  // Touch for mobile
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (state === AR_STATE.SCAN && !portalPlaced) {
+      portalGroup.position.copy(reticle.position);
+      portalGroup.visible = true;
+      portalPlaced = true;
+      setState(AR_STATE.PORTAL, 'Portal terbuka! Tap lagi untuk masuk.');
+    } else if (state === AR_STATE.PORTAL) {
+      enterPortal();
+    }
+  }, { passive: false });
+  
   const clock = new THREE.Clock();
+  let portalT = 0;
+  
   renderer.setAnimationLoop(() => {
     if (!berjalan) return;
-    const dt = clock.getDelta();
-
-    if (sm.is(AR_STATE.MOLECULAR_JOURNEY) || sm.is(AR_STATE.EXPERIMENT) || sm.is(AR_STATE.REFLECTION) || sm.is(AR_STATE.DYNAMIC_EQUILIBRIUM)) {
-      const input = window._getDrivingInput ? window._getDrivingInput() : { steer: 0, gas: false };
-      runner.update(dt, input);
-      qSpace.update(dt, runner.velocity);
+    const dt = Math.min(clock.getDelta(), 0.05);
+    
+    // Reticle wobble (before portal placed)
+    if (!portalPlaced) {
+      reticle.position.set(0, -0.3, -1.2);
+      reticle.rotation.z += dt * 1.5;
     }
-
-    if (isTrueAR) {
-      deviceControls.update();
+    
+    // Portal pulse
+    if (portalGroup.visible) {
+      portalT += dt;
+      portalRing.scale.setScalar(1 + Math.sin(portalT * 2.5) * 0.06);
     }
-
+    
+    // World update
+    world.update(dt);
+    
+    // Journey auto-collision loop (AI is silent — let them be confused)
+    if (state === AR_STATE.JOURNEY && journey) {
+      journey.update(dt);
+      collisionTimer += dt;
+      
+      if (collisionTimer >= COLLISION_INTERVAL && !journey.isTransforming) {
+        collisionTimer = 0;
+        journey.triggerCollision((count) => {
+          if (count >= journey.maxCollisions) {
+            // All 3 confusions done — Zoom Out for revelation!
+            setTimeout(() => doZoomOut(), 1200);
+          }
+        });
+      }
+    }
+    
+    // System simulation (after zoom out)
+    if (systemViewActive) {
+      world.updateSystemMolecules(dt, misi, world.equilibriumShift);
+      const ratio = world.getProductRatio();
+      const fwd = Math.round(ratio * 100);
+      const rev = 100 - fwd;
+      if (window._updateHUDEq) window._updateHUDEq(fwd, rev);
+    }
+    
+    // Chase cam
+    if (world.playerMesh && state === AR_STATE.JOURNEY) {
+      camMgr.update(dt, world.playerMesh.position);
+    }
+    
+    // Gyro update
+    if (isTrueAR) gyroControls.update();
+    
     renderer.render(scene, camera);
   });
-
-  return tools;
+  
+  return {
+    triggerTool: (tool) => {
+      if (state !== AR_STATE.EXPERIMENT) return;
+      
+      let shift = 0;
+      if (tool === misi.tool_correct) {
+        // Le Chatelier: correct tool shifts correctly
+        shift = misi.deltaH === 'endoterm' ? 0.6 : -0.6;
+        if (tool === 'compress') shift = 0.6;
+        if (tool === 'add') shift = 0.6;
+        soundEngine.bondForm();
+      } else {
+        shift = -0.3;
+        soundEngine.bondBreak();
+      }
+      
+      world.equilibriumShift = shift;
+      const newFwd = Math.round((0.5 + shift * 0.4) * 100);
+      const newRev = 100 - newFwd;
+      if (window._updateHUDEq) window._updateHUDEq(newFwd, newRev);
+    },
+    onQuizAnswered: () => {
+      setState(AR_STATE.CHALLENGE, '');
+      if (_cb.onChallenge) _cb.onChallenge();
+    },
+    onChallengeAnswered: () => {
+      setState(AR_STATE.REFLECTION, '');
+      if (_cb.onReflection) _cb.onReflection();
+    },
+    hentikan: () => {
+      berjalan = false;
+      renderer.setAnimationLoop(null);
+      if (videoEl?.srcObject) {
+        videoEl.srcObject.getTracks().forEach(t => t.stop());
+        videoEl.srcObject = null;
+      }
+    }
+  };
 }
 
 export async function deteksiModeAR() {
-  if (navigator.xr) { try { if (await navigator.xr.isSessionSupported('immersive-ar')) return 'webxr'; } catch(_) {} }
-  return (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) ? 'arjs' : 'unsupported';
+  if (navigator.xr) {
+    try { if (await navigator.xr.isSessionSupported('immersive-ar')) return 'webxr'; } catch {}
+  }
+  return navigator.mediaDevices?.getUserMedia ? 'arjs' : 'unsupported';
 }
 
-export async function mulaiSesiWebXR(canvas, misiId, onStateChange) {
-  return mulaiSesiARjs(canvas, document.createElement('video'), misiId, onStateChange);
+export async function mulaiSesiWebXR(canvas, misiId, callbacks) {
+  return mulaiSesiARjs(canvas, document.createElement('video'), misiId, callbacks);
 }
