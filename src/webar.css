@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ARCHEMY WEBAR CSS v3.0 - Molecular Journey
+   ARCHEMY WEBAR CSS v4.0 - True AR & UI Fixes
    ========================================================================== */
 
 /* ===== STAGE WRAPPER ===== */
@@ -8,22 +8,11 @@
   inset: 0;
   display: flex;
   flex-direction: column;
-  background: #000;
+  background: transparent;
   font-family: 'Poppins', 'Inter', sans-serif;
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
-}
-
-/* ===== BACKGROUND GRADIENT (For Immersive World) ===== */
-.webar-bg-gradient {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, #0B1025 0%, #050816 100%);
-  opacity: 0;
-  transition: opacity 2s ease-in-out;
-  z-index: 5;
-  pointer-events: none;
 }
 
 /* ===== VIEWPORT ===== */
@@ -46,7 +35,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: -1; /* di belakang canvas */
+  z-index: -1;
 }
 
 /* ===== GLOBAL BACK BUTTON ===== */
@@ -66,22 +55,20 @@
   backdrop-filter: blur(8px);
   transition: background 0.2s;
 }
-.webar-hud-back:active { background: rgba(79, 195, 247, 0.2); }
 
 /* ===== HUD KIRI ATAS: Current Form ===== */
 .hud-top-left {
   position: absolute;
-  top: 60px;
+  top: 56px;
   left: 16px;
   z-index: 30;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  animation: fadeIn 0.5s ease;
 }
 
 .form-label {
-  font-size: 10px;
+  font-size: 9px;
   color: #818cf8;
   font-weight: 700;
   text-transform: uppercase;
@@ -89,12 +76,12 @@
 }
 
 .form-value {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   background: rgba(11, 16, 37, 0.7);
   border: 1px solid rgba(79, 195, 247, 0.4);
-  padding: 4px 10px;
-  border-radius: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
   backdrop-filter: blur(4px);
   color: #e0e7ff;
 }
@@ -104,94 +91,87 @@
 /* ===== HUD KANAN ATAS: Mission ===== */
 .hud-top-right {
   position: absolute;
-  top: 60px;
+  top: 16px;
   right: 16px;
   z-index: 30;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
-  animation: fadeIn 0.5s ease;
 }
 
 .mission-label {
-  font-size: 10px;
+  font-size: 9px;
   color: #a78bfa;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .mission-value {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   background: rgba(11, 16, 37, 0.7);
   border: 1px solid rgba(167, 139, 250, 0.4);
-  padding: 4px 10px;
-  border-radius: 8px;
-  backdrop-filter: blur(4px);
+  padding: 4px 8px;
+  border-radius: 6px;
   color: #ddd6fe;
 }
 
-/* ===== HUD BAWAH: Dynamic Equilibrium ===== */
-.hud-bottom-center {
+/* ===== HUD TENGAH ATAS: Equilibrium Bar ===== */
+.hud-top-center {
   position: absolute;
-  bottom: 80px; /* di atas action bar */
+  top: 56px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 30;
-  width: 240px;
+  width: 200px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  background: rgba(11, 16, 37, 0.8);
+  gap: 4px;
+  background: rgba(11, 16, 37, 0.75);
   border: 1px solid rgba(79, 195, 247, 0.3);
-  padding: 10px 14px;
-  border-radius: 12px;
-  backdrop-filter: blur(8px);
-  animation: fadeIn 0.5s ease;
+  padding: 6px 12px;
+  border-radius: 8px;
+  backdrop-filter: blur(6px);
 }
 
 .eq-title {
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 700;
   color: #7df9ff;
   text-align: center;
-  letter-spacing: 0.5px;
   text-transform: uppercase;
-  margin-bottom: 4px;
 }
 
 .eq-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .eq-label {
-  font-size: 10px;
+  font-size: 8px;
   color: #94a3b8;
-  width: 80px;
+  width: 60px;
 }
 
 .eq-track {
   flex: 1;
-  height: 6px;
+  height: 4px;
   background: rgba(255,255,255,0.1);
-  border-radius: 3px;
-  overflow: hidden;
+  border-radius: 2px;
 }
 
 .eq-track.reverse { display: flex; justify-content: flex-end; }
 
 .eq-fill {
   height: 100%;
-  border-radius: 3px;
-  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 2px;
+  transition: width 0.5s ease;
 }
 
-.eq-fill.forward { background: linear-gradient(90deg, #3b82f6, #4fc3f7); box-shadow: 0 0 8px #4fc3f7; }
-.eq-fill.backward { background: linear-gradient(-90deg, #eab308, #fbbf24); box-shadow: 0 0 8px #fbbf24; }
+.eq-fill.forward { background: linear-gradient(90deg, #3b82f6, #4fc3f7); box-shadow: 0 0 6px #4fc3f7; }
+.eq-fill.backward { background: linear-gradient(-90deg, #eab308, #fbbf24); box-shadow: 0 0 6px #fbbf24; }
 
 /* ===== SCAN OVERLAY ===== */
 .webar-scan-overlay {
@@ -215,123 +195,94 @@
   border-radius: 10px;
   position: relative;
   animation: scanMove 2.5s ease-in-out infinite;
-  box-shadow: 0 0 20px rgba(79, 195, 247, 0.4);
-}
-.scan-phone-icon::after {
-  content: '';
-  position: absolute;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  width: 34px; height: 2px;
-  background: #4fc3f7;
-  box-shadow: 0 0 8px #4fc3f7;
-  animation: scanDash 1.2s ease-in-out infinite;
 }
 @keyframes scanMove {
   0%, 100% { transform: rotate(-8deg) translateX(-10px); }
   50% { transform: rotate(8deg) translateX(10px); }
-}
-@keyframes scanDash {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.2; }
 }
 
 .webar-scan-title {
   font-size: 18px;
   font-weight: 700;
   color: #7df9ff;
-  letter-spacing: 0.3px;
-}
-.webar-scan-desc {
-  font-size: 13px;
-  color: #bae6fd;
-  max-width: 240px;
-  text-align: center;
-  line-height: 1.6;
 }
 
-/* ===== AI SPEECH PANEL (NINTENDO STYLE) ===== */
+/* ===== AI SPEECH PANEL ===== */
 .webar-ai-panel {
   position: absolute;
   left: 50%;
-  bottom: 24px;
+  bottom: 12px;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 18px;
+  gap: 10px;
+  padding: 8px 14px;
   background: rgba(11, 16, 37, 0.9);
-  backdrop-filter: blur(12px);
   border: 1px solid rgba(79, 195, 247, 0.4);
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   z-index: 40;
-  animation: slideUpAi 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  min-width: 260px;
-}
-@keyframes slideUpAi {
-  from { transform: translate(-50%, 40px); opacity: 0; }
-  to   { transform: translate(-50%, 0); opacity: 1; }
 }
 
-.ai-avatar {
-  font-size: 24px;
-  flex-shrink: 0;
-  animation: float 2s infinite ease-in-out;
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
-}
-
+.ai-avatar { font-size: 20px; }
 .ai-speech {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: #e0f2fe;
-  line-height: 1.4;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
 }
 
-/* ===== ACTION BAR (Floating) ===== */
+/* ===== ACTION BAR (Kanan Bawah) ===== */
 .webar-action-bar {
   position: absolute;
-  bottom: 120px; /* di atas AI panel */
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 80px;
+  right: 16px;
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
   z-index: 35;
-  animation: fadeIn 0.4s ease;
 }
 
 .action-btn {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  min-width: 60px;
-  padding: 12px 10px;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
   background: rgba(11, 16, 37, 0.85);
   border: 1px solid rgba(167, 139, 250, 0.5);
-  border-radius: 16px;
+  border-radius: 12px;
   color: #ddd6fe;
-  font-size: 24px;
-  cursor: pointer;
+  font-size: 16px;
   backdrop-filter: blur(8px);
-  transition: all 0.2s;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
-.action-btn span {
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #a78bfa;
+.action-btn span { font-size: 10px; font-weight: 700; text-transform: uppercase; }
+
+/* ===== STEERING CONTROLS (RC CAR) ===== */
+.webar-steering {
+  position: absolute;
+  bottom: 80px;
+  left: 16px;
+  display: flex;
+  gap: 12px;
+  z-index: 35;
 }
-.action-btn:active {
-  background: rgba(139, 92, 246, 0.4);
-  transform: scale(0.92);
+
+.steer-btn {
+  width: 50px;
+  height: 50px;
+  background: rgba(79, 195, 247, 0.2);
+  border: 2px solid rgba(79, 195, 247, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #7df9ff;
+  backdrop-filter: blur(4px);
 }
+.steer-btn:active { background: rgba(79, 195, 247, 0.5); transform: scale(0.9); }
 
 /* ===== SUCCESS POPUP ===== */
 .webar-success-popup {
@@ -343,48 +294,16 @@
   justify-content: center;
   background: rgba(5, 8, 22, 0.8);
   backdrop-filter: blur(8px);
-  animation: fadeIn 0.4s ease;
 }
 
 .webar-success-card {
   background: linear-gradient(135deg, rgba(11, 16, 37, 0.95), rgba(5, 8, 22, 0.95));
   border: 1px solid rgba(79, 195, 247, 0.4);
-  border-radius: 20px;
-  padding: 28px 24px;
+  border-radius: 16px;
+  padding: 20px;
   text-align: center;
-  max-width: 300px;
-  width: 88%;
-  box-shadow: 0 0 40px rgba(79, 195, 247, 0.3);
-  animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  width: 260px;
 }
-@keyframes popIn {
-  from { transform: scale(0.6); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
-}
-
-.success-icon { font-size: 40px; margin-bottom: 10px; }
-.webar-success-card h2 { color: #7df9ff; font-size: 20px; margin: 0 0 8px; }
-.webar-success-card p { color: #bae6fd; font-size: 13px; margin: 0 0 14px; line-height: 1.5; }
-.webar-success-pts {
-  font-size: 24px;
-  font-weight: 800;
-  color: #fbbf24;
-  text-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
-  margin-bottom: 18px;
-}
-
-/* ===== UTILS ===== */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #0ea5e9, #6366f1);
-  border: none;
-  border-radius: 14px;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
+.success-icon { font-size: 32px; }
+.webar-success-card h2 { color: #7df9ff; font-size: 16px; margin: 8px 0; }
+.btn-primary { background: #0ea5e9; border: none; border-radius: 8px; color: #fff; padding: 10px; width: 100%; font-weight: bold; }
