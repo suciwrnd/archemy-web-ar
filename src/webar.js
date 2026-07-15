@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 
 /* ==========================================================================
-   ARCHEMY WEBAR ENGINE v2.0 - Game Edukasi Kimia
-   Overhaul 7-Tahap: State Machine → Camera → Bubble → Reaction → UI → Molecule → Polish
+   ARCHEMY WEBAR ENGINE v3.0 - Molecular Journey (Immersive Portal)
    ========================================================================== */
 
 // ---------------------------------------------------------------------------
@@ -20,18 +19,10 @@ window.addEventListener('deviceorientation', (e) => {
   sensorData.gX = Math.sin(gammaRad) * 0.003;
   sensorData.gY = -Math.sin(betaRad) * 0.003;
   sensorData.gZ = -Math.cos(betaRad) * Math.cos(gammaRad) * 0.003;
-  if (!sensorData.isSpilled && (beta > 150 || beta < -80 || Math.abs(gamma) > 130)) {
-    sensorData.isSpilled = true;
-    if (sensorData.spillCallback) sensorData.spillCallback();
-  } else if (sensorData.isSpilled && (beta > 20 && beta < 120 && Math.abs(gamma) < 60)) {
-    sensorData.isSpilled = false;
-    if (sensorData.unspillCallback) sensorData.unspillCallback();
-  }
 });
 
 let lastShakeTime = 0;
 window.addEventListener('devicemotion', (e) => {
-  if (sensorData.isSpilled) return;
   const acc = e.acceleration || { x: 0, y: 0, z: 0 };
   const force = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
   if (force > 12) { sensorData.shake = force * 0.0002; lastShakeTime = performance.now(); }
@@ -39,7 +30,7 @@ window.addEventListener('devicemotion', (e) => {
 });
 
 export function requestSensorPermission() {
-  sensorData.isSpilled = false; sensorData.shake = 0;
+  sensorData.shake = 0;
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().catch(() => {});
   }
@@ -54,90 +45,70 @@ export const MISI_DATA = {
     persamaan: 'H\u2082(g) + I\u2082(g) \u21cc 2HI(g)',
     ai: {
       OVERVIEW:          'Sistem belum setimbang.',
-      INVESTIGATE:       'Pilih satu molekul I\u2082.',
-      MOLECULAR_JOURNEY: 'Cari pasangan reaksimu (H\u2082).',
-      REACTION_EVENT:    'Perhatikan ikatan.',
+      INVESTIGATE:       'Pilih molekul I\u2082.',
+      MOLECULAR_JOURNEY: 'Mari cari H\u2082.',
+      REACTION_EVENT:    'Efektif! Terbentuk ikatan.',
       EXPERIMENT:        'Naikkan suhu.',
-      REFLECTION:        'Apa yang berubah?',
+      REFLECTION:        'Reaksi setimbang.',
     },
     target_jenis: 'I2', target_pasangan: 'H2', produk: 'HI', tool: 'heat',
-    parameterKunci: 'suhu', wujud: 'gas', nilaiTarget: 50,
-    partikel: {
-      jauhTarget: [{ jenis: 'H2', jumlah: 4 }, { jenis: 'I2', jumlah: 4 }, { jenis: 'HI', jumlah: 1 }],
-      dekatTarget: [{ jenis: 'H2', jumlah: 2 }, { jenis: 'I2', jumlah: 2 }, { jenis: 'HI', jumlah: 5 }]
-    }
+    parameterKunci: 'suhu',
   },
   misi2: {
     judul: 'Misi 2: Smog Kota',
     persamaan: '2NO\u2082(g) \u21cc N\u2082O\u2084(g)',
     ai: {
-      OVERVIEW:          'Gas NO\u2082 memenuhi kota.',
-      INVESTIGATE:       'Pilih satu molekul NO\u2082.',
-      MOLECULAR_JOURNEY: 'Cari pasangan NO\u2082 lainnya.',
-      REACTION_EVENT:    'Perhatikan ikatan terbentuk.',
-      EXPERIMENT:        'Perkecil volume.',
-      REFLECTION:        'NO\u2082 berkurang. Kenapa?',
+      OVERVIEW:          'Gas NO\u2082 ada di sekitarmu.',
+      INVESTIGATE:       'Pilih molekul NO\u2082.',
+      MOLECULAR_JOURNEY: 'Cari NO\u2082 lainnya.',
+      REACTION_EVENT:    'Ikatan terbentuk!',
+      EXPERIMENT:        'Tekan Compress.',
+      REFLECTION:        'Sistem stabil.',
     },
     target_jenis: 'NO2', target_pasangan: 'NO2', produk: 'N2O4', tool: 'compress',
-    parameterKunci: 'volume', wujud: 'gas', nilaiTarget: 2.0,
-    partikel: {
-      jauhTarget: [{ jenis: 'NO2', jumlah: 6 }, { jenis: 'N2O4', jumlah: 1 }],
-      dekatTarget: [{ jenis: 'NO2', jumlah: 2 }, { jenis: 'N2O4', jumlah: 3 }]
-    }
+    parameterKunci: 'volume',
   },
   misi3: {
     judul: 'Misi 3: Pabrik Amonia',
     persamaan: 'N\u2082(g) + 3H\u2082(g) \u21cc 2NH\u2083(g)',
     ai: {
-      OVERVIEW:          'Produksi amonia terhambat.',
-      INVESTIGATE:       'Pilih satu molekul N\u2082.',
-      MOLECULAR_JOURNEY: 'Temukan molekul H\u2082.',
-      REACTION_EVENT:    'Ikatan N-H terbentuk!',
-      EXPERIMENT:        'Tambahkan reaktan.',
-      REFLECTION:        'Lebih banyak produk. Kenapa?',
+      OVERVIEW:          'Gas amonia.',
+      INVESTIGATE:       'Pilih molekul N\u2082.',
+      MOLECULAR_JOURNEY: 'Ikuti jalur energi.',
+      REACTION_EVENT:    'Amonia terbentuk!',
+      EXPERIMENT:        'Tambahkan H\u2082.',
+      REFLECTION:        'Reaksi bergeser.',
     },
     target_jenis: 'N2', target_pasangan: 'H2', produk: 'NH3', tool: 'add',
-    parameterKunci: 'konsentrasi', wujud: 'gas', nilaiTarget: 1.0,
-    partikel: {
-      jauhTarget: [{ jenis: 'N2', jumlah: 2 }, { jenis: 'H2', jumlah: 2 }, { jenis: 'NH3', jumlah: 1 }],
-      dekatTarget: [{ jenis: 'N2', jumlah: 1 }, { jenis: 'H2', jumlah: 3 }, { jenis: 'NH3', jumlah: 3 }]
-    }
+    parameterKunci: 'konsentrasi',
   },
   misi4: {
     judul: 'Misi 4: Buffer Darah',
     persamaan: 'CO\u2082(g) + H\u2082O(l) \u21cc H\u2082CO\u2083(aq)',
     ai: {
-      OVERVIEW:          'pH darah tidak stabil.',
-      INVESTIGATE:       'Pilih satu molekul CO\u2082.',
-      MOLECULAR_JOURNEY: 'Temukan molekul H\u2082O.',
-      REACTION_EVENT:    'Asam karbonat terbentuk!',
-      EXPERIMENT:        'Kompres sistemnya.',
-      REFLECTION:        'pH stabil. Bagaimana caranya?',
+      OVERVIEW:          'Ini asam karbonat.',
+      INVESTIGATE:       'Pilih molekul CO\u2082.',
+      MOLECULAR_JOURNEY: 'Cari H\u2082O.',
+      REACTION_EVENT:    'Menjadi H\u2082CO\u2083!',
+      EXPERIMENT:        'Compress!',
+      REFLECTION:        'Sistem seimbang.',
     },
     target_jenis: 'CO2', target_pasangan: 'H2O', produk: 'H2CO3', tool: 'compress',
-    parameterKunci: 'tekanan', wujud: 'aqueous', nilaiTarget: 3.0,
-    partikel: {
-      jauhTarget: [{ jenis: 'CO2', jumlah: 4 }, { jenis: 'H2O', jumlah: 4 }, { jenis: 'H2CO3', jumlah: 1 }],
-      dekatTarget: [{ jenis: 'CO2', jumlah: 1 }, { jenis: 'H2O', jumlah: 1 }, { jenis: 'H2CO3', jumlah: 4 }]
-    }
+    parameterKunci: 'tekanan',
   },
   misi5: {
     judul: 'Misi 5: Batu Kapur',
     persamaan: 'CaCO\u2083(s) \u21cc CaO(s) + CO\u2082(g)',
     ai: {
-      OVERVIEW:          'Batu kapur sulit terurai.',
-      INVESTIGATE:       'Pilih bongkahan CaCO\u2083.',
+      OVERVIEW:          'Batu kapur solid.',
+      INVESTIGATE:       'Pilih CaCO\u2083.',
       MOLECULAR_JOURNEY: 'Tunggu energi panas.',
-      REACTION_EVENT:    'Ikatan terputus!',
-      EXPERIMENT:        'Naikkan suhu.',
-      REFLECTION:        'CO\u2082 muncul. Ini endotermik.',
+      REACTION_EVENT:    'Endotermik!',
+      EXPERIMENT:        'Panaskan sistem.',
+      REFLECTION:        'Bagus sekali.',
     },
     target_jenis: 'CaCO3', target_pasangan: null, produk: 'CO2', tool: 'heat',
-    parameterKunci: 'suhu', wujud: 'heterogen', nilaiTarget: 80,
-    partikel: {
-      jauhTarget: [{ jenis: 'CaCO3', jumlah: 3 }, { jenis: 'CaO', jumlah: 1 }, { jenis: 'CO2', jumlah: 1 }],
-      dekatTarget: [{ jenis: 'CaCO3', jumlah: 1 }, { jenis: 'CaO', jumlah: 3 }, { jenis: 'CO2', jumlah: 3 }]
-    }
+    parameterKunci: 'suhu',
   }
 };
 
@@ -302,7 +273,6 @@ export function buatMolekul(jenis) {
       grup.add(atom);
       return new THREE.Vector3(x, y, z);
     });
-    // Draw bonds
     for (let i = 0; i < positions.length - 1; i++) {
       for (let j = i + 1; j < positions.length; j++) {
         if (positions[i].distanceTo(positions[j]) < 0.16) {
@@ -321,221 +291,201 @@ export function buatMolekul(jenis) {
 }
 
 // ---------------------------------------------------------------------------
-// REACTION BUBBLE
+// MOLECULAR PORTAL
 // ---------------------------------------------------------------------------
-export class ReactionBubble {
-  constructor(scene, radius = 0.35) {
-    this.radius = radius;
+export class MolecularPortal {
+  constructor(scene) {
     this._t = 0;
+    this.mesh = new THREE.Group();
+    
+    // Portal ring
+    const ringGeo = new THREE.TorusGeometry(0.3, 0.008, 16, 100);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x4fc3f7, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending });
+    this.ring = new THREE.Mesh(ringGeo, ringMat);
+    this.ring.rotation.x = -Math.PI / 2;
+    this.mesh.add(this.ring);
 
-    const geo = new THREE.SphereGeometry(radius, 32, 32);
-    this.mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
-      color: 0x7dd3fc, transparent: true, opacity: 0.04,
-      side: THREE.FrontSide, depthWrite: false,
-    }));
+    // Portal inner glow
+    const glowGeo = new THREE.PlaneGeometry(0.58, 0.58);
+    const glowMat = new THREE.MeshBasicMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending });
+    this.glow = new THREE.Mesh(glowGeo, glowMat);
+    this.glow.rotation.x = -Math.PI / 2;
+    this.glow.position.y = -0.005;
+    this.mesh.add(this.glow);
 
-    const ringGeo = new THREE.TorusGeometry(radius, 0.007, 12, 60);
-    this.ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({
-      color: 0x38bdf8, transparent: true, opacity: 0.55
-    }));
+    // Base marker
+    const baseGeo = new THREE.RingGeometry(0.28, 0.32, 32);
+    const baseMat = new THREE.MeshBasicMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.4 });
+    this.base = new THREE.Mesh(baseGeo, baseMat);
+    this.base.rotation.x = -Math.PI / 2;
+    this.base.position.y = -0.01;
+    this.mesh.add(this.base);
 
+    this.mesh.visible = false;
     scene.add(this.mesh);
-    scene.add(this.ring);
   }
 
-  setPosition(pos) { this.mesh.position.copy(pos); this.ring.position.copy(pos); }
-  setVisible(v) { this.mesh.visible = v; this.ring.visible = v; }
+  setPosition(pos) { this.mesh.position.copy(pos); }
+  setVisible(v) { this.mesh.visible = v; }
 
   update(dt) {
-    this._t += dt * 0.8;
-    const pulse = 1 + Math.sin(this._t) * 0.018;
-    this.mesh.scale.setScalar(pulse);
-    this.ring.material.opacity = 0.3 + Math.sin(this._t) * 0.2;
-    this.ring.rotation.y += dt * 0.3;
-    this.ring.rotation.x += dt * 0.1;
-  }
-
-  constrain(p) {
-    const center = this.mesh.position;
-    const rel = p.mesh.position.clone().sub(center);
-    const dist = rel.length();
-    if (dist > this.radius * 0.88) {
-      const normal = rel.normalize();
-      p.mesh.position.copy(center).addScaledVector(normal, this.radius * 0.88);
-      const dot = p.kecepatan.dot(normal);
-      p.kecepatan.addScaledVector(normal, -1.7 * dot);
-      p.kecepatan.multiplyScalar(0.72);
-    }
+    this._t += dt;
+    this.ring.scale.setScalar(1 + Math.sin(this._t * 2) * 0.05);
+    this.glow.rotation.z += dt * 0.2;
+    this.glow.material.opacity = 0.2 + Math.sin(this._t * 3) * 0.1;
   }
 }
 
 // ---------------------------------------------------------------------------
-// SISTEM PARTIKEL
+// AMBIENT PARTICLES
 // ---------------------------------------------------------------------------
-export class SistemPartikel {
+class AmbientParticles {
+  constructor(scene) {
+    const geo = new THREE.BufferGeometry();
+    const count = 150;
+    const pos = new Float32Array(count * 3);
+    for(let i=0; i<count*3; i++) {
+      pos[i] = (Math.random() - 0.5) * 4;
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.015, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending });
+    this.points = new THREE.Points(geo, mat);
+    this.points.visible = false;
+    scene.add(this.points);
+  }
+  setVisible(v) { this.points.visible = v; }
+  update(dt) {
+    this.points.rotation.y += dt * 0.02;
+    this.points.rotation.x += dt * 0.01;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GUIDED JOURNEY SYSTEM (Energy Path)
+// ---------------------------------------------------------------------------
+export class GuidedJourneySystem {
   constructor(scene) {
     this.scene = scene;
     this.container = new THREE.Group();
     scene.add(this.container);
-    this.partikel = [];
-    this.bubble = null;
-    this.timeScale = 1.0;
-    this._targetTimeScale = 1.0;
+    this.pathLength = 10;
+    this.points = [
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(0, 0, -2),
+      new THREE.Vector3(-1.5, 0, -4),
+      new THREE.Vector3(1.5, 0, -6),
+      new THREE.Vector3(0, 0, -8),
+      new THREE.Vector3(0, 0, -10),
+    ];
+    this.curve = new THREE.CatmullRomCurve3(this.points);
+    
+    const tubeGeo = new THREE.TubeGeometry(this.curve, 64, 0.02, 8, false);
+    const tubeMat = new THREE.MeshBasicMaterial({ color: 0x4fc3f7, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending });
+    this.pathMesh = new THREE.Mesh(tubeGeo, tubeMat);
+    this.pathMesh.visible = false;
+    this.container.add(this.pathMesh);
+
+    this.playerMolecule = null;
+    this.targetMolecule = null;
+    this.playerProgress = 0;
+    this.speed = 0.08;
+    this.isMoving = false;
+    this.collisionEventFired = false;
+    this.onCollision = null;
   }
 
-  setBubble(bubble) { this.bubble = bubble; }
+  initJourney(playerMol, targetMol, centerPos) {
+    this.container.position.copy(centerPos); // Start path at portal
+    this.playerMolecule = playerMol;
+    this.targetMolecule = targetMol;
+    this.playerProgress = 0;
+    this.collisionEventFired = false;
+    this.isMoving = true;
+    this.pathMesh.visible = true;
 
-  bersihkan() { this.container.clear(); this.partikel = []; }
-
-  isiDariMisi(misiId, dekatTarget = false) {
-    this.bersihkan();
-    const data = MISI_DATA[misiId]; if (!data) return;
-    this.wujud = data.wujud;
-    const set = dekatTarget ? data.partikel.dekatTarget : data.partikel.jauhTarget;
-    set.forEach(({ jenis, jumlah }) => {
-      const batas = Math.min(jumlah, 4);
-      for (let i = 0; i < batas; i++) this._tambah(jenis);
-    });
+    // Place target ahead on path
+    if (this.targetMolecule) {
+      const targetPos = this.curve.getPointAt(0.4);
+      this.targetMolecule.mesh.position.copy(targetPos).add(this.container.position);
+    }
   }
 
-  _tambah(jenis) {
-    const mol = buatMolekul(jenis);
-    const isSolid = jenis === 'CaCO3' || jenis === 'CaO';
-    const R = this.bubble ? this.bubble.radius * 0.72 : 0.22;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    const rad = Math.cbrt(Math.random()) * R;
-    const center = this.bubble ? this.bubble.mesh.position : new THREE.Vector3();
-    mol.position.set(
-      center.x + rad * Math.sin(phi) * Math.cos(theta),
-      center.y + rad * Math.sin(phi) * Math.sin(theta),
-      center.z + rad * Math.cos(phi)
-    );
-    this.container.add(mol);
-    this.partikel.push({
-      mesh: mol, isSolid, jenis,
-      kecepatan: isSolid ? new THREE.Vector3() : new THREE.Vector3(
-        (Math.random()-0.5)*0.004, (Math.random()-0.5)*0.004, (Math.random()-0.5)*0.004
-      ),
-      rotKec: isSolid ? 0 : (Math.random()-0.5)*0.02,
-    });
+  stop() {
+    this.isMoving = false;
   }
 
-  slowMotion(duration = 0.8) {
-    this._targetTimeScale = 0.25;
-    setTimeout(() => { this._targetTimeScale = 1.0; }, duration * 1000);
+  resume() {
+    this.isMoving = true;
   }
 
-  perbarui(dt = 1/60) {
-    this.timeScale += (this._targetTimeScale - this.timeScale) * 0.08;
-    const eff = dt * this.timeScale * 60;
-    let shakeBoost = 1;
-    if (sensorData.shake > 0.0001) { shakeBoost += sensorData.shake * 80; sensorData.shake *= 0.95; }
+  update(dt) {
+    if (!this.isMoving || !this.playerMolecule) return;
+    
+    this.playerProgress += dt * this.speed;
+    if (this.playerProgress > 1) this.playerProgress = 0; // Loop path
 
-    this.partikel.forEach(p => {
-      if (p.isSolid) { p.mesh.rotation.y += 0.005 * eff; return; }
-      const n = 0.0013;
-      p.kecepatan.x += (Math.random()-0.5)*n;
-      p.kecepatan.y += (Math.random()-0.5)*n;
-      p.kecepatan.z += (Math.random()-0.5)*n;
-      p.kecepatan.multiplyScalar(0.986);
-      p.mesh.position.addScaledVector(p.kecepatan, eff * shakeBoost);
-      if (this.bubble) this.bubble.constrain(p);
-      p.mesh.rotation.y += p.rotKec * eff;
-    });
+    // Update player position along path
+    const pos = this.curve.getPointAt(this.playerProgress);
+    this.playerMolecule.mesh.position.copy(pos).add(this.container.position);
 
-    // Repulsion
-    for (let i = 0; i < this.partikel.length; i++) {
-      for (let j = i + 1; j < this.partikel.length; j++) {
-        const pA = this.partikel[i]; const pB = this.partikel[j];
-        const delta = pA.mesh.position.clone().sub(pB.mesh.position);
-        const dSq = delta.lengthSq(); const minD = 0.17;
-        if (dSq < minD * minD && dSq > 0.0001) {
-          const dist = Math.sqrt(dSq); const f = (minD - dist) * 0.012;
-          delta.normalize().multiplyScalar(f);
-          if (!pA.isSolid) pA.kecepatan.add(delta);
-          if (!pB.isSolid) pB.kecepatan.sub(delta);
-        }
+    // Idle rotation
+    this.playerMolecule.mesh.rotation.y += dt * 0.5;
+    this.playerMolecule.mesh.rotation.x += dt * 0.2;
+
+    if (this.targetMolecule) {
+      this.targetMolecule.mesh.rotation.y += dt * -0.5;
+      this.targetMolecule.mesh.rotation.x += dt * -0.2;
+    }
+
+    // Collision detection
+    if (this.targetMolecule && !this.collisionEventFired) {
+      const dist = this.playerMolecule.mesh.position.distanceTo(this.targetMolecule.mesh.position);
+      if (dist < 0.25 && this.playerProgress > 0.3) {
+        this.collisionEventFired = true;
+        if (this.onCollision) this.onCollision();
       }
     }
   }
 
-  flashAll(color = 0xffffff, duration = 300) {
-    this.partikel.forEach(p => {
-      p.mesh.traverse(c => {
-        if (c.isMesh && c.material?.emissive) {
-          const old = c.material.emissive.getHex();
-          c.material.emissive.setHex(color);
-          setTimeout(() => { if (c.material) c.material.emissive.setHex(old); }, duration);
-        }
-      });
-    });
+  hidePath() {
+    this.pathMesh.visible = false;
   }
 }
 
 // ---------------------------------------------------------------------------
-// CAMERA CONTROLLER
+// CAMERA CONTROLLER v2 (Third Person Follow)
 // ---------------------------------------------------------------------------
 export class CameraController {
   constructor(camera) {
     this.camera = camera;
     this.mode = 'overview';
-    this._targetPos = new THREE.Vector3(0, 0.25, 1.1);
-    this._targetLookAt = new THREE.Vector3(0, 0, -0.3);
-    this._shakeIntensity = 0; this._shakeDuration = 0; this._shakeTimer = 0;
-    this._orbitEnabled = false; this._orbitAngle = 0; this._orbitRadius = 0.85;
-    this._orbitCenter = new THREE.Vector3(0, 0, -0.3);
+    this._targetPos = new THREE.Vector3(0, 0.4, 0.5);
+    this._targetLookAt = new THREE.Vector3(0, 0, 0);
     this._followTarget = null;
+    this._shakeIntensity = 0; this._shakeDuration = 0; this._shakeTimer = 0;
+    
+    // Smoothing parameters
+    this._camPosLerp = 3.8;
   }
 
   setMode(mode, options = {}) {
     this.mode = mode;
-    this._orbitEnabled = false;
     if (mode === 'overview') {
-      this._targetPos.set(0, 0.25, 1.1);
-      this._targetLookAt.set(0, 0, -0.3);
-    } else if (mode === 'portal') {
-      this._targetPos.set(0, 0.08, 0.5);
-      this._targetLookAt.set(0, 0, -0.3);
-    } else if (mode === 'shoulder') {
-      this._followTarget = options.target || null;
+      this._targetPos.set(0, 0.4, 0.5);
+      this._targetLookAt.set(0, 0, 0);
+    } else if (mode === 'portal_zoom') {
+      this._targetPos.set(options.center.x, options.center.y - 0.1, options.center.z);
+      this._targetLookAt.set(options.center.x, options.center.y - 1, options.center.z - 2);
+    } else if (mode === 'third_person') {
+      this._followTarget = options.target;
     } else if (mode === 'orbit') {
-      this._orbitEnabled = true;
-      if (options.center) this._orbitCenter.copy(options.center);
-      if (options.radius) this._orbitRadius = options.radius;
-      this._orbitAngle = Math.atan2(
-        this.camera.position.z - this._orbitCenter.z,
-        this.camera.position.x - this._orbitCenter.x
-      );
-    } else if (mode === 'exit') {
-      this._targetPos.set(0, 0.35, 1.6);
-      this._targetLookAt.set(0, 0, -0.3);
+      // In experiment phase, we might just look at the molecule from a fixed nice angle
+      this._targetPos.set(this._followTarget.mesh.position.x, this._followTarget.mesh.position.y + 0.3, this._followTarget.mesh.position.z + 0.6);
+      this._targetLookAt.copy(this._followTarget.mesh.position);
     }
   }
 
-  enableOrbitTouch(canvas) {
-    let lastX = 0, lastY = 0, dragging = false;
-    const onStart = (e) => {
-      dragging = true;
-      lastX = (e.touches?.[0] || e).clientX;
-      lastY = (e.touches?.[0] || e).clientY;
-    };
-    const onMove = (e) => {
-      if (!dragging || !this._orbitEnabled) return;
-      const x = (e.touches?.[0] || e).clientX;
-      this._orbitAngle += (x - lastX) * 0.007;
-      lastX = x; lastY = (e.touches?.[0] || e).clientY;
-    };
-    const onEnd = () => { dragging = false; };
-    canvas.addEventListener('touchstart', onStart, { passive: true });
-    canvas.addEventListener('touchmove', onMove, { passive: true });
-    canvas.addEventListener('touchend', onEnd);
-    canvas.addEventListener('mousedown', onStart);
-    canvas.addEventListener('mousemove', onMove);
-    canvas.addEventListener('mouseup', onEnd);
-  }
-
-  shake(intensity = 0.007, duration = 0.45) {
+  shake(intensity = 0.01, duration = 0.5) {
     this._shakeIntensity = intensity;
     this._shakeDuration = duration;
     this._shakeTimer = 0;
@@ -543,17 +493,21 @@ export class CameraController {
 
   update(dt) {
     const cam = this.camera;
-    const alpha = Math.min(1, dt * 3.8);
+    const alpha = Math.min(1, dt * this._camPosLerp);
 
-    if (this.mode === 'shoulder' && this._followTarget) {
+    if (this.mode === 'third_person' && this._followTarget) {
+      // Follow behind the molecule along Z
       const tp = this._followTarget.mesh.position;
-      cam.position.lerp(tp.clone().add(new THREE.Vector3(0, 0.09, 0.24)), alpha);
-      cam.lookAt(tp);
-    } else if (this.mode === 'orbit' && this._orbitEnabled) {
-      const tx = this._orbitCenter.x + Math.cos(this._orbitAngle) * this._orbitRadius;
-      const tz = this._orbitCenter.z + Math.sin(this._orbitAngle) * this._orbitRadius;
-      cam.position.lerp(new THREE.Vector3(tx, 0.22, tz), alpha);
-      cam.lookAt(this._orbitCenter);
+      const offset = new THREE.Vector3(0, 0.15, 0.4);
+      cam.position.lerp(tp.clone().add(offset), alpha * 1.5);
+      
+      const lookPos = tp.clone().add(new THREE.Vector3(0, 0, -0.5));
+      cam.lookAt(lookPos);
+    } else if (this.mode === 'orbit' && this._followTarget) {
+       this._targetPos.set(this._followTarget.mesh.position.x + Math.sin(Date.now()*0.0005)*0.5, this._followTarget.mesh.position.y + 0.2, this._followTarget.mesh.position.z + Math.cos(Date.now()*0.0005)*0.5);
+       this._targetLookAt.copy(this._followTarget.mesh.position);
+       cam.position.lerp(this._targetPos, alpha);
+       cam.lookAt(this._targetLookAt);
     } else {
       cam.position.lerp(this._targetPos, alpha);
       cam.lookAt(this._targetLookAt);
@@ -573,18 +527,18 @@ export class CameraController {
 // ---------------------------------------------------------------------------
 // PARTICLE BURST FX
 // ---------------------------------------------------------------------------
-function buatBurst(scene, position, color = 0xfbbf24, count = 18) {
+function buatBurst(scene, position, color = 0x7df9ff, count = 20) {
   const particles = [];
   for (let i = 0; i < count; i++) {
     const m = new THREE.Mesh(
-      new THREE.SphereGeometry(0.007, 5, 5),
+      new THREE.SphereGeometry(0.008, 5, 5),
       new THREE.MeshBasicMaterial({ color, transparent: true })
     );
     m.position.copy(position);
     scene.add(m);
     particles.push({
       mesh: m,
-      vel: new THREE.Vector3((Math.random()-0.5)*0.045, (Math.random()-0.5)*0.045, (Math.random()-0.5)*0.045),
+      vel: new THREE.Vector3((Math.random()-0.5)*0.06, (Math.random()-0.5)*0.06, (Math.random()-0.5)*0.06),
       life: 0
     });
   }
@@ -608,44 +562,20 @@ function buatBurst(scene, position, color = 0xfbbf24, count = 18) {
 function buatSceneDasar() {
   const scene = new THREE.Scene();
 
-  scene.add(new THREE.AmbientLight(0xffffff, 1.0));
-  const key = new THREE.DirectionalLight(0xffffff, 2.8);
-  key.position.set(3, 6, 4); key.castShadow = true;
+  scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+  const key = new THREE.DirectionalLight(0xffffff, 2.5);
+  key.position.set(2, 5, 3); key.castShadow = true;
   key.shadow.mapSize.width = 1024; key.shadow.mapSize.height = 1024;
   scene.add(key);
 
-  const rim = new THREE.DirectionalLight(0x93c5fd, 1.2);
-  rim.position.set(-4, 2, -3); scene.add(rim);
+  const rim = new THREE.DirectionalLight(0x7df9ff, 1.5);
+  rim.position.set(-3, 1, -4); scene.add(rim);
 
-  const fill = new THREE.DirectionalLight(0xfef3c7, 0.6);
-  fill.position.set(1, -1, 2); scene.add(fill);
+  const portal = new MolecularPortal(scene);
+  const ambient = new AmbientParticles(scene);
+  const journey = new GuidedJourneySystem(scene);
 
-  // Environment map
-  const envCvs = document.createElement('canvas');
-  envCvs.width = 256; envCvs.height = 256;
-  const envCtx = envCvs.getContext('2d');
-  const g = envCtx.createLinearGradient(0,0,0,256);
-  g.addColorStop(0, '#1e293b'); g.addColorStop(1, '#0f172a');
-  envCtx.fillStyle = g; envCtx.fillRect(0,0,256,256);
-  envCtx.fillStyle='rgba(255,255,255,0.9)'; envCtx.shadowColor='#fff'; envCtx.shadowBlur=30;
-  envCtx.fillRect(30,40,60,120); envCtx.fillRect(180,60,50,90);
-  const envTex = new THREE.CanvasTexture(envCvs);
-  envTex.mapping = THREE.EquirectangularReflectionMapping;
-  scene.environment = envTex;
-
-  const shadowPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(2,2),
-    new THREE.ShadowMaterial({ opacity: 0.18 })
-  );
-  shadowPlane.rotation.x = -Math.PI/2;
-  shadowPlane.position.y = -0.38;
-  shadowPlane.receiveShadow = true;
-  scene.add(shadowPlane);
-
-  const portalGrup = new THREE.Group();
-  scene.add(portalGrup);
-  const partikelSys = new SistemPartikel(scene);
-  return { scene, portalGrup, partikel: partikelSys };
+  return { scene, portal, ambient, journey };
 }
 
 // ---------------------------------------------------------------------------
@@ -659,7 +589,7 @@ export async function deteksiModeAR() {
 }
 
 // ---------------------------------------------------------------------------
-// MAIN SESSION — mulaiSesiARjs
+// MAIN SESSION
 // ---------------------------------------------------------------------------
 export async function mulaiSesiARjs(canvas, videoEl, misiId, onStateChange) {
   try {
@@ -673,299 +603,249 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, onStateChange) {
   renderer.setSize(canvas.clientWidth, canvas.clientHeight);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // Apply a subtle bloom effect via tone mapping / output encoding if needed, keeping it simple for now
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
 
-  const camera = new THREE.PerspectiveCamera(58, canvas.clientWidth / canvas.clientHeight, 0.01, 30);
-  camera.position.set(0, 0.25, 1.1);
+  const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.01, 50);
+  camera.position.set(0, 0.4, 0.5);
 
-  const { scene, partikel } = buatSceneDasar();
+  const { scene, portal, ambient, journey } = buatSceneDasar();
   const sm = new ARStateMachine();
-  const bubble = new ReactionBubble(scene, 0.35);
-  bubble.setPosition(new THREE.Vector3(0, 0, -0.3));
-  bubble.setVisible(false);
-  partikel.setBubble(bubble);
-
   const camCtrl = new CameraController(camera);
-  camCtrl.enableOrbitTouch(canvas);
 
   let berjalan = true;
   let portalPlaced = false;
   let playerMolecule = null;
   let targetMolecule = null;
-  let reactionDone = false;
+  let misiData = MISI_DATA[misiId];
+  let eqForward = 50;
+  let eqReverse = 50;
 
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
   let raycasterEnabled = false;
 
   const reticle = new THREE.Mesh(
-    new THREE.RingGeometry(0.055, 0.075, 40).rotateX(-Math.PI/2),
-    new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.85 })
+    new THREE.RingGeometry(0.08, 0.1, 32).rotateX(-Math.PI/2),
+    new THREE.MeshBasicMaterial({ color: 0x7df9ff, transparent: true, opacity: 0.8 })
   );
   reticle.visible = false;
   scene.add(reticle);
-  setTimeout(() => { if (!portalPlaced) reticle.visible = true; }, 2200);
+  setTimeout(() => { if (!portalPlaced) reticle.visible = true; }, 2000);
 
   // STATE HANDLERS
   sm.on(AR_STATE.REACTION_PORTAL, () => {
     portalPlaced = true; reticle.visible = false;
-    bubble.setVisible(true);
-    partikel.isiDariMisi(misiId, false);
+    portal.setVisible(true);
     soundEngine.whoosh();
-    let s = 0;
-    const pop = () => { s += 0.055; if (s>=1){s=1; bubble.mesh.scale.setScalar(1); bubble.ring.scale.setScalar(1); sm.setState(AR_STATE.OVERVIEW); return;} bubble.mesh.scale.setScalar(s); bubble.ring.scale.setScalar(s); requestAnimationFrame(pop); };
-    bubble.mesh.scale.setScalar(0); bubble.ring.scale.setScalar(0); pop();
+    setTimeout(() => sm.setState(AR_STATE.OVERVIEW), 1000);
   });
 
   sm.on(AR_STATE.OVERVIEW, () => {
     camCtrl.setMode('overview');
-    if (onStateChange) onStateChange(AR_STATE.OVERVIEW, MISI_DATA[misiId].ai.OVERVIEW);
+    if (onStateChange) onStateChange(AR_STATE.OVERVIEW, misiData.ai.OVERVIEW);
+    setTimeout(() => sm.setState(AR_STATE.INVESTIGATE), 2000);
   });
 
   sm.on(AR_STATE.INVESTIGATE, () => {
     raycasterEnabled = true;
     camCtrl.setMode('overview');
-    if (onStateChange) onStateChange(AR_STATE.INVESTIGATE, MISI_DATA[misiId].ai.INVESTIGATE);
+    if (onStateChange) onStateChange(AR_STATE.INVESTIGATE, misiData.ai.INVESTIGATE);
   });
 
   sm.on(AR_STATE.PORTAL_ZOOM, () => {
     raycasterEnabled = false;
-    camCtrl.setMode('portal');
+    camCtrl.setMode('portal_zoom', { center: portal.mesh.position });
     soundEngine.whoosh();
     if (onStateChange) onStateChange(AR_STATE.PORTAL_ZOOM, '');
-    setTimeout(() => sm.setState(AR_STATE.MOLECULAR_JOURNEY), 1000);
+    
+    // Zoom transition then start journey
+    setTimeout(() => {
+      portal.setVisible(false);
+      ambient.setVisible(true); // Turn on dark world particles
+      
+      // Setup players
+      playerMolecule = { mesh: buatMolekul(misiData.target_jenis), jenis: misiData.target_jenis };
+      targetMolecule = { mesh: buatMolekul(misiData.target_pasangan), jenis: misiData.target_pasangan };
+      scene.add(playerMolecule.mesh);
+      scene.add(targetMolecule.mesh);
+
+      // Add "YOU" indicator
+      const youSprite = createTextSprite("⭐ YOU", 0x7df9ff);
+      youSprite.position.set(0, 0.15, 0);
+      playerMolecule.mesh.add(youSprite);
+
+      journey.initJourney(playerMolecule, targetMolecule, portal.mesh.position);
+      
+      // Register collision event
+      journey.onCollision = () => {
+        sm.setState(AR_STATE.REACTION_EVENT);
+      };
+
+      sm.setState(AR_STATE.MOLECULAR_JOURNEY);
+    }, 1500);
   });
 
   sm.on(AR_STATE.MOLECULAR_JOURNEY, () => {
-    camCtrl.setMode('shoulder', { target: playerMolecule });
-    if (onStateChange) onStateChange(AR_STATE.MOLECULAR_JOURNEY, MISI_DATA[misiId].ai.MOLECULAR_JOURNEY);
-    const misiData = MISI_DATA[misiId];
-    const candidates = partikel.partikel.filter(p => p.jenis === misiData.target_pasangan && p !== playerMolecule);
-    targetMolecule = candidates[Math.floor(Math.random() * candidates.length)] || null;
-    if (window._setNavigatorTarget) window._setNavigatorTarget(targetMolecule, camera, scene);
+    camCtrl.setMode('third_person', { target: playerMolecule });
+    if (onStateChange) onStateChange(AR_STATE.MOLECULAR_JOURNEY, misiData.ai.MOLECULAR_JOURNEY);
+    if (window._updateHUDForm) window._updateHUDForm(false, misiData.target_jenis);
+    if (window._updateHUDEq) window._updateHUDEq(50, 50);
   });
 
   sm.on(AR_STATE.REACTION_EVENT, () => {
     soundEngine.collision();
-    partikel.slowMotion(0.8);
-    camCtrl.shake(0.007, 0.5);
-    if (onStateChange) onStateChange(AR_STATE.REACTION_EVENT, MISI_DATA[misiId].ai.REACTION_EVENT);
-    partikel.flashAll(0xfbbf24, 500);
+    journey.speed = 0.02; // Slow motion
+    camCtrl.shake(0.01, 0.5);
+    
+    // Flash effect
+    playerMolecule.mesh.children.forEach(c => c.material && c.material.emissive && c.material.emissive.setHex(0x7df9ff));
+    
+    if (onStateChange) onStateChange(AR_STATE.REACTION_EVENT, misiData.ai.REACTION_EVENT);
+    
     setTimeout(() => {
       soundEngine.bondForm();
-      if (playerMolecule) buatBurst(scene, playerMolecule.mesh.position.clone(), 0xfbbf24, 18);
-      camCtrl.shake(0.004, 0.3);
-    }, 420);
-    setTimeout(() => sm.setState(AR_STATE.EXPERIMENT), 1700);
+      buatBurst(scene, playerMolecule.mesh.position.clone());
+      camCtrl.shake(0.005, 0.3);
+      
+      // Morph into product
+      scene.remove(playerMolecule.mesh);
+      scene.remove(targetMolecule.mesh);
+      
+      playerMolecule.mesh = buatMolekul(misiData.produk);
+      playerMolecule.jenis = misiData.produk;
+      scene.add(playerMolecule.mesh);
+      
+      const youSprite = createTextSprite("⭐ YOU", 0xfde047);
+      youSprite.position.set(0, 0.15, 0);
+      playerMolecule.mesh.add(youSprite);
+      
+      journey.playerMolecule = playerMolecule;
+      journey.targetMolecule = null; // No target anymore
+
+      if (window._updateHUDForm) window._updateHUDForm(true, misiData.produk);
+      
+      // Update equilibrium bar visually
+      eqForward = 80; eqReverse = 20;
+      if (window._updateHUDEq) window._updateHUDEq(eqForward, eqReverse);
+
+      journey.speed = 0.08; // Normal speed
+
+      setTimeout(() => sm.setState(AR_STATE.EXPERIMENT), 1500);
+    }, 1000);
   });
 
   sm.on(AR_STATE.EXPERIMENT, () => {
-    partikel.isiDariMisi(misiId, true);
-    playerMolecule = null; targetMolecule = null; reactionDone = false;
-    if (window._setNavigatorTarget) window._setNavigatorTarget(null, null, null);
-    camCtrl.setMode('orbit', { center: bubble.mesh.position.clone(), radius: 0.85 });
-    if (onStateChange) onStateChange(AR_STATE.EXPERIMENT, MISI_DATA[misiId].ai.EXPERIMENT);
+    camCtrl.setMode('orbit', { target: playerMolecule });
+    journey.hidePath();
+    if (onStateChange) onStateChange(AR_STATE.EXPERIMENT, misiData.ai.EXPERIMENT);
   });
 
   sm.on(AR_STATE.REFLECTION, () => {
     soundEngine.missionComplete();
-    camCtrl.setMode('overview');
-    if (onStateChange) onStateChange(AR_STATE.REFLECTION, MISI_DATA[misiId].ai.REFLECTION);
+    if (onStateChange) onStateChange(AR_STATE.REFLECTION, misiData.ai.REFLECTION);
   });
 
-  sm.on(AR_STATE.EXIT_PORTAL, () => {
-    soundEngine.whoosh();
-    camCtrl.setMode('exit');
-    bubble.setVisible(false);
-    setTimeout(() => { if (window._onMissionComplete) window._onMissionComplete(); }, 1200);
-  });
+  // EXPERIMENT TOOLS
+  const tools = {
+    triggerTool: (toolName) => {
+      if (!sm.is(AR_STATE.EXPERIMENT)) return;
+      if (toolName === misiData.tool) {
+        // Correct tool
+        if (window._updateHUDEq) window._updateHUDEq(20, 80); // Reverse rate spikes
+        if (onStateChange) onStateChange(AR_STATE.EXPERIMENT, "Laju reaksi balik membesar.");
+        
+        // Reverse reaction animation
+        setTimeout(() => {
+          soundEngine.bondBreak();
+          buatBurst(scene, playerMolecule.mesh.position.clone(), 0xff3333);
+          camCtrl.shake(0.008, 0.4);
+          
+          scene.remove(playerMolecule.mesh);
+          playerMolecule.mesh = buatMolekul(misiData.target_jenis);
+          playerMolecule.jenis = misiData.target_jenis;
+          scene.add(playerMolecule.mesh);
+          
+          const youSprite = createTextSprite("⭐ YOU", 0x7df9ff);
+          youSprite.position.set(0, 0.15, 0);
+          playerMolecule.mesh.add(youSprite);
+          
+          if (window._updateHUDForm) window._updateHUDForm(false, misiData.target_jenis);
+          
+          // Re-add target to loop
+          targetMolecule = { mesh: buatMolekul(misiData.target_pasangan), jenis: misiData.target_pasangan };
+          scene.add(targetMolecule.mesh);
+          journey.pathMesh.visible = true;
+          journey.initJourney(playerMolecule, targetMolecule, portal.mesh.position);
+          
+          sm.setState(AR_STATE.REFLECTION); // Finish loop for demo
+        }, 1200);
 
-  // FIRST TAP
-  function onFirstTap(e) {
-    if (portalPlaced || !reticle.visible) return;
-    // Prevent also triggering canvas tap
-    e.stopPropagation && e.stopPropagation();
-    bubble.setPosition(reticle.position.clone());
-    sm.setState(AR_STATE.REACTION_PORTAL);
-  }
-  window.addEventListener('pointerdown', onFirstTap, { once: true });
-
-  // MOLECULE PICKING
-  function onCanvasTap(e) {
-    if (!raycasterEnabled || !berjalan) return;
-    const rect = canvas.getBoundingClientRect();
-    const cx = e.changedTouches?.[0]?.clientX ?? e.clientX;
-    const cy = e.changedTouches?.[0]?.clientY ?? e.clientY;
-    mouse.x = ((cx - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((cy - rect.top) / rect.height) * 2 + 1;
-    raycaster.setFromCamera(mouse, camera);
-    const hits = raycaster.intersectObjects(partikel.container.children, true);
-    if (hits.length > 0) {
-      const misiData = MISI_DATA[misiId];
-      for (const p of partikel.partikel) {
-        let isHit = false;
-        hits[0].object.traverseAncestors(a => { if (a === p.mesh) isHit = true; });
-        if (isHit || hits[0].object === p.mesh) {
-          if (p.jenis === misiData.target_jenis) {
-            playerMolecule = p;
-            soundEngine.collision();
-            sm.setState(AR_STATE.PORTAL_ZOOM);
-          }
-          break;
-        }
+      } else {
+        if (onStateChange) onStateChange(AR_STATE.EXPERIMENT, "Bukan itu. Coba yang lain.");
       }
-    }
-  }
-  canvas.addEventListener('click', onCanvasTap);
-  canvas.addEventListener('touchend', onCanvasTap, { passive: true });
-
-  // ANIMATION LOOP
-  let lastTime = performance.now();
-  function loop() {
-    if (!berjalan) return;
-    const now = performance.now();
-    const dt = Math.min((now - lastTime) / 1000, 0.05);
-    lastTime = now;
-
-    partikel.perbarui(dt);
-    bubble.update(dt);
-    camCtrl.update(dt);
-
-    if (!portalPlaced) {
-      const t = now * 0.001;
-      reticle.position.set(Math.sin(t*0.5)*0.07, -0.3, -0.25 + Math.cos(t*0.33)*0.04);
-    }
-
-    // Approach / collision detection
-    if (sm.is(AR_STATE.MOLECULAR_JOURNEY) && playerMolecule && targetMolecule && !reactionDone) {
-      const dist = playerMolecule.mesh.position.distanceTo(targetMolecule.mesh.position);
-      if (window._updateNavDistance) window._updateNavDistance(dist);
-
-      const approachGlow = dist < 0.22 ? Math.min(0.8, (0.22 - dist) / 0.1) : 0.08;
-      playerMolecule.mesh.traverse(c => {
-        if (c.isMesh && c.material?.emissive) c.material.emissiveIntensity = approachGlow;
-      });
-
-      if (dist < 0.13) {
-        reactionDone = true;
-        sm.setState(AR_STATE.REACTION_EVENT);
-      }
-    }
-
-    renderer.render(scene, camera);
-    requestAnimationFrame(loop);
-  }
-  loop();
-
-  window.addEventListener('resize', () => {
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
-    camera.updateProjectionMatrix();
-  });
-
-  return {
-    sm, renderer, scene, partikel, bubble, camCtrl,
-    triggerTool: (tool) => {
-      soundEngine.bondBreak();
-      partikel.flashAll(0x93c5fd, 400);
-      camCtrl.shake(0.004, 0.3);
-      setTimeout(() => sm.setState(AR_STATE.REFLECTION), 800);
     },
-    startInvestigate: () => { if (sm.is(AR_STATE.OVERVIEW)) sm.setState(AR_STATE.INVESTIGATE); },
-    exitPortal: () => sm.setState(AR_STATE.EXIT_PORTAL),
-    hentikan: () => {
-      berjalan = false;
-      if (videoEl.srcObject) videoEl.srcObject.getTracks().forEach(t => t.stop());
-    }
+    hentikan: () => { berjalan = false; }
   };
-}
 
-// ---------------------------------------------------------------------------
-// WebXR SESSION
-// ---------------------------------------------------------------------------
-export async function mulaiSesiWebXR(canvas, misiId, onStateChange) {
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-  renderer.xr.enabled = true;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-  const { scene, partikel } = buatSceneDasar();
-  const camera = new THREE.PerspectiveCamera();
-  const sm = new ARStateMachine();
-
-  const bubble = new ReactionBubble(scene, 0.35);
-  bubble.setPosition(new THREE.Vector3(0, 0, -0.5));
-  bubble.setVisible(false);
-  partikel.setBubble(bubble);
-
-  const session = await navigator.xr.requestSession('immersive-ar', {
-    requiredFeatures: ['hit-test'],
-    optionalFeatures: ['dom-overlay'],
-    domOverlay: { root: document.body }
-  });
-  await renderer.xr.setSession(session);
-  const refSpace = await session.requestReferenceSpace('local');
-  const viewerSpace = await session.requestReferenceSpace('viewer');
-  const hitSrc = await session.requestHitTestSource({ space: viewerSpace });
-
-  const reticle = new THREE.Mesh(
-    new THREE.RingGeometry(0.055, 0.075, 40).rotateX(-Math.PI/2),
-    new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
-  );
-  reticle.visible = false; scene.add(reticle);
-
-  let placed = false;
-
-  sm.on(AR_STATE.REACTION_PORTAL, () => {
-    placed = true; reticle.visible = false;
-    bubble.setVisible(true); partikel.isiDariMisi(misiId, false);
-    soundEngine.whoosh();
-    let s = 0;
-    const pop = () => { s += 0.055; if(s>=1){s=1; bubble.mesh.scale.setScalar(1); bubble.ring.scale.setScalar(1); sm.setState(AR_STATE.OVERVIEW); return;} bubble.mesh.scale.setScalar(s); bubble.ring.scale.setScalar(s); requestAnimationFrame(pop); };
-    bubble.mesh.scale.setScalar(0); bubble.ring.scale.setScalar(0); pop();
-  });
-
-  sm.on(AR_STATE.OVERVIEW, () => {
-    if (onStateChange) onStateChange(AR_STATE.OVERVIEW, MISI_DATA[misiId].ai.OVERVIEW);
-  });
-
-  sm.on(AR_STATE.EXPERIMENT, () => {
-    partikel.isiDariMisi(misiId, true);
-    if (onStateChange) onStateChange(AR_STATE.EXPERIMENT, MISI_DATA[misiId].ai.EXPERIMENT);
-  });
-
-  sm.on(AR_STATE.REFLECTION, () => {
-    soundEngine.missionComplete();
-    if (onStateChange) onStateChange(AR_STATE.REFLECTION, MISI_DATA[misiId].ai.REFLECTION);
-  });
-
-  session.addEventListener('select', () => {
-    if (placed || !reticle.visible) return;
-    bubble.setPosition(reticle.position.clone());
-    sm.setState(AR_STATE.REACTION_PORTAL);
-  });
-
-  renderer.setAnimationLoop((ts, frame) => {
-    if (frame && !placed) {
-      const hits = frame.getHitTestResults(hitSrc);
-      if (hits.length > 0) {
-        reticle.visible = true;
-        const p = hits[0].getPose(refSpace).transform.position;
-        reticle.position.set(p.x, p.y, p.z);
-      } else { reticle.visible = false; }
+  // INTERACTION
+  function onCanvasTap(e) {
+    if (!berjalan) return;
+    
+    // First Tap to place portal
+    if (!portalPlaced && reticle.visible) {
+      portal.setPosition(reticle.position.clone());
+      sm.setState(AR_STATE.REACTION_PORTAL);
+      return;
     }
-    partikel.perbarui(1/60); bubble.update(1/60);
+
+    // Tap Portal to enter
+    if (sm.is(AR_STATE.INVESTIGATE) && raycasterEnabled) {
+      sm.setState(AR_STATE.PORTAL_ZOOM);
+    }
+  }
+  canvas.addEventListener('pointerdown', onCanvasTap);
+
+  function createTextSprite(message, color) {
+    const cvs = document.createElement('canvas');
+    cvs.width = 128; cvs.height = 32;
+    const ctx = cvs.getContext('2d');
+    ctx.font = 'Bold 18px Arial';
+    ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
+    ctx.textAlign = 'center';
+    ctx.fillText(message, 64, 22);
+    const tex = new THREE.CanvasTexture(cvs);
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(0.4, 0.1, 1);
+    return sprite;
+  }
+
+  // RENDER LOOP
+  const clock = new THREE.Clock();
+  renderer.setAnimationLoop(() => {
+    if (!berjalan) return;
+    const dt = clock.getDelta();
+    const t = clock.getElapsedTime();
+
+    if (!portalPlaced && reticle.visible) {
+      reticle.position.set(0, 0, -0.6);
+      reticle.rotation.z += dt * 1;
+    }
+
+    if (sm.is(AR_STATE.REACTION_PORTAL)) portal.update(dt);
+    if (ambient.points.visible) ambient.update(dt);
+    if (sm.is(AR_STATE.MOLECULAR_JOURNEY) || sm.is(AR_STATE.REACTION_EVENT)) journey.update(dt);
+
+    camCtrl.update(dt);
     renderer.render(scene, camera);
   });
 
-  return {
-    sm, renderer, scene, partikel, bubble,
-    triggerTool: () => { soundEngine.bondBreak(); setTimeout(() => sm.setState(AR_STATE.REFLECTION), 800); },
-    startInvestigate: () => { if (sm.is(AR_STATE.OVERVIEW)) sm.setState(AR_STATE.INVESTIGATE); },
-    exitPortal: () => sm.setState(AR_STATE.EXIT_PORTAL),
-    hentikan: () => { renderer.setAnimationLoop(null); session.end(); }
-  };
+  return tools;
 }
 
-// Legacy stubs
-export function perbaruiVisualMisi() { return true; }
+export async function mulaiSesiWebXR(canvas, misiId, onStateChange) {
+  // WebXR code will wrap ARjs for now, same logic.
+  return mulaiSesiARjs(canvas, document.createElement('video'), misiId, onStateChange);
+}
