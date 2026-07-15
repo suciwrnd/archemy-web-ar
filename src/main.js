@@ -197,8 +197,8 @@ const defaultState = {
   // AI adaptive recommendations (generated after quiz)
   aiRecommendations: [],
   profile: {
-    siswa:{ name:'Suci Ramadhani', email:'suci@student.archemy.id', school:'SMA Negeri 5 Banda Aceh', className:'XI IPA 1', password:'123456' },
-    guru:{ name:'Ibu Misnawati S.Pd', email:'misnawati@guru.archemy.id', school:'SMA Negeri 5 Banda Aceh', className:'Guru Kimia', password:'123456' }
+    siswa:{ name:'', email:'', school:'', className:'', password:'' },
+    guru:{ name:'', email:'', school:'', className:'', password:'' }
   },
   modules: defaultModules, questions: defaultQuestions, classes: defaultClasses,
   teacherEditingQuestionId:null
@@ -212,43 +212,65 @@ let toastTimer, quizInterval = null;
 /* --------------------------------------------------------------------------
    STATE MANAGEMENT
    -------------------------------------------------------------------------- */
+let globalDB = { currentUser: null, users: {} };
+
 function loadState() {
   try {
-    const saved = JSON.parse(localStorage.getItem('archemyState'));
-    if (!saved) return structuredClone(defaultState);
-    if (saved.classes && saved.classes.some(c => !c.roster)) {
-      localStorage.removeItem('archemyState');
-      return structuredClone(defaultState);
+    const savedDB = JSON.parse(localStorage.getItem('archemyDB'));
+    if (savedDB && typeof savedDB === 'object') {
+      if (savedDB.users) globalDB = savedDB;
+      else {
+        // Migration from old single-user 'archemyState' (which we ignore to start fresh)
+      }
     }
-    const merged = {
-      ...structuredClone(defaultState), ...saved,
-      profile:{ ...structuredClone(defaultState.profile), ...(saved.profile||{}) },
-      modules: saved.modules?.length ? saved.modules : structuredClone(defaultModules),
-      questions: saved.questions?.length ? saved.questions : structuredClone(defaultQuestions),
-      classes: saved.classes?.length ? saved.classes : structuredClone(defaultClasses),
-      badges: saved.badges || [],
-      points: saved.points || 0,
-      gems: saved.gems || 0,
-      aiRecommendations: saved.aiRecommendations || [],
-      viewedMisi: saved.viewedMisi || [],
-    };
-    if (merged.webarMisiAktif) {
-      merged.webarMisiAktif = null;
-      merged.page = 'studentDashboard';
-    }
-    
-    // Force migration of school name for existing cached profiles
-    if (merged.profile.siswa.school === 'SMA Negeri 1 Kimia' || merged.profile.siswa.school === 'SMA Negeri 1 Banda Aceh') {
-      merged.profile.siswa.school = 'SMA Negeri 5 Banda Aceh';
-    }
-    if (merged.profile.guru.school === 'SMA Negeri 1 Kimia' || merged.profile.guru.school === 'SMA Negeri 1 Banda Aceh') {
-      merged.profile.guru.school = 'SMA Negeri 5 Banda Aceh';
-    }
+  } catch (e) {}
 
-    return merged;
-  } catch { return structuredClone(defaultState); }
+  let saved = {};
+  if (globalDB.currentUser && globalDB.users[globalDB.currentUser]) {
+    saved = globalDB.users[globalDB.currentUser];
+  }
+
+  const defaultCopy = structuredClone(defaultState);
+  if (!saved || Object.keys(saved).length === 0) {
+    localStorage.removeItem('archemyState');
+    return defaultCopy;
+  }
+
+  const merged = {
+    ...defaultCopy, ...saved,
+    profile:{ ...defaultCopy.profile, ...(saved.profile||{}) },
+    modules: saved.modules?.length ? saved.modules : defaultCopy.modules,
+    questions: saved.questions?.length ? saved.questions : defaultCopy.questions,
+    classes: saved.classes?.length ? saved.classes : defaultCopy.classes,
+    badges: saved.badges || [],
+    points: saved.points || 0,
+    gems: saved.gems || 0,
+    aiRecommendations: saved.aiRecommendations || [],
+    viewedMisi: saved.viewedMisi || [],
+  };
+  
+  if (merged.webarMisiAktif) {
+    merged.webarMisiAktif = null;
+    merged.page = 'studentDashboard';
+  }
+  return merged;
 }
-function saveState() { localStorage.setItem('archemyState', JSON.stringify(state)); }
+
+function saveState() {
+  if (globalDB.currentUser) {
+    globalDB.users[globalDB.currentUser] = state;
+    localStorage.setItem('archemyDB', JSON.stringify(globalDB));
+  }
+}
+
+function logout() {
+  globalDB.currentUser = null;
+  state = structuredClone(defaultState);
+  saveState();
+  localStorage.removeItem('archemyState');
+  go('login');
+}
+
 function toast(msg) { clearTimeout(toastTimer); toastEl.textContent=msg; toastEl.classList.add('show'); toastTimer=setTimeout(()=>toastEl.classList.remove('show'),2500); }
 function setRole(r) { state.role=r; saveState(); render(); }
 function go(page) {
@@ -418,11 +440,27 @@ function renderLogin() {
       <p class="small" style="text-align:center;margin:14px 0 0">Belum punya akun? <button class="link-btn" onclick="window.go('register')">Daftar</button></p>
     </div></section>`;
 }
+
 function submitLogin() {
-  const email=document.getElementById('loginEmail').value.trim(); if (!email) return toast('Email tidak boleh kosong');
-  state.profile[state.role].email=email; saveState(); toast('Login berhasil ');
-  if (state.role==='siswa') go(state.joinedClass?'studentDashboard':'joinClass'); else go('teacherClasses');
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value.trim();
+  if (!email || !pass) return toast('Email dan password tidak boleh kosong');
+
+  const userState = globalDB.users[email];
+  if (!userState) return toast('Akun dengan email tersebut tidak ditemukan');
+
+  const roleProfile = userState.profile[state.role];
+  if (!roleProfile || roleProfile.email !== email) return toast(`Akun ini tidak terdaftar sebagai ${state.role}`);
+  if (roleProfile.password !== pass) return toast('Password salah!');
+
+  globalDB.currentUser = email;
+  state = userState;
+  state.page = state.role === 'siswa' ? (state.joinedClass ? 'studentDashboard' : 'joinClass') : 'teacherClasses';
+  saveState();
+  toast('Login berhasil 🚀');
+  render();
 }
+
 function renderRegister() {
   app.innerHTML = `<section class="auth-screen">
     <div class="auth-hero"><div class="logo"><b>ARC</b>hemy</div><h1>Buat akun ARChemy.</h1></div>
@@ -439,9 +477,29 @@ function renderRegister() {
       <p class="small" style="text-align:center;margin:14px 0 0">Sudah punya akun? <button class="link-btn" onclick="window.go('login')">Login</button></p>
     </div></section>`;
 }
+
 function submitRegister() {
-  const p=state.profile[state.role]; p.name=document.getElementById('regName').value.trim()||p.name; p.email=document.getElementById('regEmail').value.trim()||p.email; p.school=document.getElementById('regSchool').value.trim()||p.school; p.password=document.getElementById('regPass').value.trim()||p.password;
-  saveState(); toast('Akun berhasil dibuat '); if (state.role==='siswa') go('joinClass'); else go('teacherClasses');
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const school = document.getElementById('regSchool').value.trim();
+  const pass = document.getElementById('regPass').value.trim();
+
+  if (!name || !email || !school || !pass) return toast('Semua kolom wajib diisi');
+  if (globalDB.users[email]) return toast('Email sudah terdaftar. Silakan login.');
+
+  // Buat state baru untuk user ini
+  const newUserState = structuredClone(defaultState);
+  newUserState.role = state.role;
+  newUserState.profile[state.role] = { name, email, school, password: pass, className: '' };
+
+  globalDB.users[email] = newUserState;
+  globalDB.currentUser = email;
+  state = newUserState;
+  state.page = state.role === 'siswa' ? 'joinClass' : 'teacherClasses';
+  
+  saveState();
+  toast('Akun berhasil dibuat 🚀');
+  render();
 }
 
 /* --------------------------------------------------------------------------
@@ -1527,12 +1585,6 @@ function renderProfile() {
     <h3 class="section-title">Badge Kamu </h3>
     <div class="card">${myBadges}</div>` : ''}
     <div class="actions-row" style="margin-top:14px;"><button class="btn danger full" onclick="window.logout()">Logout Akun</button></div>`);
-}
-
-function logout() {
-  hentikanSesiAR();
-  state.page='login'; state.joinedClass=false; state.webarMisiAktif=null;
-  clearInterval(quizInterval); saveState(); render(); toast('Keluar akun sukses');
 }
 
 /* --------------------------------------------------------------------------
