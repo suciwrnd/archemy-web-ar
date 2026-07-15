@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ARCHEMY WEBAR CSS v5.0 - Driving & Grid
+   ARCHEMY WEBAR CSS v6.0 - Rollercoaster & Clean UI
    ========================================================================== */
 
 /* ===== STAGE WRAPPER ===== */
@@ -44,31 +44,31 @@
   top: 16px;
   left: 16px;
   z-index: 30;
-  background: rgba(11, 16, 37, 0.6);
+  background: rgba(11, 16, 37, 0.7);
   border: 1px solid rgba(79, 195, 247, 0.3);
   color: #7df9ff;
-  padding: 6px 14px;
+  padding: 8px 16px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   backdrop-filter: blur(8px);
   transition: background 0.2s;
 }
 
-/* ===== HUD KIRI ATAS: Current Form ===== */
-.hud-top-left {
+/* ===== HUD TENGAH KIRI: Current Form ===== */
+.hud-mid-left {
   position: absolute;
-  top: 56px;
+  top: 40%;
   left: 16px;
+  transform: translateY(-50%);
   z-index: 30;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
-
-.form-label { font-size: 9px; color: #818cf8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-.form-value { font-size: 12px; font-weight: 600; background: rgba(11, 16, 37, 0.7); border: 1px solid rgba(79, 195, 247, 0.4); padding: 4px 8px; border-radius: 6px; backdrop-filter: blur(4px); color: #e0e7ff; }
+.form-label { font-size: 10px; color: #818cf8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 1px 2px #000; }
+.form-value { font-size: 14px; font-weight: 600; background: rgba(11, 16, 37, 0.7); border: 1px solid rgba(79, 195, 247, 0.4); padding: 6px 12px; border-radius: 8px; backdrop-filter: blur(4px); color: #e0e7ff; }
 .form-value.reactant { border-color: #3b82f6; color: #93c5fd; }
 .form-value.product { border-color: #eab308; color: #fde047; }
 
@@ -81,34 +81,35 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 4px;
 }
-.mission-label { font-size: 9px; color: #a78bfa; font-weight: 700; text-transform: uppercase; }
-.mission-value { font-size: 11px; font-weight: 600; background: rgba(11, 16, 37, 0.7); border: 1px solid rgba(167, 139, 250, 0.4); padding: 4px 8px; border-radius: 6px; color: #ddd6fe; }
+.mission-label { font-size: 10px; color: #a78bfa; font-weight: 700; text-transform: uppercase; text-shadow: 0 1px 2px #000; }
+.mission-value { font-size: 14px; font-weight: 600; background: rgba(11, 16, 37, 0.7); border: 1px solid rgba(167, 139, 250, 0.4); padding: 6px 12px; border-radius: 8px; color: #ddd6fe; backdrop-filter: blur(4px); }
 
-/* ===== HUD TENGAH ATAS: Equilibrium Bar ===== */
-.hud-top-center {
+/* ===== HUD BAWAH: Equilibrium Bar ===== */
+.hud-bottom-eq {
   position: absolute;
-  top: 20px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 30;
-  width: 200px;
+  width: 240px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: rgba(11, 16, 37, 0.75);
+  background: rgba(11, 16, 37, 0.85);
   border: 1px solid rgba(79, 195, 247, 0.3);
-  padding: 6px 12px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  border-radius: 12px;
   backdrop-filter: blur(6px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
-.eq-title { font-size: 9px; font-weight: 700; color: #7df9ff; text-align: center; text-transform: uppercase; }
-.eq-row { display: flex; align-items: center; gap: 6px; }
-.eq-label { font-size: 8px; color: #94a3b8; width: 60px; }
-.eq-track { flex: 1; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+.eq-title { font-size: 10px; font-weight: 700; color: #7df9ff; text-align: center; text-transform: uppercase; }
+.eq-row { display: flex; align-items: center; gap: 8px; }
+.eq-label { font-size: 10px; color: #94a3b8; width: 64px; }
+.eq-track { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; }
 .eq-track.reverse { display: flex; justify-content: flex-end; }
-.eq-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+.eq-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
 .eq-fill.forward { background: linear-gradient(90deg, #3b82f6, #4fc3f7); box-shadow: 0 0 6px #4fc3f7; }
 .eq-fill.backward { background: linear-gradient(-90deg, #eab308, #fbbf24); box-shadow: 0 0 6px #fbbf24; }
 
@@ -122,94 +123,113 @@
   align-items: center;
   justify-content: center;
   gap: 14px;
-  background: rgba(5, 8, 22, 0.5);
-  backdrop-filter: blur(3px);
+  background: rgba(5, 8, 22, 0.6);
+  backdrop-filter: blur(4px);
   pointer-events: none;
 }
 .scan-phone-icon {
   width: 52px; height: 80px; border: 3px solid #4fc3f7; border-radius: 10px; position: relative;
   animation: scanMove 2.5s ease-in-out infinite;
 }
-@keyframes scanMove {
-  0%, 100% { transform: rotate(-8deg) translateX(-10px); }
-  50% { transform: rotate(8deg) translateX(10px); }
-}
+@keyframes scanMove { 0%, 100% { transform: rotate(-8deg) translateX(-10px); } 50% { transform: rotate(8deg) translateX(10px); } }
 .webar-scan-title { font-size: 18px; font-weight: 700; color: #7df9ff; }
 
-/* ===== AI SPEECH PANEL ===== */
+/* ===== AI SPEECH PANEL (Di Atas Equilibrium) ===== */
 .webar-ai-panel {
   position: absolute;
   left: 50%;
-  bottom: 12px;
+  bottom: 96px; /* Di atas Equilibrium Bar */
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  background: rgba(11, 16, 37, 0.9);
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(11, 16, 37, 0.95);
   border: 1px solid rgba(79, 195, 247, 0.4);
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   z-index: 40;
 }
-.ai-avatar { font-size: 20px; }
-.ai-speech { font-size: 12px; font-weight: 600; color: #e0f2fe; font-family: 'Courier New', monospace; white-space: nowrap; }
+.ai-avatar { font-size: 24px; }
+.ai-speech { font-size: 13px; font-weight: 600; color: #e0f2fe; font-family: 'Courier New', monospace; white-space: nowrap; }
 
-/* ===== ACTION BAR (Kanan Bawah) ===== */
+/* ===== ACTION BAR (Eksperimen di Kiri Bawah) ===== */
 .webar-action-bar {
   position: absolute;
-  bottom: 80px;
-  right: 16px;
+  bottom: 24px;
+  left: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   z-index: 35;
 }
-.action-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; background: rgba(11, 16, 37, 0.85); border: 1px solid rgba(167, 139, 250, 0.5); border-radius: 12px; color: #ddd6fe; font-size: 16px; backdrop-filter: blur(8px); }
-.action-btn span { font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.action-btn { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: rgba(11, 16, 37, 0.85); border: 1px solid rgba(167, 139, 250, 0.5); border-radius: 12px; color: #ddd6fe; font-size: 18px; backdrop-filter: blur(8px); }
+.action-btn span { font-size: 11px; font-weight: 700; text-transform: uppercase; }
 
-/* ===== STEERING CONTROLS (RC CAR) ===== */
+/* ===== GAS PEDAL ONLY (Rollercoaster) ===== */
 .webar-driving-controls {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 35;
 }
-.steer-left-right {
-  position: absolute;
-  bottom: 60px;
-  left: 16px;
-  display: flex;
-  gap: 12px;
-  pointer-events: auto;
-}
 .gas-pedal {
   position: absolute;
-  bottom: 60px;
-  right: 16px;
+  bottom: 40px;
+  right: 24px;
   pointer-events: auto;
 }
 .ctrl-btn {
-  width: 56px; height: 56px;
-  background: rgba(79, 195, 247, 0.15);
-  border: 2px solid rgba(79, 195, 247, 0.4);
+  width: 76px; height: 76px;
+  background: rgba(59, 130, 246, 0.2);
+  border: 3px solid rgba(59, 130, 246, 0.6);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px; color: #7df9ff;
+  font-size: 32px; font-weight: bold; color: #7df9ff;
   backdrop-filter: blur(4px);
+  box-shadow: 0 0 15px rgba(59,130,246,0.3);
   user-select: none; -webkit-user-select: none;
+  transition: all 0.1s;
 }
-.ctrl-btn.gas {
-  width: 64px; height: 64px;
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.6);
-  font-size: 26px; font-weight: bold;
-}
-.ctrl-btn:active { background: rgba(79, 195, 247, 0.5); transform: scale(0.9); }
+.ctrl-btn:active { background: rgba(79, 195, 247, 0.5); transform: scale(0.9); box-shadow: 0 0 25px rgba(59,130,246,0.8); }
 
 /* ===== SUCCESS POPUP ===== */
 .webar-success-popup { position: absolute; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(5, 8, 22, 0.8); backdrop-filter: blur(8px); }
-.webar-success-card { background: linear-gradient(135deg, rgba(11, 16, 37, 0.95), rgba(5, 8, 22, 0.95)); border: 1px solid rgba(79, 195, 247, 0.4); border-radius: 16px; padding: 20px; text-align: center; width: 260px; }
-.success-icon { font-size: 32px; }
-.webar-success-card h2 { color: #7df9ff; font-size: 16px; margin: 8px 0; }
-.btn-primary { background: #0ea5e9; border: none; border-radius: 8px; color: #fff; padding: 10px; width: 100%; font-weight: bold; }
+.webar-success-card { background: linear-gradient(135deg, rgba(11, 16, 37, 0.95), rgba(5, 8, 22, 0.95)); border: 1px solid rgba(79, 195, 247, 0.4); border-radius: 16px; padding: 24px; text-align: center; width: 280px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+.success-icon { font-size: 40px; margin-bottom: 8px; }
+.webar-success-card h2 { color: #7df9ff; font-size: 18px; margin: 8px 0 16px 0; }
+.btn-primary { background: #0ea5e9; border: none; border-radius: 10px; color: #fff; padding: 12px; width: 100%; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+
+/* ===== HALAMAN PILIH MISI (Dirapikan) ===== */
+.webar-pilih-misi {
+  padding: 30px 20px;
+  background: #02040a;
+  min-height: 100vh;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+}
+.webar-pilih-misi .page-title {
+  text-align: center; font-size: 24px; margin-bottom: 30px; color: #7df9ff; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+}
+.webar-pilih-misi .misi-grid {
+  display: flex; flex-direction: column; gap: 16px; max-width: 400px; margin: 0 auto;
+}
+.webar-pilih-misi .misi-card {
+  background: linear-gradient(145deg, #111827, #0b1025);
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  transition: transform 0.2s, border-color 0.2s;
+}
+.webar-pilih-misi .misi-card:hover { transform: translateY(-3px); border-color: #3b82f6; }
+.webar-pilih-misi .misi-judul { font-size: 16px; font-weight: 600; color: #e2e8f0; margin: 0 0 8px 0; }
+.webar-pilih-misi .misi-persamaan { font-size: 14px; color: #93c5fd; background: rgba(59,130,246,0.1); padding: 4px 8px; border-radius: 6px; display: inline-block; }
+.webar-pilih-misi .misi-recommended { border-color: #f59e0b; }
+.webar-pilih-misi .misi-done { opacity: 0.7; border-color: #10b981; }
+.webar-pilih-misi .misi-ai-badge { position: absolute; top: 12px; right: 12px; background: #f59e0b; color: #fff; font-size: 9px; padding: 3px 6px; border-radius: 4px; font-weight: 700; }
+.webar-pilih-misi .misi-done-badge { position: absolute; top: 12px; right: 12px; background: #10b981; color: #fff; font-size: 9px; padding: 3px 6px; border-radius: 4px; font-weight: 700; }

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 /* ==========================================================================
-   ARCHEMY WEBAR ENGINE v5.0 - True AR Driving & VR Camera Rig
+   ARCHEMY WEBAR ENGINE v6.0 - Rollercoaster Track & True AR
    ========================================================================== */
 
 export function requestSensorPermission() {
@@ -20,7 +20,7 @@ export const MISI_DATA = {
     ai: {
       OVERVIEW:          'Sistem belum setimbang.',
       INVESTIGATE:       'Tap portal untuk masuk.',
-      MOLECULAR_JOURNEY: 'Tahan GAS untuk jalan. Cari target!',
+      MOLECULAR_JOURNEY: 'Tahan tombol GAS untuk meluncur!',
       REACTION_EVENT:    'Efektif! Terbentuk ikatan.',
       EXPERIMENT:        'Tekan tombol Heat.',
       REFLECTION:        'Sistem kembali seimbang.',
@@ -33,7 +33,7 @@ export const MISI_DATA = {
     ai: {
       OVERVIEW:          'Gas NO\u2082 beracun.',
       INVESTIGATE:       'Masuk ke portal.',
-      MOLECULAR_JOURNEY: 'Kejar NO\u2082 di depanmu.',
+      MOLECULAR_JOURNEY: 'Ikuti rel cahaya ke arah target.',
       REACTION_EVENT:    'Ikatan terbentuk!',
       EXPERIMENT:        'Tekan Compress.',
       REFLECTION:        'Sistem stabil.',
@@ -46,7 +46,7 @@ export const MISI_DATA = {
     ai: {
       OVERVIEW:          'Produksi amonia.',
       INVESTIGATE:       'Tap untuk masuk.',
-      MOLECULAR_JOURNEY: 'Setir menuju H\u2082.',
+      MOLECULAR_JOURNEY: 'Tancap gas mengikuti rel.',
       REACTION_EVENT:    'Amonia terbentuk!',
       EXPERIMENT:        'Tambahkan H\u2082.',
       REFLECTION:        'Reaksi bergeser.',
@@ -170,7 +170,6 @@ export function buatMolekul(jenis) {
     }
   } else { const sym = jenis.replace(/[0-9]/g, '').slice(0, 2) || 'C'; grup.add(buatAtomMesh(sym)); }
 
-  // Scale adjusted for visibility (0.8)
   grup.scale.setScalar(0.8);
   return grup;
 }
@@ -214,6 +213,114 @@ class CustomDeviceOrientationControls {
 }
 
 // ---------------------------------------------------------------------------
+// ROLLERCOASTER DRIVING SYSTEM (Track & Chase Cam)
+// ---------------------------------------------------------------------------
+export class RollercoasterDrivingSystem {
+  constructor(scene) {
+    this.scene = scene;
+    this.playerMolecule = null;
+    this.targetMolecule = null;
+    
+    this.progress = 0; 
+    this.velocity = 0; 
+    this.isMoving = false;
+    this.collisionEventFired = false;
+    this.onCollision = null;
+
+    this.curve = null;
+    this.trackMesh = null;
+  }
+
+  initJourney(playerMol, targetMol, startPos) {
+    this.playerMolecule = playerMol;
+    this.targetMolecule = targetMol;
+    this.collisionEventFired = false;
+    this.isMoving = true;
+    this.progress = 0;
+    this.velocity = 0; 
+
+    // Create a winding track
+    const p0 = startPos.clone();
+    const p1 = p0.clone().add(new THREE.Vector3(0, 0, -2));
+    const p2 = p0.clone().add(new THREE.Vector3(3, 0, -5));
+    const p3 = p0.clone().add(new THREE.Vector3(1, 0, -8));
+    const p4 = p0.clone().add(new THREE.Vector3(-2, 0, -11));
+    const p5 = p0.clone().add(new THREE.Vector3(0, 0, -14));
+
+    this.curve = new THREE.CatmullRomCurve3([p0, p1, p2, p3, p4, p5]);
+    
+    // Draw Glowing Track
+    if (this.trackMesh) this.scene.remove(this.trackMesh);
+    
+    const trackGeo = new THREE.TubeGeometry(this.curve, 100, 0.08, 12, false);
+    const trackMat = new THREE.MeshBasicMaterial({ color: 0x0ea5e9, wireframe: true, transparent: true, opacity: 0.6 });
+    this.trackMesh = new THREE.Mesh(trackGeo, trackMat);
+    this.trackMesh.position.y = -0.28; // just above grid
+    this.scene.add(this.trackMesh);
+
+    this.playerMolecule.mesh.position.copy(p0);
+    
+    // Place target exactly at the end of the track
+    if (this.targetMolecule) {
+      this.targetMolecule.mesh.position.copy(p5);
+      const beacon = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.02, 0.02, 20, 8), 
+        new THREE.MeshBasicMaterial({color: 0xff00ff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending})
+      );
+      this.targetMolecule.mesh.add(beacon);
+    }
+  }
+
+  update(dt, input, cameraRig) {
+    if (!this.isMoving || !this.playerMolecule || !this.curve) return;
+
+    // Handle Gas
+    if (input.gas) {
+      this.velocity = Math.min(this.velocity + dt * 0.5, 0.15); // speed factor (0.15 is fast along curve 0-1)
+    } else {
+      this.velocity = Math.max(this.velocity - dt * 0.5, 0); // brake
+    }
+
+    this.progress += this.velocity * dt;
+    if (this.progress > 0.98) this.progress = 0.98;
+
+    // Position Molecule on Track
+    const point = this.curve.getPointAt(this.progress);
+    this.playerMolecule.mesh.position.copy(point);
+    this.playerMolecule.mesh.position.y += 0.05 + Math.sin(Date.now() * 0.005) * 0.02; // hover effect
+
+    // Rotate Molecule along Tangent
+    const tangent = this.curve.getTangentAt(this.progress).normalize();
+    const axis = new THREE.Vector3(0, 1, 0);
+    const angle = Math.atan2(tangent.x, tangent.z);
+    this.playerMolecule.mesh.rotation.y = angle;
+
+    // Chase Camera Rig Update (Behind and slightly above)
+    if (cameraRig) {
+      // Offset behind (z+) and up (y+) relative to the molecule's forward direction
+      const backOffset = tangent.clone().multiplyScalar(-1.2); 
+      backOffset.y = 0.4; // height above
+      
+      const targetCamPos = point.clone().add(backOffset);
+      cameraRig.position.lerp(targetCamPos, 0.1);
+      
+      // Make rig look slightly ahead of the molecule to see the road
+      const lookAhead = this.curve.getPointAt(Math.min(1, this.progress + 0.1));
+      // Manual lookAt interpolation for smoothness
+      const m = new THREE.Matrix4().lookAt(cameraRig.position, lookAhead, new THREE.Vector3(0,1,0));
+      const qTarget = new THREE.Quaternion().setFromRotationMatrix(m);
+      cameraRig.quaternion.slerp(qTarget, 0.1);
+    }
+
+    // Collision at end of track
+    if (this.progress >= 0.95 && !this.collisionEventFired) {
+      this.collisionEventFired = true;
+      if (this.onCollision) this.onCollision();
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // IMMERSIVE 3D ROOM (Grid & Parallax)
 // ---------------------------------------------------------------------------
 class ImmersiveRoom {
@@ -223,24 +330,22 @@ class ImmersiveRoom {
     scene.add(this.container);
 
     // Glowing Neon Floor
-    const grid = new THREE.GridHelper(40, 40, 0x0ea5e9, 0x0284c7);
-    grid.position.y = -0.3; // ground level
+    const grid = new THREE.GridHelper(50, 50, 0x0ea5e9, 0x0284c7);
+    grid.position.y = -0.3; 
     this.container.add(grid);
 
     // Space Sphere (Skybox)
-    const skyGeo = new THREE.SphereGeometry(30, 32, 32);
-    const skyMat = new THREE.MeshBasicMaterial({ color: 0x050816, side: THREE.BackSide });
+    const skyGeo = new THREE.SphereGeometry(40, 32, 32);
+    const skyMat = new THREE.MeshBasicMaterial({ color: 0x02040a, side: THREE.BackSide });
     this.container.add(new THREE.Mesh(skyGeo, skyMat));
 
     // Ambient Particles (Parallax)
     const pGeo = new THREE.BufferGeometry();
-    const pCount = 500;
+    const pCount = 800;
     const pPos = new Float32Array(pCount * 3);
-    for(let i=0; i<pCount*3; i++) {
-      pPos[i] = (Math.random() - 0.5) * 20; // spread across room
-    }
+    for(let i=0; i<pCount*3; i++) pPos[i] = (Math.random() - 0.5) * 30; 
     pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-    const pMat = new THREE.PointsMaterial({ color: 0x7df9ff, size: 0.05, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending });
+    const pMat = new THREE.PointsMaterial({ color: 0x7df9ff, size: 0.05, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending });
     this.particles = new THREE.Points(pGeo, pMat);
     this.container.add(this.particles);
   }
@@ -248,7 +353,7 @@ class ImmersiveRoom {
   setVisible(v) { this.container.visible = v; }
   update(dt) {
     if(!this.container.visible) return;
-    this.particles.rotation.y += dt * 0.05; // slow swirl
+    this.particles.rotation.y += dt * 0.02; 
   }
 }
 
@@ -271,77 +376,6 @@ export class MolecularPortal {
   }
 }
 
-// ---------------------------------------------------------------------------
-// DRIVING SYSTEM
-// ---------------------------------------------------------------------------
-export class RCDrivingSystem {
-  constructor(scene) {
-    this.scene = scene;
-    this.playerMolecule = null;
-    this.targetMolecule = null;
-    this.velocity = 0; 
-    this.angle = 0; 
-    this.isMoving = false;
-    this.collisionEventFired = false;
-    this.onCollision = null;
-  }
-
-  initJourney(playerMol, targetMol, startPos) {
-    this.playerMolecule = playerMol;
-    this.targetMolecule = targetMol;
-    this.collisionEventFired = false;
-    this.isMoving = true;
-    this.velocity = 0; 
-    this.angle = 0;
-
-    this.playerMolecule.mesh.position.copy(startPos);
-    
-    // Spawn target randomly in front
-    if (this.targetMolecule) {
-      const offsetX = (Math.random() - 0.5) * 4;
-      const offsetZ = -3 - Math.random() * 2; // 3 to 5 meters ahead
-      this.targetMolecule.mesh.position.copy(startPos).add(new THREE.Vector3(offsetX, 0, offsetZ));
-    }
-  }
-
-  update(dt, input) {
-    if (!this.isMoving || !this.playerMolecule) return;
-
-    // Handle Steering
-    if (input.steer !== 0) {
-      this.angle += input.steer * dt * 2.5; 
-    }
-
-    // Handle Gas (Manual)
-    if (input.gas) {
-      this.velocity = Math.min(this.velocity + dt * 2, 1.2); // accelerate to max speed
-    } else {
-      this.velocity = Math.max(this.velocity - dt * 2, 0); // decelerate
-    }
-
-    const dx = Math.sin(this.angle) * this.velocity * dt;
-    const dz = Math.cos(this.angle) * this.velocity * dt;
-
-    this.playerMolecule.mesh.position.x += dx;
-    this.playerMolecule.mesh.position.z -= dz; 
-    
-    this.playerMolecule.mesh.rotation.y = this.angle;
-    this.playerMolecule.mesh.position.y = Math.sin(Date.now() * 0.005) * 0.02; // hover
-
-    // Collision
-    if (this.targetMolecule && !this.collisionEventFired) {
-      const dist = this.playerMolecule.mesh.position.distanceTo(this.targetMolecule.mesh.position);
-      if (dist < 0.3) {
-        this.collisionEventFired = true;
-        if (this.onCollision) this.onCollision();
-      }
-    }
-  }
-}
-
-// ---------------------------------------------------------------------------
-// DETECT AR MODE
-// ---------------------------------------------------------------------------
 export async function deteksiModeAR() {
   if (navigator.xr) {
     try { if (await navigator.xr.isSessionSupported('immersive-ar')) return 'webxr'; } catch(_) {}
@@ -370,7 +404,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, onStateChange) {
   const key = new THREE.DirectionalLight(0xffffff, 2.5);
   key.position.set(2, 5, 3); scene.add(key);
 
-  // CAMERA RIG ARCHITECTURE
+  // CAMERA RIG ARCHITECTURE (Chase Cam)
   const cameraRig = new THREE.Group();
   scene.add(cameraRig);
   
@@ -394,7 +428,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, onStateChange) {
 
   const portal = new MolecularPortal(scene);
   const room = new ImmersiveRoom(scene);
-  const journey = new RCDrivingSystem(scene);
+  const journey = new RollercoasterDrivingSystem(scene);
   const sm = new ARStateMachine();
   
   let berjalan = true;
@@ -440,20 +474,13 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, onStateChange) {
     scene.add(targetMolecule.mesh);
 
     const youSprite = createTextSprite("⭐ YOU", 0x7df9ff);
-    youSprite.position.set(0, 0.15, 0);
+    youSprite.position.set(0, 0.18, 0);
     playerMolecule.mesh.add(youSprite);
 
-    // Add beacon to target to help find it
-    const beaconGeo = new THREE.CylinderGeometry(0.01, 0.01, 10, 8);
-    const beaconMat = new THREE.MeshBasicMaterial({color:0xff00ff, transparent:true, opacity:0.3});
-    const beacon = new THREE.Mesh(beaconGeo, beaconMat);
-    targetMolecule.mesh.add(beacon);
-
+    // Camera rig base pos
+    cameraRig.position.set(0, 0.4, 1.5);
+    
     journey.initJourney(playerMolecule, targetMolecule, new THREE.Vector3(0, 0, 0));
-    
-    // Calibrate camera rig to start position
-    cameraRig.position.set(0, 0.4, 0.8);
-    
     journey.onCollision = () => { sm.setState(AR_STATE.REACTION_EVENT); };
 
     setTimeout(() => sm.setState(AR_STATE.MOLECULAR_JOURNEY), 1000);
@@ -478,6 +505,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, onStateChange) {
       
       scene.remove(playerMolecule.mesh);
       scene.remove(targetMolecule.mesh);
+      if (journey.trackMesh) scene.remove(journey.trackMesh);
       
       playerMolecule.mesh = buatMolekul(misiData.produk);
       playerMolecule.jenis = misiData.produk;
@@ -485,7 +513,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, onStateChange) {
       scene.add(playerMolecule.mesh);
       
       const youSprite = createTextSprite("⭐ YOU", 0xfde047);
-      youSprite.position.set(0, 0.15, 0);
+      youSprite.position.set(0, 0.18, 0);
       playerMolecule.mesh.add(youSprite);
       
       journey.playerMolecule = playerMolecule;
@@ -524,14 +552,12 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, onStateChange) {
           scene.add(playerMolecule.mesh);
           
           const youSprite = createTextSprite("⭐ YOU", 0x7df9ff);
-          youSprite.position.set(0, 0.15, 0);
+          youSprite.position.set(0, 0.18, 0);
           playerMolecule.mesh.add(youSprite);
           
           if (window._updateHUDForm) window._updateHUDForm(false, misiData.target_jenis);
           
           targetMolecule = { mesh: buatMolekul(misiData.target_pasangan), jenis: misiData.target_pasangan };
-          const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 10, 8), new THREE.MeshBasicMaterial({color:0xff00ff, transparent:true, opacity:0.3}));
-          targetMolecule.mesh.add(beacon);
           scene.add(targetMolecule.mesh);
           
           journey.initJourney(playerMolecule, targetMolecule, playerMolecule.mesh.position);
@@ -558,7 +584,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, onStateChange) {
     const cvs = document.createElement('canvas');
     cvs.width = 256; cvs.height = 64;
     const ctx = cvs.getContext('2d');
-    ctx.font = 'Bold 32px Poppins, Arial';
+    ctx.font = 'Bold 36px Poppins, Arial';
     ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(message, 128, 32);
@@ -569,12 +595,12 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, onStateChange) {
     return sprite;
   }
 
-  function buatBurst(scene, position, color = 0x7df9ff, count = 20) {
+  function buatBurst(scene, position, color = 0x7df9ff, count = 25) {
     const p = [];
     for (let i=0; i<count; i++) {
-      const m = new THREE.Mesh(new THREE.SphereGeometry(0.01, 5, 5), new THREE.MeshBasicMaterial({ color, transparent: true }));
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.015, 5, 5), new THREE.MeshBasicMaterial({ color, transparent: true }));
       m.position.copy(position); scene.add(m);
-      p.push({ m, vel: new THREE.Vector3((Math.random()-0.5)*0.1, (Math.random()-0.5)*0.1, (Math.random()-0.5)*0.1), life: 0 });
+      p.push({ m, vel: new THREE.Vector3((Math.random()-0.5)*0.15, (Math.random()-0.5)*0.15, (Math.random()-0.5)*0.15), life: 0 });
     }
     const t = setInterval(() => {
       let a = false;
@@ -592,7 +618,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, onStateChange) {
     const dt = clock.getDelta();
 
     if (!portalPlaced && reticle.visible) {
-      reticle.position.set(0, -0.2, -1);
+      reticle.position.set(0, -0.2, -1.2);
       reticle.rotation.z += dt * 1;
     }
 
@@ -601,24 +627,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, onStateChange) {
 
     if (sm.is(AR_STATE.MOLECULAR_JOURNEY) || sm.is(AR_STATE.REACTION_EVENT)) {
       const input = window._getDrivingInput ? window._getDrivingInput() : { steer: 0, gas: false };
-      journey.update(dt, input);
-      
-      // Update Camera Rig to follow molecule (like a driver/chase cam)
-      if (playerMolecule) {
-        const molPos = playerMolecule.mesh.position;
-        const angle = playerMolecule.mesh.rotation.y;
-        
-        // Calculate position slightly behind and above the molecule
-        const offset = new THREE.Vector3(Math.sin(angle) * -0.6, 0.2, Math.cos(angle) * -0.6);
-        const targetCamPos = molPos.clone().add(offset);
-        
-        cameraRig.position.lerp(targetCamPos, 0.1);
-        
-        // Match rotation (Y axis) so forward is always looking at the molecule
-        // Smoothly rotate the rig to match the car's direction
-        const qTarget = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), angle);
-        cameraRig.quaternion.slerp(qTarget, 0.1);
-      }
+      journey.update(dt, input, cameraRig);
     }
 
     if (isTrueAR) {

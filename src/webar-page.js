@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ARCHEMY WEBAR PAGE v5.0 - Driving & Grid
+   ARCHEMY WEBAR PAGE v6.0 - Rollercoaster UI
    ========================================================================== */
 
 import { MISI_DATA, AR_STATE, deteksiModeAR, mulaiSesiWebXR, mulaiSesiARjs, requestSensorPermission } from './webar.js';
@@ -13,12 +13,12 @@ export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
     const isRec = recommendedIds.includes(id);
     const isDone = viewedMisi.includes(id);
     return `
-      <button class="misi-card ${isRec ? 'misi-recommended' : ''} ${isDone ? 'misi-done' : ''}" data-misi="${id}">
+      <div class="misi-card ${isRec ? 'misi-recommended' : ''} ${isDone ? 'misi-done' : ''}" data-misi="${id}">
         ${isRec ? '<div class="misi-ai-badge">Prioritas AI</div>' : ''}
         ${isDone ? '<div class="misi-done-badge">&#10003; Selesai</div>' : ''}
         <h3 class="misi-judul">${misi.judul}</h3>
         <code class="misi-persamaan">${misi.persamaan}</code>
-      </button>`;
+      </div>`;
   }).join('');
 
   container.innerHTML = `
@@ -52,8 +52,8 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         <div class="webar-scan-title">Pindai Permukaan</div>
       </div>
 
-      <!-- Kiri Atas -->
-      <div class="hud-top-left" id="hudCurrentForm" style="display:none">
+      <!-- Kiri Tengah -->
+      <div class="hud-mid-left" id="hudCurrentForm" style="display:none">
         <div class="form-label">Current Form</div>
         <div class="form-value" id="currentFormValue">&#128309; Reactant</div>
       </div>
@@ -64,8 +64,8 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         <div class="mission-value" id="missionValue">Find ${misi.target_pasangan || 'Target'}</div>
       </div>
 
-      <!-- Tengah Atas: Equilibrium -->
-      <div class="hud-top-center" id="hudEquilibrium" style="display:none">
+      <!-- Bawah Tengah: Equilibrium (Pindah ke bawah agar tidak overlap) -->
+      <div class="hud-bottom-eq" id="hudEquilibrium" style="display:none">
         <div class="eq-title">Equilibrium</div>
         <div class="eq-row">
           <span class="eq-label">Forward &#10142;</span>
@@ -83,7 +83,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         <div class="ai-speech" id="webarAiSpeech">...</div>
       </div>
 
-      <!-- Kanan Bawah: Action Bar -->
+      <!-- Kiri Bawah: Action Bar -->
       <div class="webar-action-bar" id="webarActionBar" style="display:none">
         <button class="action-btn" id="btnHeat" data-tool="heat">&#128293;<span>Heat</span></button>
         <button class="action-btn" id="btnCool" data-tool="cool">&#10052;<span>Cool</span></button>
@@ -91,12 +91,8 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         <button class="action-btn" id="btnCompress" data-tool="compress">&#128230;<span>Compress</span></button>
       </div>
 
-      <!-- Bawah: Driving Controls -->
+      <!-- Kanan Bawah: Driving Controls (GAS ONLY) -->
       <div class="webar-driving-controls" id="webarDrivingControls" style="display:none">
-        <div class="steer-left-right">
-          <button class="ctrl-btn steer" id="btnSteerLeft">&#11013;</button>
-          <button class="ctrl-btn steer" id="btnSteerRight">&#10145;</button>
-        </div>
         <div class="gas-pedal">
           <button class="ctrl-btn gas" id="btnGas">&#9191;</button>
         </div>
@@ -171,6 +167,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
   }
   resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
 
   const mode = await deteksiModeAR();
   setAI('Menginisialisasi...');
@@ -189,28 +186,19 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     if (btn) btn.addEventListener('click', () => { if (sesiARAktif?.triggerTool) sesiARAktif.triggerTool(tool); });
   });
 
-  // Driving buttons
-  const btnL = container.querySelector('#btnSteerLeft');
-  const btnR = container.querySelector('#btnSteerRight');
+  // Driving buttons (GAS ONLY)
   const btnGas = container.querySelector('#btnGas');
-  
-  let steerDir = 0;
   let isGassing = false;
   
-  const bindBtn = (btn, downFn, upFn) => {
-    if(!btn) return;
-    const pd = (e) => { e.preventDefault(); downFn(); };
-    const pu = (e) => { e.preventDefault(); upFn(); };
-    btn.addEventListener('mousedown', pd); btn.addEventListener('touchstart', pd);
-    btn.addEventListener('mouseup', pu); btn.addEventListener('touchend', pu);
-    btn.addEventListener('mouseleave', pu); btn.addEventListener('touchcancel', pu);
-  };
+  if (btnGas) {
+    const pd = (e) => { e.preventDefault(); isGassing = true; };
+    const pu = (e) => { e.preventDefault(); isGassing = false; };
+    btnGas.addEventListener('mousedown', pd); btnGas.addEventListener('touchstart', pd);
+    btnGas.addEventListener('mouseup', pu); btnGas.addEventListener('touchend', pu);
+    btnGas.addEventListener('mouseleave', pu); btnGas.addEventListener('touchcancel', pu);
+  }
 
-  bindBtn(btnL, () => steerDir = 1, () => steerDir = 0);
-  bindBtn(btnR, () => steerDir = -1, () => steerDir = 0);
-  bindBtn(btnGas, () => isGassing = true, () => isGassing = false);
-
-  window._getDrivingInput = () => ({ steer: steerDir, gas: isGassing });
+  window._getDrivingInput = () => ({ steer: 0, gas: isGassing });
 
   container.querySelector('#btnClaimWebar').addEventListener('click', () => { hentikanSesiAR(); onKeluar(); });
   container.querySelector('#webarKeluar').addEventListener('click', () => { hentikanSesiAR(); onKeluar(); });
@@ -219,4 +207,5 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 export function hentikanSesiAR() {
   if (sesiARAktif) { sesiARAktif.hentikan(); sesiARAktif = null; }
   window._updateHUDForm = null; window._updateHUDEq = null; window._getDrivingInput = null;
+  window.removeEventListener('resize', () => {});
 }
