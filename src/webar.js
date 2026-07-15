@@ -58,7 +58,7 @@ export const MISI_DATA = {
   misi1: {
     judul: 'Misi 1: Gas Iodin Reversibel',
     persamaan: 'H₂(g) + I₂(g) ⇌ 2HI(g)',
-    ceritaAwal: 'Halo! Reaksi di labu ini belum setimbang. Laju reaksi pembentukan produk dan penguraian reaktan masih berbeda. Tingkatkan energi panas (Suhu) sistem untuk menyeimbangkannya! (Klu: Setel ke target 50°C)',
+    ceritaAwal: 'Halo! Ruang reaksi ini belum setimbang. Laju reaksi pembentukan produk dan penguraian reaktan masih berbeda. Tingkatkan energi panas sistem dengan alat 🔥 Heat untuk menyeimbangkannya!',
     ceritaSukses: 'Luar biasa! Kesetimbangan tercapai. Ingat, ini Kesetimbangan Dinamis: Secara statis warnanya tetap, tapi secara mikroskopis molekul H₂, I₂, dan HI terus bereaksi bolak-balik dengan laju yang sama!',
     parameterKunci: 'suhu',
     wujud: 'gas',
@@ -77,7 +77,7 @@ export const MISI_DATA = {
   misi2: {
     judul: 'Misi 2: Operasi Smog Kota',
     persamaan: '2NO₂(g) ⇌ N₂O₄(g)',
-    ceritaAwal: 'Gas NO₂ beracun! Sistem belum setimbang. Sesuai asas Le Chatelier, perkecil volume labu untuk meningkatkan tekanan dan menggeser reaksi ke jumlah mol gas yang lebih kecil (N₂O₄). (Klu: Setel ke target 2.0 L)',
+    ceritaAwal: 'Gas NO₂ beracun! Sistem belum setimbang. Sesuai asas Le Chatelier, perkecil volume ruang reaksi dengan alat 📦 Compress untuk meningkatkan tekanan dan menggeser reaksi ke jumlah mol gas yang lebih kecil (N₂O₄).',
     ceritaSukses: 'Hebat! Volume kecil memperbesar tekanan, menggeser reaksi ke arah N₂O₄. Secara dinamis, molekul NO₂ dan N₂O₄ masih terus terbentuk dan terurai tanpa henti di dalam sistem!',
     parameterKunci: 'volume',
     wujud: 'gas',
@@ -96,7 +96,7 @@ export const MISI_DATA = {
   misi3: {
     judul: 'Misi 3: Pabrik Pupuk Amonia',
     persamaan: 'N₂(g) + 3H₂(g) ⇌ 2NH₃(g)',
-    ceritaAwal: 'Pabrik butuh NH₃. Sistem belum setimbang. Tambahkan konsentrasi reaktan H₂ untuk mendorong kesetimbangan ke arah produk (kanan)! (Klu: Setel ke target 1.0 M)',
+    ceritaAwal: 'Pabrik butuh NH₃. Sistem belum setimbang. Gunakan alat ➕ Add Reactant untuk mendorong kesetimbangan ke arah produk (kanan)!',
     ceritaSukses: 'Sempurna! Asas Le Chatelier terbukti: penambahan konsentrasi reaktan menggeser reaksi ke produk. Meskipun jumlah amonia tampak statis, reaksi mikroskopis tetap berjalan bolak-balik (dinamis)!',
     parameterKunci: 'konsentrasi',
     wujud: 'gas',
@@ -115,7 +115,7 @@ export const MISI_DATA = {
   misi4: {
     judul: 'Misi 4: Buffer Darah',
     persamaan: 'CO₂(g) + H₂O(l) ⇌ H₂CO₃(aq)',
-    ceritaAwal: 'pH darah pasien tidak seimbang! Atur tekanan gas dari paru-paru untuk memulihkan kesetimbangan asam karbonat di dalam plasma darah! (Klu: Setel ke target 3.0 atm)',
+    ceritaAwal: 'pH darah pasien tidak seimbang! Gunakan alat 📦 Compress untuk memulihkan kesetimbangan asam karbonat di dalam plasma darah!',
     ceritaSukses: 'Penyelamatan berhasil! Darah kini dalam keadaan kesetimbangan dinamis. Reaksi ionisasi dan asosiasi terus terjadi di dalam plasma darah dengan laju yang seimbang.',
     parameterKunci: 'tekanan',
     wujud: 'aqueous',
@@ -134,8 +134,8 @@ export const MISI_DATA = {
   misi5: {
     judul: 'Misi 5: Dekomposisi Batu Kapur',
     persamaan: 'CaCO₃(s) ⇌ CaO(s) + CO₂(g)',
-    ceritaAwal: 'Reaksi dekomposisi ini bersifat endotermik (menyerap panas). Berikan lebih banyak energi panas (Suhu) untuk mendorong penguraian batu kapur menjadi gas CO₂! (Klu: Setel ke target 80°C)',
-    ceritaSukses: 'Bagus sekali! Pada kesetimbangan heterogen, penambahan suhu pada reaksi endotermik menggeser reaksi ke kanan (produk). Perhatikan bahwa merubah ukuran wadah akan merubah tekanan gas CO₂.',
+    ceritaAwal: 'Reaksi dekomposisi ini bersifat endotermik (menyerap panas). Gunakan alat 🔥 Heat untuk mendorong penguraian batu kapur menjadi gas CO₂!',
+    ceritaSukses: 'Bagus sekali! Pada kesetimbangan heterogen, penambahan suhu pada reaksi endotermik menggeser reaksi ke kanan (produk). Perhatikan bahwa mengecilkan ruang reaksi akan merubah tekanan gas CO₂.',
     parameterKunci: 'suhu',
     wujud: 'heterogen',
     nilaiTarget: 80,

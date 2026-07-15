@@ -96,7 +96,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         <div class="webar-scan-overlay" id="webarScanOverlay">
           <div class="scan-phone-icon"></div>
           <div class="webar-scan-title">Pindai Permukaan</div>
-          <div class="webar-scan-desc">Arahkan kamera ke meja atau lantai, lalu <b>KETUK</b> untuk meletakkan labu.</div>
+          <div class="webar-scan-desc">Arahkan kamera ke meja atau lantai, lalu <b>KETUK</b> untuk memulai Molecular Journey.</div>
         </div>
 
         <!-- Status - fade out setelah 3 detik -->
@@ -104,7 +104,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 
         <!-- Tap hint - muncul setelah scan -->
         <div class="webar-tap-hint" id="webarTapHint" style="display:none">
-          Ketuk untuk meletakkan labu
+          Ketuk untuk memulai Molecular Journey
         </div>
 
         <!-- Badge kesetimbangan - pojok kanan atas, sangat kecil -->
@@ -185,7 +185,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 
   sensorData.spillCallback = () => {
     const t = document.getElementById('panelStoryText');
-    if (t) t.innerHTML = `<span style="color:#f87171"><b>Waduh, labunya tumpah!</b> Tegakkan kembali ponsel untuk mereset.</span>`;
+    if (t) t.innerHTML = `<span style="color:#f87171"><b>Waduh, sistemnya tumpah!</b> Tegakkan kembali ponsel untuk mereset.</span>`;
     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
   };
   sensorData.unspillCallback = () => {
@@ -222,7 +222,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
       const desc = scanOverlay.querySelector('.webar-scan-desc');
       setTimeout(() => {
         if (desc && !sesiARAktif?.sudahDitempatkan)
-          desc.innerHTML = `Permukaan terdeteksi! <b>KETUK</b> layar untuk meletakkan labu.`;
+          desc.innerHTML = `Permukaan terdeteksi! <b>KETUK</b> layar untuk memulai Molecular Journey.`;
       }, 2500);
       sesiARAktif = await mulaiSesiARjs(canvas, videoEl, misiId, getSpeedFactor, onLabuDitempatkan);
     }
