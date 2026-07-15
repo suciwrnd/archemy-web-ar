@@ -240,7 +240,12 @@ body.colorblind-mode .webar-colorblind-btn {
 
 /* ===== PANEL KONTROL BAWAH (HIDDEN) ===== */
 .webar-controls {
-  display: none !important;
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+}
+.webar-controls * {
+  pointer-events: auto;
 }
 
 /* Story box - di dalam panel, BUKAN di atas viewport */
