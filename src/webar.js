@@ -705,6 +705,56 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
   viewerSpace = await session.requestReferenceSpace('viewer');
   hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
 
+  
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  let raycasterEnabled = false;
+
+  const onCanvasClick = (e) => {
+    if (!raycasterEnabled || false) return;
+    
+    // Normalizing mouse coordinates
+    let rect;
+    if (e.touches && e.touches.length > 0) {
+      rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.touches[0].clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.touches[0].clientY - rect.top) / rect.height) * 2 + 1;
+    } else {
+      rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(labuGrup.children, true);
+    
+    if (intersects.length > 0) {
+      // Find which partikel owns this mesh
+      for (let i = 0; i < partikel.partikel.length; i++) {
+         const p = partikel.partikel[i];
+         // Check if intersected object is a child of this particle's group
+         let isChild = false;
+         intersects[0].object.traverseAncestors(ancestor => {
+           if (ancestor === p.mesh) isChild = true;
+         });
+         
+         if (isChild || intersects[0].object === p.mesh) {
+           // We found the tapped molecule!
+           followTarget = p;
+           followMode = true;
+           raycasterEnabled = false; // Disable choosing again
+           
+           // Notify UI to advance state
+           if (window._transitionToFollow) window._transitionToFollow();
+           break;
+         }
+      }
+    }
+  };
+  
+  canvas.addEventListener('click', onCanvasClick);
+  canvas.addEventListener('touchstart', onCanvasClick, { passive: true });
+
   session.addEventListener('select', () => {
     if (sudahDitempatkan || !reticle.visible) return;
     basePos.copy(reticle.position); basePos.y += 0.3;
@@ -747,18 +797,13 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
   return { 
     session, renderer, scene, labuGrup, partikel, 
     
+    
     triggerAction: (tool, misiId) => {
       const data = MISI_DATA[misiId];
-      if (tool === 'follow') {
-        if (!followMode) {
-          const targetJenis = (misiId === 'misi2') ? 'NO2' : (misiId === 'misi3' ? 'N2' : 'H2');
-          followTarget = partikel.partikel.find(p => p.mesh.userData.jenis === targetJenis) || partikel.partikel[0];
-          if (followTarget) followMode = true;
-        } else {
-          followMode = false;
-          followTarget = null;
-        }
-        return false;
+      if (tool === 'zoom_out') {
+         followMode = false;
+         followTarget = null;
+         return false;
       }
       
       // Simulate reaction based on tool
@@ -766,7 +811,6 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
         partikel.isiDariMisi(misiId, true); // Change to success state (morphs molecules)
         if (followMode) followTarget = partikel.partikel[0]; // lock onto a new one
         
-        // Add a gentle flash effect to all molecules to signify state change
         partikel.partikel.forEach(p => {
           p.mesh.children.forEach(c => {
             if(c.isMesh && c.material.emissive) {
@@ -777,11 +821,13 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
           });
         });
         
-        return true; // Success!
+        return true; 
       }
       return false;
     },
-    hentikan: () => { renderer.setAnimationLoop(null); session.end(); } 
+    
+    enableRaycaster: (val) => { raycasterEnabled = val; },
+hentikan: () => { renderer.setAnimationLoop(null); session.end(); } 
   };
 }
 
@@ -836,6 +882,56 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   window.addEventListener('pointerdown', onFirstTap);
   window.addEventListener('touchstart', onFirstTap, { passive: true });
 
+  
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  let raycasterEnabled = false;
+
+  const onCanvasClick = (e) => {
+    if (!raycasterEnabled || !berjalan) return;
+    
+    // Normalizing mouse coordinates
+    let rect;
+    if (e.touches && e.touches.length > 0) {
+      rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.touches[0].clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.touches[0].clientY - rect.top) / rect.height) * 2 + 1;
+    } else {
+      rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(labuGrup.children, true);
+    
+    if (intersects.length > 0) {
+      // Find which partikel owns this mesh
+      for (let i = 0; i < partikel.partikel.length; i++) {
+         const p = partikel.partikel[i];
+         // Check if intersected object is a child of this particle's group
+         let isChild = false;
+         intersects[0].object.traverseAncestors(ancestor => {
+           if (ancestor === p.mesh) isChild = true;
+         });
+         
+         if (isChild || intersects[0].object === p.mesh) {
+           // We found the tapped molecule!
+           followTarget = p;
+           followMode = true;
+           raycasterEnabled = false; // Disable choosing again
+           
+           // Notify UI to advance state
+           if (window._transitionToFollow) window._transitionToFollow();
+           break;
+         }
+      }
+    }
+  };
+  
+  canvas.addEventListener('click', onCanvasClick);
+  canvas.addEventListener('touchstart', onCanvasClick, { passive: true });
+
   function loop() {
     if (!berjalan) return;
     partikel.perbarui(1);
@@ -873,18 +969,13 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   return {
     renderer, scene, labuGrup, partikel,
     
+    
     triggerAction: (tool, misiId) => {
       const data = MISI_DATA[misiId];
-      if (tool === 'follow') {
-        if (!followMode) {
-          const targetJenis = (misiId === 'misi2') ? 'NO2' : (misiId === 'misi3' ? 'N2' : 'H2');
-          followTarget = partikel.partikel.find(p => p.mesh.userData.jenis === targetJenis) || partikel.partikel[0];
-          if (followTarget) followMode = true;
-        } else {
-          followMode = false;
-          followTarget = null;
-        }
-        return false;
+      if (tool === 'zoom_out') {
+         followMode = false;
+         followTarget = null;
+         return false;
       }
       
       // Simulate reaction based on tool
@@ -892,7 +983,6 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
         partikel.isiDariMisi(misiId, true); // Change to success state (morphs molecules)
         if (followMode) followTarget = partikel.partikel[0]; // lock onto a new one
         
-        // Add a gentle flash effect to all molecules to signify state change
         partikel.partikel.forEach(p => {
           p.mesh.children.forEach(c => {
             if(c.isMesh && c.material.emissive) {
@@ -903,11 +993,13 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
           });
         });
         
-        return true; // Success!
+        return true; 
       }
       return false;
     },
-    hentikan: () => { berjalan = false; window.removeEventListener('resize', urusResize); window.removeEventListener('pointerdown', onFirstTap); window.removeEventListener('touchstart', onFirstTap); if (videoEl.srcObject) videoEl.srcObject.getTracks().forEach((t) => t.stop()); }
+    
+    enableRaycaster: (val) => { raycasterEnabled = val; },
+hentikan: () => { berjalan = false; window.removeEventListener('resize', urusResize); window.removeEventListener('pointerdown', onFirstTap); window.removeEventListener('touchstart', onFirstTap); if (videoEl.srcObject) videoEl.srcObject.getTracks().forEach((t) => t.stop()); }
   };
 }
 

@@ -245,65 +245,130 @@ function resizeCanvasKeViewport(canvas) {
 /* --------------------------------------------------------------------------
    PANEL KONTROL - semua info edukatif & slider di sini
    -------------------------------------------------------------------------- */
+
+let currentMissionState = 'MACRO_IDLE';
+
 function renderPanelKontrol(container, misiId, hudTop, eqBadge, eqDot, eqText) {
   const misi = MISI_DATA[misiId];
+  
+  const updateUI = () => {
+    let aiText = '';
+    let toolbarHtml = '';
+    let extraUi = '';
 
-  container.innerHTML = `
-    <!-- AI Instruction Bubble -->
-    <div class="webar-ai-bubble" id="aiBubble">
-      <span id="aiBubbleText"><b>AI:</b> ${misi.ceritaAwal}</span>
-    </div>
-
-    <!-- Action Toolbar (Right Vertical) -->
-    <div class="webar-action-toolbar">
-      <button class="webar-action-btn" id="btn-heat" title="Heat">🔥</button>
-      <button class="webar-action-btn" id="btn-cool" title="Cool">❄</button>
-      <button class="webar-action-btn" id="btn-add" title="Add Reactant">➕</button>
-      <button class="webar-action-btn" id="btn-compress" title="Compress">📦</button>
-      <div style="height:1px;background:rgba(255,255,255,0.2);margin:4px 0;"></div>
-      <button class="webar-action-btn" id="btn-follow" title="Follow Mode">👁</button>
-    </div>`;
-
-  const aiText = container.querySelector('#aiBubbleText');
-  let popupTimeout;
-  let misiSelesai = false;
-
-  const showSuccess = () => {
-    aiText.innerHTML = `<b>AI:</b> ${misi.ceritaSukses}`;
-    if (eqDot && eqText && eqBadge) {
-      eqDot.className = 'eq-dot seimbang';
-      eqBadge.className = 'webar-eq-badge seimbang';
-      eqText.textContent = 'Status: Setimbang!';
+    if (currentMissionState === 'MACRO_IDLE') {
+      aiText = misi.ceritaMakro;
+      toolbarHtml = `
+        <button class="webar-action-btn" id="btn-investigate" title="Investigate">🔍</button>
+      `;
+      
+      // Auto-transition to guidance after 5 seconds to prompt investigation
+      setTimeout(() => {
+        if (currentMissionState === 'MACRO_IDLE') {
+          currentMissionState = 'PROMPT_INVESTIGATE';
+          updateUI();
+        }
+      }, 5000);
+      
+    } else if (currentMissionState === 'PROMPT_INVESTIGATE') {
+      aiText = misi.ceritaPilih;
+      extraUi = `<button id="btn-start-choose" class="ar-btn primary" style="position:absolute; bottom: 80px; left:50%; transform:translateX(-50%); width: 250px;">Mulai Investigasi &rarr;</button>`;
+    } else if (currentMissionState === 'CHOOSE_MOLECULE') {
+      aiText = 'Ketuk (Tap) salah satu molekul di layar untuk mengikutinya!';
+      extraUi = `<button id="btn-cancel-choose" class="ar-btn secondary" style="position:absolute; bottom: 80px; left:20px;">Back</button>`;
+    } else if (currentMissionState === 'FOLLOW_REACTION') {
+      aiText = misi.ceritaFollow;
+    } else if (currentMissionState === 'MOLECULE_REACTED') {
+      aiText = misi.ceritaEksperimen;
+      toolbarHtml = `
+        <button class="webar-action-btn" id="btn-heat" title="Heat">🔥</button>
+        <button class="webar-action-btn" id="btn-cool" title="Cool">❄</button>
+        <button class="webar-action-btn" id="btn-add" title="Add Reactant">➕</button>
+        <button class="webar-action-btn" id="btn-compress" title="Compress">📦</button>
+      `;
+    } else if (currentMissionState === 'REVERSE_REACTION') {
+      aiText = misi.ceritaReverse;
+    } else if (currentMissionState === 'ZOOM_OUT' || currentMissionState === 'MISSION_COMPLETE') {
+      aiText = misi.ceritaKesimpulan;
     }
-    if (hudTop) hudTop.classList.add('sukses');
-    
-    if (!misiSelesai) {
-      misiSelesai = true;
-      popupTimeout = setTimeout(() => {
-        const pop = document.getElementById('webarSuccessPopup');
-        if (pop) pop.style.display = 'flex';
-      }, 3500); // Tunda agar user menikmati free exploration
-    }
+
+    container.innerHTML = `
+      <div class="webar-ai-bubble" id="aiBubble">
+        <span id="aiBubbleText"><b>AI:</b> ${aiText}</span>
+      </div>
+      ${toolbarHtml ? `<div class="webar-action-toolbar">${toolbarHtml}</div>` : ''}
+      ${extraUi}
+    `;
+
+    // Attach listeners
+    const btnStart = container.querySelector('#btn-start-choose');
+    if (btnStart) btnStart.onclick = () => {
+      currentMissionState = 'CHOOSE_MOLECULE';
+      if (sesiARAktif && sesiARAktif.enableRaycaster) sesiARAktif.enableRaycaster(true);
+      updateUI();
+    };
+
+    const btnCancel = container.querySelector('#btn-cancel-choose');
+    if (btnCancel) btnCancel.onclick = () => {
+      currentMissionState = 'MACRO_IDLE';
+      if (sesiARAktif && sesiARAktif.enableRaycaster) sesiARAktif.enableRaycaster(false);
+      updateUI();
+    };
+
+    const btnInv = container.querySelector('#btn-investigate');
+    if (btnInv) btnInv.onclick = () => {
+      currentMissionState = 'PROMPT_INVESTIGATE';
+      updateUI();
+    };
+
+    // Tools
+    ['heat', 'cool', 'add', 'compress'].forEach(tool => {
+      const btn = container.querySelector('#btn-' + tool);
+      if (btn) {
+        btn.onclick = () => {
+          if (sesiARAktif && sesiARAktif.triggerAction) {
+             const success = sesiARAktif.triggerAction(tool, misiId);
+             if (success) {
+               currentMissionState = 'REVERSE_REACTION';
+               updateUI();
+               
+               setTimeout(() => {
+                 currentMissionState = 'ZOOM_OUT';
+                 if (sesiARAktif.triggerAction) sesiARAktif.triggerAction('zoom_out', misiId);
+                 updateUI();
+                 
+                 setTimeout(() => {
+                    currentMissionState = 'MISSION_COMPLETE';
+                    updateUI();
+                    
+                    if (eqDot && eqText && eqBadge) {
+                      eqDot.className = 'eq-dot seimbang';
+                      eqBadge.className = 'webar-eq-badge seimbang';
+                      eqText.textContent = 'Status: Setimbang!';
+                    }
+                    if (hudTop) hudTop.classList.add('sukses');
+                    const pop = document.getElementById('webarSuccessPopup');
+                    if (pop) pop.style.display = 'flex';
+                 }, 4000);
+               }, 6000);
+             }
+          }
+        };
+      }
+    });
+  };
+  
+  // Expose state transition to window so webar.js raycaster can call it
+  window._transitionToFollow = () => {
+    currentMissionState = 'FOLLOW_REACTION';
+    updateUI();
+    setTimeout(() => {
+      currentMissionState = 'MOLECULE_REACTED';
+      updateUI();
+    }, 6000); // 6 seconds of animation before asking to experiment
   };
 
-  // Button Events mapping to new logic in webar.js
-  const tools = ['heat', 'cool', 'add', 'compress', 'follow'];
-  tools.forEach(tool => {
-    const btn = container.querySelector('#btn-' + tool);
-    if (btn) {
-      btn.addEventListener('click', () => {
-        // Toggle visual active state (optional)
-        tools.forEach(t => container.querySelector('#btn-'+t)?.classList.remove('active-tool'));
-        btn.classList.add('active-tool');
-        setTimeout(() => btn.classList.remove('active-tool'), 300);
-
-        if (sesiARAktif && sesiARAktif.triggerAction) {
-          const tercapai = sesiARAktif.triggerAction(tool, misiId);
-          if (tercapai) showSuccess();
-        }
-      });
-    }
-  });
+  updateUI();
 }
 
 /* --------------------------------------------------------------------------
