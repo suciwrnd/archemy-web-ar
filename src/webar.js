@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 
 /* ==========================================================================
-   ARCHEMY WEBAR ENGINE v10.0 — PBR 3D Storytelling Experience
-   - True 3D Materials (Physical, Clearcoat, Reflections)
-   - Real 3D Flow Field (Particles), no 2D flat ribbons
-   - Choreographed Storytelling (Failed Collision, Reversible, Zoom Out)
+   ARCHEMY WEBAR ENGINE v11.0 — THE IMMERSIVE PORTAL
+   - True Cinematic VR-in-AR Experience
+   - Zero UI during journey
+   - Third Person Fixed Camera
+   - Particle Flow (Energy) instead of roads
+   - Isolated Focus (YOU + 2 targets only, until Zoom Out)
    ========================================================================== */
 
 export function requestSensorPermission() {
@@ -26,13 +28,13 @@ export const MISI_DATA = {
     deltaH: 'endoterm',
     tool_correct: 'heat',
     story: {
-      CP1: "Semua molekul bergerak dan bertumbukan secara acak di dalam sistem tertutup ini.",
-      CP2: "Bump! Tidak semua tumbukan menghasilkan reaksi. Energi harus cukup.",
+      CP1: "Setiap molekul terus bergerak tanpa henti.",
+      CP2: "Tumbukan terjadi, tapi energimu tidak cukup untuk bereaksi.",
       CP3: "", // Silent on success
-      CP4: "", // Break apart
-      CP5: "", // Loop
-      CP6: "Walaupun molekul-molekul individual terus berubah bentuk bolak-balik, perbandingan jumlah H₂, I₂, dan HI secara keseluruhan tetap. Inilah Kesetimbangan Dinamis.",
-      CP7: "Eksperimen Asas Le Chatelier: Reaksi pembentukan HI bersifat endotermik (menyerap panas). Coba ubah suhu atau tekanan untuk menggeser kesetimbangan!",
+      CP4: "Kamu bereaksi! Ikatan terbentuk.",
+      CP5: "", // Break apart silently
+      CP6: "Inilah Kesetimbangan Dinamis. Semua molekul terus berubah bolak-balik dalam laju yang sama.",
+      CP7: "Eksperimen Le Chatelier: Reaksi ini menyerap panas. Coba ubah suhu atau tekanan!",
     },
     challenge_q: 'Untuk memperbanyak HI (reaksi endoterm), yang harus dilakukan adalah?',
     challenge_opts: [
@@ -56,13 +58,13 @@ export const MISI_DATA = {
     deltaH: 'eksoterm',
     tool_correct: 'compress',
     story: {
-      CP1: "Kamu adalah NO₂ (gas beracun penyebab smog). Molekul lain bergerak di sekitarmu.",
-      CP2: "Bump! Tabrakan terjadi, namun ikatan gagal terbentuk.",
+      CP1: "Kamu adalah gas beracun penyebab smog.",
+      CP2: "Tumbukan gagal. Orientasi tidak tepat.",
       CP3: "", 
-      CP4: "", 
+      CP4: "Berhasil! Kamu bergabung menjadi N₂O₄ yang tak berwarna.", 
       CP5: "", 
-      CP6: "Sistem mencapai Kesetimbangan Dinamis. 2NO₂ dan N₂O₄ terus-menerus saling terbentuk dan terurai pada laju yang sama.",
-      CP7: "Eksperimen Asas Le Chatelier: Reaksi ini eksotermik (melepas panas). Coba manipulasi tekanan atau suhu kota ini!",
+      CP6: "Kesetimbangan Dinamis: 2NO₂ dan N₂O₄ terus-menerus saling terbentuk dan terurai.",
+      CP7: "Eksperimen Le Chatelier: Reaksi ini melepas panas. Eksperimenkan kondisinya!",
     },
     challenge_q: 'Sisi produk (N₂O₄) memiliki mol gas lebih sedikit. Untuk menggeser ke produk, kita harus?',
     challenge_opts: [
@@ -86,26 +88,26 @@ export const MISI_DATA = {
     deltaH: 'eksoterm',
     tool_correct: 'compress',
     story: {
-      CP1: "N₂ memiliki ikatan rangkap tiga yang sangat kuat. Memecahnya sangat sulit.",
-      CP2: "Bump! Energi aktivasi tidak cukup. Reaksi gagal.",
+      CP1: "Ikatan N₂ sangat kuat, memecahnya sangat sulit.",
+      CP2: "Tumbukan gagal. Energi aktivasi tidak cukup.",
       CP3: "", 
-      CP4: "", 
+      CP4: "Reaksi terjadi! Kamu menjadi Amonia (NH₃).", 
       CP5: "", 
-      CP6: "Kesetimbangan tercapai. Laju N₂ + 3H₂ → 2NH₃ sama dengan laju 2NH₃ → N₂ + 3H₂.",
-      CP7: "Eksperimen Asas Le Chatelier: Dalam industri Haber, reaksi ini eksotermik. Kondisi apa yang paling optimal?",
+      CP6: "Kesetimbangan tercapai. Laju pembentukan sama dengan laju penguraian.",
+      CP7: "Eksperimen Le Chatelier: Dalam industri Haber, reaksi ini eksotermik. Uji kondisi optimalnya!",
     },
-    challenge_q: 'Mengambil NH₃ secara terus menerus dari reaktor akan mengakibatkan?',
+    challenge_q: 'Kondisi paling ideal untuk menghasilkan NH3 (reaksi eksoterm, mol produk lebih sedikit) adalah?',
     challenge_opts: [
-      { text: 'Kesetimbangan bergeser ke kanan (produk bertambah)', correct: true },
-      { text: 'Kesetimbangan bergeser ke kiri (reaktan bertambah)', correct: false },
+      { text: 'Suhu rendah, tekanan tinggi', correct: true },
+      { text: 'Suhu tinggi, tekanan rendah', correct: false },
     ],
-    challenge_explanation: 'Benar! Sesuai Le Chatelier, membuang produk akan memaksa sistem untuk memproduksi produk tersebut kembali.',
+    challenge_explanation: 'Benar! Suhu rendah mendukung produk eksoterm, dan tekanan tinggi mendukung sisi bermol kecil.',
     reflection_q: 'Suhu rendah menguntungkan produk eksoterm, tapi mengapa Haber memakai 400°C?',
     reflection_opts: [
-      { text: 'Katalis besi baru bekerja optimal, kompromi antara yield dan kecepatan.', correct: true },
+      { text: 'Katalis besi baru bekerja optimal, kompromi antara termodinamika dan kinetika.', correct: true },
       { text: 'Suhu tinggi selalu menghasilkan produk lebih banyak.', correct: false },
     ],
-    reflection_explanation: 'Tepat! Ini adalah kompromi kinetika vs termodinamika di dunia industri.',
+    reflection_explanation: 'Tepat! Ini adalah kompromi kecepatan reaksi (kinetika) vs jumlah produk (termodinamika) di dunia industri.',
   }
 };
 
@@ -114,8 +116,8 @@ export const CHECKPOINT = {
   OBSERVE: 1,      // CP1: Brownian motion
   FAIL_BUMP: 2,    // CP2: Failed collision
   SUCCESS: 3,      // CP3: Become product
-  BREAK: 4,        // CP4: Loh? Break apart
-  LOOP: 5,         // CP5: Loop again
+  BECOME_PROD: 4,  // CP4: Explain product
+  BREAK: 5,        // CP5: Break apart
   ZOOMOUT: 6,      // CP6: See the system
   EXPERIMENT: 7,   // CP7: Le Chatelier
   CHALLENGE: 8,
@@ -123,7 +125,7 @@ export const CHECKPOINT = {
 };
 
 // ---------------------------------------------------------------------------
-// SOUND ENGINE
+// SOUND ENGINE (Slightly deeper/ethereal for void)
 // ---------------------------------------------------------------------------
 class SoundEngine {
   constructor() { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch { this.ctx = null; } }
@@ -132,40 +134,40 @@ class SoundEngine {
     if (!this.ctx) return; this._r();
     const o = this.ctx.createOscillator(), g = this.ctx.createGain();
     o.connect(g); g.connect(this.ctx.destination);
-    o.frequency.setValueAtTime(400, this.ctx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.5);
-    g.gain.setValueAtTime(0.1, this.ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.5);
-    o.start(); o.stop(this.ctx.currentTime + 0.5);
+    o.frequency.setValueAtTime(300, this.ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 1.5);
+    g.gain.setValueAtTime(0.2, this.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 1.5);
+    o.start(); o.stop(this.ctx.currentTime + 1.5);
   }
   bounce() {
     if (!this.ctx) return; this._r();
     const o = this.ctx.createOscillator(), g = this.ctx.createGain();
     o.connect(g); g.connect(this.ctx.destination);
-    o.frequency.setValueAtTime(200, this.ctx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.2);
-    g.gain.setValueAtTime(0.2, this.ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
-    o.start(); o.stop(this.ctx.currentTime + 0.2);
+    o.frequency.setValueAtTime(150, this.ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.3);
+    g.gain.setValueAtTime(0.3, this.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
+    o.start(); o.stop(this.ctx.currentTime + 0.3);
   }
   bondForm() {
     if (!this.ctx) return; this._r();
     const o = this.ctx.createOscillator(), g = this.ctx.createGain();
     o.connect(g); g.connect(this.ctx.destination);
-    o.type = 'sine'; o.frequency.value = 600;
+    o.type = 'sine'; o.frequency.value = 800;
     g.gain.setValueAtTime(0, this.ctx.currentTime);
     g.gain.linearRampToValueAtTime(0.15, this.ctx.currentTime + 0.05);
-    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.4);
-    o.start(); o.stop(this.ctx.currentTime + 0.4);
+    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.5);
+    o.start(); o.stop(this.ctx.currentTime + 0.5);
   }
   bondBreak() {
     if (!this.ctx) return; this._r();
     const o = this.ctx.createOscillator(), g = this.ctx.createGain();
     o.connect(g); g.connect(this.ctx.destination);
-    o.type = 'triangle'; o.frequency.value = 150;
-    g.gain.setValueAtTime(0.15, this.ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
-    o.start(); o.stop(this.ctx.currentTime + 0.3);
+    o.type = 'triangle'; o.frequency.value = 100;
+    g.gain.setValueAtTime(0.2, this.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.4);
+    o.start(); o.stop(this.ctx.currentTime + 0.4);
   }
 }
 export const soundEngine = new SoundEngine();
@@ -190,7 +192,6 @@ const MOLECULE_DEF = {
   NH3:  [['N',0,0.1,0],['H',-0.13,-0.05,0.1],['H',0.13,-0.05,0.1],['H',0,-0.05,-0.15]],
 };
 
-// Reusable geometries and materials for performance
 const geoCache = {};
 function getSphereGeo(r) {
   if (!geoCache[r]) geoCache[r] = new THREE.SphereGeometry(r, 32, 32);
@@ -199,19 +200,14 @@ function getSphereGeo(r) {
 const matCache = {};
 function getAtomMat(colorHex) {
   if (!matCache[colorHex]) {
-    // Premium 3D material: glossy plastic / glass look
     matCache[colorHex] = new THREE.MeshPhysicalMaterial({
-      color: colorHex,
-      metalness: 0.1,
-      roughness: 0.2,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
+      color: colorHex, metalness: 0.2, roughness: 0.1, clearcoat: 1.0, clearcoatRoughness: 0.1,
     });
   }
   return matCache[colorHex];
 }
 const bondGeo = new THREE.CylinderGeometry(0.03, 0.03, 1, 16);
-const bondMat = new THREE.MeshPhysicalMaterial({ color: 0xcccccc, metalness: 0.5, roughness: 0.3, clearcoat: 0.5 });
+const bondMat = new THREE.MeshPhysicalMaterial({ color: 0xcccccc, metalness: 0.6, roughness: 0.2, clearcoat: 0.8 });
 
 export function makeMolecule(type) {
   const defs = MOLECULE_DEF[type];
@@ -225,21 +221,18 @@ export function makeMolecule(type) {
     const cfg = ATOM_CFG[sym];
     const m = new THREE.Mesh(getSphereGeo(cfg.r), getAtomMat(cfg.color));
     m.position.set(x, y, z);
-    m.castShadow = true; m.receiveShadow = true;
     group.add(m);
     pts.push(new THREE.Vector3(x, y, z));
   });
 
-  // Bonds
   for (let i = 0; i < pts.length; i++) {
     for (let j = i + 1; j < pts.length; j++) {
       const dist = pts[i].distanceTo(pts[j]);
-      if (dist < 0.45) { // Threshold for bonding
+      if (dist < 0.45) {
         const bond = new THREE.Mesh(bondGeo, bondMat);
         bond.position.copy(pts[i]).lerp(pts[j], 0.5);
         bond.scale.y = dist;
         bond.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), pts[j].clone().sub(pts[i]).normalize());
-        bond.castShadow = true; bond.receiveShadow = true;
         group.add(bond);
       }
     }
@@ -247,30 +240,12 @@ export function makeMolecule(type) {
   return group;
 }
 
-// 3D Text Marker instead of 2D Sprite
-function create3DMarker(scene) {
-  const group = new THREE.Group();
-  const pointerGeo = new THREE.ConeGeometry(0.06, 0.15, 4);
-  const pointerMat = new THREE.MeshPhysicalMaterial({ color: 0xffdd00, emissive: 0x443300, roughness: 0.2 });
-  const pointer = new THREE.Mesh(pointerGeo, pointerMat);
-  pointer.rotation.x = Math.PI; // point down
-  pointer.position.y = 0.5;
-  group.add(pointer);
-  
-  // Animation loop attached to userData
-  group.userData.update = (time) => {
-    pointer.position.y = 0.5 + Math.sin(time * 5) * 0.05;
-    pointer.rotation.y = time * 2;
-  };
-  return group;
-}
-
 // ---------------------------------------------------------------------------
-// GYRO CONTROLS
+// GYRO CONTROLS (VR Look around)
 // ---------------------------------------------------------------------------
 class GyroControls {
-  constructor(camera) {
-    this.camera = camera;
+  constructor(cameraRig) {
+    this.rig = cameraRig;
     this.dO = {}; this.sO = window.orientation || 0;
     this.q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
     this.zee = new THREE.Vector3(0, 0, 1);
@@ -286,61 +261,69 @@ class GyroControls {
       THREE.MathUtils.degToRad(alpha || 0),
       -THREE.MathUtils.degToRad(gamma || 0), 'YXZ'
     );
-    this.camera.quaternion.setFromEuler(e).multiply(this.q1).multiply(this.q0.setFromAxisAngle(this.zee, -THREE.MathUtils.degToRad(this.sO)));
+    // Apply rotation to the rig so the camera can still have a local offset
+    this.rig.quaternion.setFromEuler(e).multiply(this.q1).multiply(this.q0.setFromAxisAngle(this.zee, -THREE.MathUtils.degToRad(this.sO)));
   }
 }
 
 // ---------------------------------------------------------------------------
-// FLOW FIELD ENGINE (No roads/lines, just 3D motion and choreography)
+// THE VOID ENGINE (Choreographed Storytelling)
 // ---------------------------------------------------------------------------
 class CoreEngine {
-  constructor(scene, camera, rig, misi) {
+  constructor(scene, camera, rig, misi, videoEl) {
     this.scene = scene;
     this.camera = camera;
     this.rig = rig;
     this.misi = misi;
     this.time = 0;
+    this.videoEl = videoEl;
     
+    // Setup isolated focus
     this.player = new THREE.Group();
     this.scene.add(this.player);
     this.playerMol = makeMolecule(misi.jenis);
     this.player.add(this.playerMol);
-    this.marker = create3DMarker(this.scene);
-    this.player.add(this.marker);
+    
+    // Add a very subtle "YOU" glow beneath player
+    const glowMat = new THREE.MeshBasicMaterial({ color: 0xffdd00, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false });
+    this.playerGlow = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.8), glowMat);
+    this.playerGlow.rotation.x = -Math.PI/2;
+    this.playerGlow.position.y = -0.3;
+    this.player.add(this.playerGlow);
 
-    // Flow particles (3D dust indicating forward movement)
+    // Flow particles (Arus Energi ✨✨✨)
     this.dust = new THREE.Group();
-    const pGeo = new THREE.BoxGeometry(0.02, 0.02, 0.1);
-    const pMat = new THREE.MeshBasicMaterial({ color: 0x88ccff, transparent: true, opacity: 0.3 });
-    for (let i = 0; i < 200; i++) {
-      const m = new THREE.Mesh(pGeo, pMat);
-      m.position.set((Math.random()-.5)*15, (Math.random()-.5)*15, -Math.random()*30);
-      m.userData.speed = 2 + Math.random() * 3;
-      this.dust.add(m);
+    const pGeo = new THREE.BufferGeometry();
+    const pCount = 300;
+    const pPos = new Float32Array(pCount * 3);
+    for(let i=0; i<pCount*3; i+=3) {
+      pPos[i] = (Math.random()-.5)*20;
+      pPos[i+1] = (Math.random()-.5)*20;
+      pPos[i+2] = -Math.random()*50;
     }
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+    const pMat = new THREE.PointsMaterial({ color: 0x4fc3f7, size: 0.1, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending });
+    this.dustPoints = new THREE.Points(pGeo, pMat);
+    this.dust.add(this.dustPoints);
     this.scene.add(this.dust);
 
-    // Other molecules in the system
-    this.systemMols = [];
-    for (let i = 0; i < 24; i++) {
-      const isProd = i < 8; // 33% product initially
+    // System molecules (Hidden initially to maintain focus)
+    this.systemMols = new THREE.Group();
+    for (let i = 0; i < 40; i++) {
+      const isProd = i < 15;
       const mol = makeMolecule(isProd ? misi.produk : misi.jenis);
       mol.userData.isProd = isProd;
-      // Position them along a deep Z corridor
-      mol.position.set((Math.random()-.5)*8, (Math.random()-.5)*4, -5 - Math.random()*40);
-      mol.userData.basePos = mol.position.clone();
+      mol.userData.basePos = new THREE.Vector3((Math.random()-.5)*15, (Math.random()-.5)*10, -5 - Math.random()*20);
       mol.userData.phase = Math.random() * 10;
-      this.systemMols.push(mol);
-      this.scene.add(mol);
+      mol.position.copy(mol.userData.basePos);
+      this.systemMols.add(mol);
     }
+    this.systemMols.visible = false; // Isolated focus initially
+    this.scene.add(this.systemMols);
 
-    // Choreography State
     this.cp = CHECKPOINT.START;
     this.cpTime = 0;
-    this.forwardSpeed = 2.0;
-    this.camTargetZ = 2.0;
-    this.camTargetY = 0.8;
-    this.playerTarget = misi.pasangan;
+    this.forwardSpeed = 3.0;
     
     // Partner for collision choreo
     this.partner = makeMolecule(misi.pasangan);
@@ -350,12 +333,33 @@ class CoreEngine {
     this.systemEqShift = 0; // For Le Chatelier
   }
 
+  startJourney() {
+    // FADE TO VOID
+    if (this.videoEl && this.videoEl.srcObject) {
+      this.videoEl.srcObject.getTracks().forEach(t => t.stop());
+      this.videoEl.srcObject = null;
+    }
+    this.scene.background = new THREE.Color(0x02040a);
+    this.scene.fog = new THREE.FogExp2(0x02040a, 0.05);
+
+    // Setup 3rd Person Camera (fixed behind player)
+    this.camera.position.set(0, 1.2, 3.5);
+    this.camera.lookAt(0, 0, -5);
+
+    this.advanceTo(CHECKPOINT.START);
+  }
+
   morphPlayer(toProd) {
     this.player.remove(this.playerMol);
     this.playerMol = makeMolecule(toProd ? this.misi.produk : this.misi.jenis);
     this.player.add(this.playerMol);
-    if (toProd) soundEngine.bondForm(); else soundEngine.bondBreak();
-    if (window._updateHUDForm) window._updateHUDForm(toProd, this.playerMol.userData.molType);
+    if (toProd) {
+      soundEngine.bondForm();
+      this.dustPoints.material.color.setHex(0xfbbf24); // Flow becomes golden
+    } else {
+      soundEngine.bondBreak();
+      this.dustPoints.material.color.setHex(0x4fc3f7); // Flow back to blue
+    }
   }
 
   advanceTo(newCP) {
@@ -369,79 +373,59 @@ class CoreEngine {
     this.time += dt;
     this.cpTime += dt;
 
-    // Smooth camera rig follow
-    this.rig.position.x += (this.player.position.x - this.rig.position.x) * dt * 2;
-    this.rig.position.y += (this.player.position.y + this.camTargetY - this.rig.position.y) * dt * 2;
-    this.rig.position.z += (this.player.position.z + this.camTargetZ - this.rig.position.z) * dt * 2;
-
-    this.marker.userData.update(this.time);
-
-    // Natural wobble
+    // Player wobble
     if (this.cp < CHECKPOINT.ZOOMOUT) {
-      this.player.position.x = Math.sin(this.time * 0.5) * 0.5;
-      this.player.position.y = Math.sin(this.time * 0.7) * 0.3;
+      this.player.position.x = Math.sin(this.time * 0.8) * 0.4;
+      this.player.position.y = Math.sin(this.time * 0.6) * 0.2;
       this.playerMol.rotation.y += dt * 0.5;
       this.playerMol.rotation.z = Math.sin(this.time) * 0.2;
-    }
-
-    // Move player forward through space
-    if (this.cp >= CHECKPOINT.OBSERVE && this.cp < CHECKPOINT.ZOOMOUT) {
-      this.player.position.z -= this.forwardSpeed * dt;
-    }
-
-    // Dust flow relative to player
-    this.dust.children.forEach(d => {
-      d.position.z += d.userData.speed * dt;
-      if (d.position.z > this.player.position.z + 5) {
-        d.position.z -= 30;
-        d.position.x = this.player.position.x + (Math.random()-.5)*15;
-        d.position.y = this.player.position.y + (Math.random()-.5)*15;
-      }
-    });
-
-    // Update system molecules (Brownian motion)
-    const fwdRate = 0.2 * (1 + this.systemEqShift);
-    const revRate = 0.2 * (1 - this.systemEqShift);
-    let prodCount = 0;
-
-    this.systemMols.forEach(m => {
-      m.userData.phase += dt;
-      m.position.x = m.userData.basePos.x + Math.sin(m.userData.phase * 0.5) * 0.5;
-      m.position.y = m.userData.basePos.y + Math.cos(m.userData.phase * 0.4) * 0.5;
-      m.rotation.x += dt * 0.3;
-      m.rotation.y += dt * 0.4;
       
-      // If passed by player, wrap around to the front (endless corridor)
-      if (m.position.z > this.player.position.z + 5) {
-        m.position.z -= 40;
-        m.userData.basePos.z -= 40;
-      }
+      // Move camera rig forward through space to simulate player movement
+      this.rig.position.z -= this.forwardSpeed * dt;
+      this.player.position.z = this.rig.position.z - 2; // Player stays slightly ahead of rig
+    } else {
+      // Free look during zoom out
+      this.playerMol.rotation.y += dt * 0.5;
+    }
 
-      // Reactions for system molecules (only after zoomout)
-      if (this.cp >= CHECKPOINT.ZOOMOUT) {
-        if (Math.random() < 0.01) { // checking periodically
+    // Particle flow loop
+    const posAttr = this.dustPoints.geometry.attributes.position;
+    for(let i=2; i<posAttr.count*3; i+=3) {
+      posAttr.array[i] += this.forwardSpeed * 2 * dt;
+      if (posAttr.array[i] > this.rig.position.z + 5) {
+        posAttr.array[i] -= 50;
+        posAttr.array[i-2] = this.rig.position.x + (Math.random()-.5)*20; // x
+        posAttr.array[i-1] = this.rig.position.y + (Math.random()-.5)*20; // y
+      }
+    }
+    posAttr.needsUpdate = true;
+
+    // System molecules (Brownian motion during ZoomOut)
+    if (this.cp >= CHECKPOINT.ZOOMOUT) {
+      const fwdRate = 0.2 * (1 + this.systemEqShift);
+      const revRate = 0.2 * (1 - this.systemEqShift);
+
+      this.systemMols.children.forEach(m => {
+        m.userData.phase += dt;
+        m.position.x = this.rig.position.x + m.userData.basePos.x + Math.sin(m.userData.phase * 0.5) * 0.5;
+        m.position.y = this.rig.position.y + m.userData.basePos.y + Math.cos(m.userData.phase * 0.4) * 0.5;
+        m.position.z = this.rig.position.z + m.userData.basePos.z;
+        m.rotation.x += dt * 0.3;
+        m.rotation.y += dt * 0.4;
+
+        if (Math.random() < 0.01) {
           const goProd = Math.random() < fwdRate / (fwdRate + revRate);
           if (!m.userData.isProd && goProd) {
-            this.scene.remove(m);
             const nm = makeMolecule(this.misi.produk);
             nm.position.copy(m.position); nm.userData = m.userData; nm.userData.isProd = true;
-            this.systemMols[this.systemMols.indexOf(m)] = nm;
-            this.scene.add(nm);
+            this.systemMols.remove(m); this.systemMols.add(nm);
           } else if (m.userData.isProd && !goProd) {
-            this.scene.remove(m);
             const nm = makeMolecule(this.misi.jenis);
             nm.position.copy(m.position); nm.userData = m.userData; nm.userData.isProd = false;
-            this.systemMols[this.systemMols.indexOf(m)] = nm;
-            this.scene.add(nm);
+            this.systemMols.remove(m); this.systemMols.add(nm);
           }
         }
-      }
-      if (m.userData.isProd) prodCount++;
-    });
-
-    // HUD Eq update
-    if (this.cp >= CHECKPOINT.ZOOMOUT && window._updateHUDEq) {
-      window._updateHUDEq(Math.round((prodCount/24)*100), Math.round((1-prodCount/24)*100));
+      });
     }
 
     // CHOREOGRAPHY LOGIC
@@ -451,81 +435,58 @@ class CoreEngine {
         break;
       case CHECKPOINT.OBSERVE:
         if (this.cpTime > 5) {
-          // Setup failed bump
           this.partner.position.copy(this.player.position);
-          this.partner.position.z -= 5;
+          this.partner.position.z -= 8;
           this.advanceTo(CHECKPOINT.FAIL_BUMP);
         }
         break;
       case CHECKPOINT.FAIL_BUMP:
-        this.partner.position.z += 2 * dt; // Coming towards player
+        this.partner.position.z += 3 * dt;
         if (this.partner.position.distanceTo(this.player.position) < 0.6) {
           soundEngine.bounce();
-          this.partner.position.x += 1; // Bounce away
-          this.partner.position.z -= 100; // Remove from path
+          this.partner.position.x += 1;
+          this.partner.position.z -= 100;
           this.advanceTo(CHECKPOINT.SUCCESS);
         }
         break;
       case CHECKPOINT.SUCCESS:
         if (this.cpTime > 3 && this.partner.position.z < this.player.position.z - 20) {
           this.partner.position.copy(this.player.position);
-          this.partner.position.z -= 4; // Spawn in front
+          this.partner.position.z -= 5;
         }
         if (this.cpTime > 3) {
-           this.partner.position.z += 1.5 * dt;
+           this.partner.position.z += 2 * dt;
            if (this.partner.position.distanceTo(this.player.position) < 0.5) {
              this.partner.position.z -= 100;
-             this.morphPlayer(true); // Become product
-             this.advanceTo(CHECKPOINT.BREAK);
+             this.morphPlayer(true);
+             this.advanceTo(CHECKPOINT.BECOME_PROD);
            }
         }
         break;
-      case CHECKPOINT.BREAK:
-        // Fly as product for a bit, then break
-        if (this.cpTime > 4.5) {
+      case CHECKPOINT.BECOME_PROD:
+        // Enjoy being a product for a bit
+        if (this.cpTime > 6) {
           this.morphPlayer(false);
-          this.advanceTo(CHECKPOINT.LOOP);
+          this.advanceTo(CHECKPOINT.BREAK);
         }
         break;
-      case CHECKPOINT.LOOP:
-        // Do one more quick success & break loop
-        if (this.cpTime > 2 && this.cpTime < 3) {
-          this.partner.position.copy(this.player.position);
-          this.partner.position.z -= 2;
-          this.cpTime = 4; // skip ahead
-        }
-        if (this.cpTime > 4 && this.cpTime < 5) {
-          this.partner.position.z += 2*dt;
-          if (this.partner.position.distanceTo(this.player.position) < 0.5) {
-             this.partner.position.z -= 100;
-             this.morphPlayer(true);
-             this.cpTime = 6;
-          }
-        }
-        if (this.cpTime > 8) {
-          this.morphPlayer(false);
+      case CHECKPOINT.BREAK:
+        // Productive confusion. AI is silent.
+        if (this.cpTime > 4) {
           this.advanceTo(CHECKPOINT.ZOOMOUT);
         }
         break;
       case CHECKPOINT.ZOOMOUT:
         if (this.cpTime === dt) {
-          // Trigger cinematic zoom out
-          this.forwardSpeed = 0; // Stop moving forward
-          this.camTargetY = 3.5;
-          this.camTargetZ = 6.0;
-          this.player.remove(this.marker); // Hide marker
-          // Gather system molecules into a cluster in front of camera
-          this.systemMols.forEach((m, i) => {
-            const angle = (i / 24) * Math.PI * 2;
-            const r = 2 + Math.random() * 3;
-            m.userData.basePos.set(
-              this.player.position.x + Math.cos(angle) * r,
-              this.player.position.y + (Math.random()-.5)*2,
-              this.player.position.z - 3 + Math.sin(angle) * r
-            );
-          });
+          this.forwardSpeed = 0; // Stop moving
+          this.systemMols.visible = true; // Reveal all other molecules!
+          // Fly camera backwards slowly
         }
-        if (this.cpTime > 8) this.advanceTo(CHECKPOINT.EXPERIMENT);
+        if (this.cpTime < 5) {
+           this.camera.position.z += dt * 1.5;
+           this.camera.position.y += dt * 0.5;
+        }
+        if (this.cpTime > 10) this.advanceTo(CHECKPOINT.EXPERIMENT);
         break;
     }
   }
@@ -536,13 +497,11 @@ class CoreEngine {
     if (tool === 'heat') shift = this.misi.deltaH === 'endoterm' ? 0.6 : -0.6;
     else if (tool === 'cool') shift = this.misi.deltaH === 'endoterm' ? -0.6 : 0.6;
     else if (tool === 'compress') shift = 0.5;
-    else if (tool === 'add') shift = 0.4;
     
     this.systemEqShift = shift;
     soundEngine.bondForm();
-    if (window._onPhase) window._onPhase('TOOL', `Mengubah kondisi... kesetimbangan bergeser!`);
+    if (window._onPhase) window._onPhase('TOOL', `Kondisi diubah, keseimbangan bergeser!`);
     
-    // Unlock challenge after a tool is used
     if (this.cp === CHECKPOINT.EXPERIMENT) {
       setTimeout(() => this.advanceTo(CHECKPOINT.CHALLENGE), 4000);
     }
@@ -556,26 +515,16 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, callbacks) {
   const misi = MISI_DATA[misiId] || MISI_DATA.misi1;
   window._onPhase = callbacks.onPhase;
 
-  // Setup renderer for high-quality PBR
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
 
   const scene = new THREE.Scene();
-  
-  // High quality lighting setup (Studio style)
   const ambient = new THREE.AmbientLight(0xffffff, 0.4);
   scene.add(ambient);
   
   const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
   dirLight.position.set(5, 8, 5);
-  dirLight.castShadow = true;
-  dirLight.shadow.mapSize.width = 1024;
-  dirLight.shadow.mapSize.height = 1024;
   scene.add(dirLight);
 
   const fillLight = new THREE.DirectionalLight(0x88bbff, 1.5);
@@ -584,11 +533,10 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, callbacks) {
 
   const cameraRig = new THREE.Group();
   scene.add(cameraRig);
-
-  const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
+  const camera = new THREE.PerspectiveCamera(70, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
   cameraRig.add(camera);
 
-  // Camera feed handling
+  // Initial Reality State (Wait for Portal Entry)
   let isTrueAR = false;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
@@ -596,13 +544,12 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, callbacks) {
     await videoEl.play().catch(() => {});
     isTrueAR = true;
   } catch {
-    // Fallback virtual background if camera denied
-    scene.background = new THREE.Color(0x050a14);
+    scene.background = new THREE.Color(0x1a202c);
   }
 
-  const gyro = new GyroControls(camera);
+  const gyro = new GyroControls(cameraRig);
   
-  // Desktop fallback controls
+  // Desktop Drag
   let isDrag = false, dX = 0, dY = 0, camYaw = 0, camPitch = 0;
   canvas.addEventListener('mousedown', e => { isDrag = true; dX = e.clientX; dY = e.clientY; });
   canvas.addEventListener('mousemove', e => {
@@ -610,7 +557,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, callbacks) {
     camYaw -= (e.clientX - dX) * 0.005; dX = e.clientX;
     camPitch -= (e.clientY - dY) * 0.005; dY = e.clientY;
     camPitch = Math.max(-Math.PI/4, Math.min(Math.PI/4, camPitch));
-    camera.rotation.set(camPitch, camYaw, 0, 'YXZ');
+    cameraRig.quaternion.setFromEuler(new THREE.Euler(camPitch, camYaw, 0, 'YXZ'));
   });
   window.addEventListener('mouseup', () => isDrag = false);
 
@@ -628,18 +575,11 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, callbacks) {
 
   return {
     startJourney: () => {
-      engine = new CoreEngine(scene, camera, cameraRig, misi);
-      if (window._updateHUDForm) window._updateHUDForm(false, misi.jenis);
-      engine.advanceTo(CHECKPOINT.START);
+      engine = new CoreEngine(scene, camera, cameraRig, misi, videoEl);
+      engine.startJourney();
     },
     triggerTool: (tool) => engine?.triggerTool(tool),
-    onQuizAnswered: () => {
-      // Unused in this version, auto-advances
-    },
-    onChallengeAnswered: () => {
-      engine.advanceTo(CHECKPOINT.REFLECTION);
-      if (callbacks.onReflection) callbacks.onReflection();
-    },
+    onChallengeAnswered: () => engine.advanceTo(CHECKPOINT.REFLECTION),
     hentikan: () => {
       running = false;
       renderer.setAnimationLoop(null);
