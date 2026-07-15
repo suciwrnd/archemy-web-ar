@@ -4229,7 +4229,7 @@ void main() {
       <button class="btn full" onclick="window.submitLogin()">Login sebagai ${Z.role===`siswa`?`Siswa`:`Guru`}</button>
       <p class="small" style="text-align:center;margin:14px 0 0">Belum punya akun? <button class="link-btn" onclick="window.go('register')">Daftar</button></p>
     </div></section>`}function Kl(){let e=document.getElementById(`loginEmail`).value.trim();if(!e)return El(`Email tidak boleh kosong`);Z.profile[Z.role].email=e,Q(),El(`Login berhasil `),Z.role===`siswa`?Ol(Z.joinedClass?`studentDashboard`:`joinClass`):Ol(`teacherClasses`)}function ql(){xl.innerHTML=`<section class="auth-screen">
-    <div class="auth-hero"><div class="logo"><b>ARC</b>hemy</div><h1>Buat akun ARChemy.</h1><p>Data ini tersimpan di browser sebagai frontend demo.</p></div>
+    <div class="auth-hero"><div class="logo"><b>ARC</b>hemy</div><h1>Buat akun ARChemy.</h1></div>
     <div class="card auth-card">
       <div class="role-tabs">
         <button class="role-tab ${Z.role===`siswa`?`active`:``}" onclick="window.setRole('siswa')">Siswa</button>

@@ -425,7 +425,7 @@ function submitLogin() {
 }
 function renderRegister() {
   app.innerHTML = `<section class="auth-screen">
-    <div class="auth-hero"><div class="logo"><b>ARC</b>hemy</div><h1>Buat akun ARChemy.</h1><p>Data ini tersimpan di browser sebagai frontend demo.</p></div>
+    <div class="auth-hero"><div class="logo"><b>ARC</b>hemy</div><h1>Buat akun ARChemy.</h1></div>
     <div class="card auth-card">
       <div class="role-tabs">
         <button class="role-tab ${state.role==='siswa'?'active':''}" onclick="window.setRole('siswa')">Siswa</button>
