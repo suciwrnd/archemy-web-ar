@@ -7,10 +7,6 @@ import './webar.css';
 
 let sesi = null;
 
-// ---------------------------------------------------------------------------
-// HOOK SCREEN & PILIH MISI (Omitted for brevity, assumed same if unchanged)
-// We will include them to keep the file complete.
-// ---------------------------------------------------------------------------
 export function renderHook(container, misiId, onContinue) {
   const misi = MISI_DATA[misiId];
   if (!misi) return;
@@ -67,9 +63,6 @@ export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
   });
 }
 
-// ---------------------------------------------------------------------------
-// AR SESSION PAGE - THE IMMERSIVE PORTAL
-// ---------------------------------------------------------------------------
 export async function renderHalamanAR(container, misiId, onKeluar) {
   const misi = MISI_DATA[misiId];
   if (!misi) return;
@@ -93,20 +86,35 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         <button class="scan-start-btn" id="btnMulaiAR">Masuk ke Dunia Molekul</button>
       </div>
 
-      <!-- HUD Layer (Minimalist) -->
+      <!-- HUD Layer -->
       <div class="hud-layer" id="hudLayer" style="display:none">
         <button class="hud-back" id="btnBack">← Keluar</button>
+
+        <!-- Dynamic Equilibrium Chart (Appears only during ZoomOut & Experiment) -->
+        <div class="hud-eq" id="hudEq" style="display:none">
+          <div class="hud-eq-title">⚖️ KESETIMBANGAN DINAMIS</div>
+          <div class="hud-eq-row">
+            <div class="hud-eq-label">Reaktan</div>
+            <div class="hud-eq-bar-wrap"><div class="hud-eq-bar reactant" id="eqRevBar" style="width:50%"></div></div>
+            <div class="hud-eq-pct" id="eqRevPct">50%</div>
+          </div>
+          <div class="hud-eq-row">
+            <div class="hud-eq-label">Produk</div>
+            <div class="hud-eq-bar-wrap"><div class="hud-eq-bar product" id="eqFwdBar" style="width:50%"></div></div>
+            <div class="hud-eq-pct" id="eqFwdPct">50%</div>
+          </div>
+        </div>
 
         <!-- Cinematic Subtitle (AI) -->
         <div class="hud-subtitle" id="hudSubtitle"></div>
       </div>
 
-      <!-- Experiment tools (Appears only after Zoom Out) -->
+      <!-- Experiment tools -->
       <div class="exp-panel" id="expPanel" style="display:none">
-        <div class="exp-label">Le Chatelier Controls</div>
-        <button class="exp-btn" data-tool="heat">🔥 Panaskan</button>
-        <button class="exp-btn" data-tool="cool">❄️ Dinginkan</button>
-        <button class="exp-btn" data-tool="compress">📦 Tekan</button>
+        <div class="exp-label">Eksperimen (Le Chatelier)</div>
+        <button class="exp-btn" data-tool="heat">🔥 Suhu Naik</button>
+        <button class="exp-btn" data-tool="cool">❄️ Suhu Turun</button>
+        <button class="exp-btn" data-tool="compress">📦 Tekanan Naik</button>
       </div>
 
       <!-- Challenge -->
@@ -147,6 +155,11 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   const fadeOvl    = container.querySelector('#fadeOverlay');
   const hudLayer   = container.querySelector('#hudLayer');
   const hudSub     = container.querySelector('#hudSubtitle');
+  const hudEq      = container.querySelector('#hudEq');
+  const eqFwdBar   = container.querySelector('#eqFwdBar');
+  const eqFwdPct   = container.querySelector('#eqFwdPct');
+  const eqRevBar   = container.querySelector('#eqRevBar');
+  const eqRevPct   = container.querySelector('#eqRevPct');
   const expPanel   = container.querySelector('#expPanel');
   const challOvl   = container.querySelector('#challengeOverlay');
   const reflOvl    = container.querySelector('#reflectionOverlay');
@@ -166,12 +179,23 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     type();
   }
 
-  // Phase callback from engine
+  // Engine callbacks
+  window._updateHUDEq = (reactantPct, productPct) => {
+    eqRevBar.style.width = reactantPct + '%'; eqRevPct.textContent = Math.round(reactantPct) + '%';
+    eqFwdBar.style.width = productPct + '%';  eqFwdPct.textContent = Math.round(productPct) + '%';
+  };
+
   function onPhase(phase, msg) {
-    // Hide/show experiment panel
+    // Show chart only during macro view
+    if (phase >= CHECKPOINT.ZOOMOUT && phase < CHECKPOINT.CHALLENGE) {
+      hudEq.style.display = 'flex';
+    } else {
+      hudEq.style.display = 'none';
+    }
+
     if (phase === CHECKPOINT.EXPERIMENT || phase === 'TOOL') {
       expPanel.style.display = 'flex';
-      setSubtitle(''); // Hide subtitles during experiment
+      setSubtitle(msg || ''); 
     } else {
       expPanel.style.display = 'none';
       setSubtitle(msg || '');
@@ -223,14 +247,13 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     if (journeyStarted) return;
     journeyStarted = true;
     
-    // The Portal Transition: Fade out reality, enter the void
     soundEngine.whoosh();
     scanOvl.style.display = 'none';
     fadeOvl.classList.add('blackout');
     
     setTimeout(() => {
       hudLayer.style.display = '';
-      if (sesi) sesi.startJourney(); // This will disable camera and set background to black
+      if (sesi) sesi.startJourney(); 
       fadeOvl.classList.remove('blackout');
     }, 2000);
   };
@@ -240,7 +263,6 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     btnMulai.addEventListener('touchstart', startAR, { passive: false });
   }
 
-  // Launch engine
   const mode = await deteksiModeAR();
   try {
     const callbacks = { onPhase, onChallenge: () => {}, onReflection: () => {} };
@@ -256,4 +278,5 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 export function hentikanSesiAR() {
   if (sesi) { sesi.hentikan?.(); sesi = null; }
   window._onPhase = null;
+  window._updateHUDEq = null;
 }

@@ -67,6 +67,28 @@
   font-size: 13px; font-weight: 600; cursor: pointer;
 }
 
+/* Dynamic Equilibrium Chart */
+.hud-eq {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: rgba(8,14,32,0.8);
+  border: 1px solid rgba(79,195,247,0.3);
+  padding: 16px; border-radius: 16px;
+  backdrop-filter: blur(10px);
+  display: flex; flex-direction: column; gap: 12px;
+  width: 220px;
+  animation: slideInRight 0.5s ease-out;
+}
+@keyframes slideInRight { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.hud-eq-title { color: var(--accent-gold); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: center; }
+.hud-eq-row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: #fff; }
+.hud-eq-label { width: 50px; }
+.hud-eq-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+.hud-eq-bar { height: 100%; transition: width 0.5s ease; }
+.hud-eq-bar.reactant { background: var(--accent-blue); }
+.hud-eq-bar.product { background: var(--accent-gold); }
+.hud-eq-pct { width: 30px; text-align: right; }
+
 /* Cinematic Subtitle (AI) */
 .hud-subtitle {
   position: absolute;
