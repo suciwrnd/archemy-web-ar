@@ -419,7 +419,7 @@
 /* ===========================
    QUIZ OVERLAY (MCQ Eureka)
    =========================== */
-.quiz-overlay {
+.webar-stage .quiz-overlay {
   position: absolute;
   inset: 0; z-index: 50;
   display: flex;
@@ -429,7 +429,7 @@
   background: rgba(3,5,15,0.88);
   backdrop-filter: blur(12px);
 }
-.quiz-card {
+.webar-stage .quiz-card {
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid rgba(167, 139, 250, 0.6);
   border-radius: 18px;
@@ -438,23 +438,23 @@
   max-width: 340px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(167, 139, 250, 0.15) inset;
 }
-.quiz-header {
+.webar-stage .quiz-header {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 16px;
 }
-.quiz-icon { font-size: 28px; }
-.quiz-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #a78bfa; }
-.quiz-question {
+.webar-stage .quiz-icon { font-size: 28px; }
+.webar-stage .quiz-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #a78bfa; }
+.webar-stage .quiz-question {
   font-size: 15px;
   font-weight: 600;
   color: #f1f5f9;
   line-height: 1.5;
   margin-bottom: 20px;
 }
-.quiz-options { display: flex; flex-direction: column; gap: 10px; }
-.quiz-btn {
+.webar-stage .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+.webar-stage .quiz-btn {
   background: rgba(30,41,59,0.6);
   border: 1px solid rgba(100,116,139,0.4);
   border-radius: 10px;
@@ -467,9 +467,9 @@
   line-height: 1.4;
   transition: all 0.2s;
 }
-.quiz-btn:active { transform: scale(0.98); }
-.quiz-btn.correct { background: rgba(52,211,153,0.2); border-color: var(--accent-grn); color: #a7f3d0; }
-.quiz-btn.wrong { background: rgba(248,113,113,0.15); border-color: var(--accent-red); color: #fecaca; }
+.webar-stage .quiz-btn:active { transform: scale(0.98); }
+.webar-stage .quiz-btn.correct { background: rgba(52,211,153,0.2); border-color: var(--accent-grn); color: #a7f3d0; }
+.webar-stage .quiz-btn.wrong { background: rgba(248,113,113,0.15); border-color: var(--accent-red); color: #fecaca; }
 
 /* ===========================
    CHALLENGE PANEL
