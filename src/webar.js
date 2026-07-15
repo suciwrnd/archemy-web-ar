@@ -634,15 +634,8 @@ export function buatSceneDasar() {
   fluid.visible = false; // Sembunyikan secara default sampai perbaruiVisualMisi mengatur
   labuGrup.add(fluid);
 
-  const labu = new THREE.Mesh(buatGeometryErlenmeyer(), buatMaterialKaca()); 
+  const labu = new THREE.Group(); 
   labuGrup.add(labu);
-
-  // Tutup karet (stopper) - diperlebar untuk menyesuaikan leher labu baru
-  const stopperGeo = new THREE.CylinderGeometry(0.11, 0.13, 0.05, 32);
-  const stopperMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.9, metalness: 0.1 });
-  const stopper = new THREE.Mesh(stopperGeo, stopperMat);
-  stopper.position.y = 0.46; // Pas di mulut labu
-  labuGrup.add(stopper);
 
   // Global toggle function for colorblind mode
   const partikelSys = new SistemPartikel(labuGrup);
