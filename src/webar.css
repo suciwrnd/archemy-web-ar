@@ -1,11 +1,12 @@
 /* ==========================================================================
    ARCHEMY WEBAR CSS v8.0 — PhET-Grade 3D Experience
    Clean, minimal, purposeful. Every element serves the learning.
+   SCOPED: All styles inside .webar-stage or .archemy-hook to avoid
+   leaking into the main app's global styles.
    ========================================================================== */
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
+/* CSS vars scoped to webar only */
+.webar-stage, .archemy-hook, .webar-pilih-misi {
   --bg-deep:    #03050f;
   --bg-panel:   rgba(8, 14, 32, 0.92);
   --border-dim: rgba(79, 195, 247, 0.2);
@@ -18,9 +19,10 @@
   --accent-red: #f87171;
   --accent-grn: #34d399;
   --font:       'Inter', 'Poppins', sans-serif;
+  box-sizing: border-box;
+  font-family: 'Inter', 'Poppins', sans-serif;
 }
 
-body { background: var(--bg-deep); font-family: var(--font); color: var(--text-main); }
 
 /* ===========================
    HOOK SCREEN (Pre-Portal)
@@ -324,6 +326,8 @@ body { background: var(--bg-deep); font-family: var(--font); color: var(--text-m
   gap: 16px;
   background: rgba(3,5,15,0.7);
   backdrop-filter: blur(6px);
+  pointer-events: none; /* Allow taps to pass through to canvas */
+  cursor: pointer;
 }
 .scan-ring {
   width: 100px; height: 100px;
