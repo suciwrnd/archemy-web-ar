@@ -202,3 +202,29 @@
 .misi-badge.done { background: rgba(52, 211, 153, 0.2); color: #6ee7b7; }
 .misi-judul { font-size: 16px; font-weight: 700; color: #fff; line-height: 1.4; }
 .misi-persamaan { font-size: 13px; font-family: monospace; color: #94a3b8; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px; }
+
+/* ==========================================================================
+   HOOK / INTRO SCREEN UI
+   ========================================================================== */
+.archemy-hook {
+  position: absolute; inset: 0; z-index: 100;
+  background: linear-gradient(145deg, #0f172a, #1e1b4b);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 30px; text-align: center; color: #fff; overflow: hidden;
+}
+.hook-float {
+  position: absolute; background: rgba(255,255,255,0.1); border-radius: 50%;
+  animation: hookFloat infinite ease-in-out alternate;
+}
+@keyframes hookFloat { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(20px, -20px) scale(1.5); } }
+.hook-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #a5b4fc; margin-bottom: 8px; z-index: 2; }
+.hook-equation { font-family: monospace; font-size: 14px; background: rgba(0,0,0,0.3); padding: 8px 16px; border-radius: 8px; color: #e2e8f0; margin-bottom: 24px; z-index: 2; }
+.hook-question { font-size: 24px; font-weight: 800; line-height: 1.3; color: #fff; margin: 0 0 16px; z-index: 2; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+.hook-hint { font-size: 14px; color: #94a3b8; margin-bottom: 32px; z-index: 2; }
+.hook-btn {
+  background: #3b82f6; border: none; padding: 16px 40px; border-radius: 50px;
+  color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4); z-index: 2;
+  display: flex; align-items: center; gap: 8px; transition: transform 0.2s;
+}
+.hook-btn:active { transform: scale(0.95); }
