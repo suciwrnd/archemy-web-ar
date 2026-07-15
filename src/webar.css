@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ARCHEMY WEBAR CSS v4.0 - True AR & UI Fixes
+   ARCHEMY WEBAR CSS v5.0 - Driving & Grid
    ========================================================================== */
 
 /* ===== STAGE WRAPPER ===== */
@@ -67,24 +67,8 @@
   gap: 2px;
 }
 
-.form-label {
-  font-size: 9px;
-  color: #818cf8;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.form-value {
-  font-size: 12px;
-  font-weight: 600;
-  background: rgba(11, 16, 37, 0.7);
-  border: 1px solid rgba(79, 195, 247, 0.4);
-  padding: 4px 8px;
-  border-radius: 6px;
-  backdrop-filter: blur(4px);
-  color: #e0e7ff;
-}
+.form-label { font-size: 9px; color: #818cf8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.form-value { font-size: 12px; font-weight: 600; background: rgba(11, 16, 37, 0.7); border: 1px solid rgba(79, 195, 247, 0.4); padding: 4px 8px; border-radius: 6px; backdrop-filter: blur(4px); color: #e0e7ff; }
 .form-value.reactant { border-color: #3b82f6; color: #93c5fd; }
 .form-value.product { border-color: #eab308; color: #fde047; }
 
@@ -99,28 +83,13 @@
   align-items: flex-end;
   gap: 2px;
 }
-
-.mission-label {
-  font-size: 9px;
-  color: #a78bfa;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.mission-value {
-  font-size: 11px;
-  font-weight: 600;
-  background: rgba(11, 16, 37, 0.7);
-  border: 1px solid rgba(167, 139, 250, 0.4);
-  padding: 4px 8px;
-  border-radius: 6px;
-  color: #ddd6fe;
-}
+.mission-label { font-size: 9px; color: #a78bfa; font-weight: 700; text-transform: uppercase; }
+.mission-value { font-size: 11px; font-weight: 600; background: rgba(11, 16, 37, 0.7); border: 1px solid rgba(167, 139, 250, 0.4); padding: 4px 8px; border-radius: 6px; color: #ddd6fe; }
 
 /* ===== HUD TENGAH ATAS: Equilibrium Bar ===== */
 .hud-top-center {
   position: absolute;
-  top: 56px;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 30;
@@ -134,42 +103,12 @@
   border-radius: 8px;
   backdrop-filter: blur(6px);
 }
-
-.eq-title {
-  font-size: 9px;
-  font-weight: 700;
-  color: #7df9ff;
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.eq-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.eq-label {
-  font-size: 8px;
-  color: #94a3b8;
-  width: 60px;
-}
-
-.eq-track {
-  flex: 1;
-  height: 4px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 2px;
-}
-
+.eq-title { font-size: 9px; font-weight: 700; color: #7df9ff; text-align: center; text-transform: uppercase; }
+.eq-row { display: flex; align-items: center; gap: 6px; }
+.eq-label { font-size: 8px; color: #94a3b8; width: 60px; }
+.eq-track { flex: 1; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
 .eq-track.reverse { display: flex; justify-content: flex-end; }
-
-.eq-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.5s ease;
-}
-
+.eq-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
 .eq-fill.forward { background: linear-gradient(90deg, #3b82f6, #4fc3f7); box-shadow: 0 0 6px #4fc3f7; }
 .eq-fill.backward { background: linear-gradient(-90deg, #eab308, #fbbf24); box-shadow: 0 0 6px #fbbf24; }
 
@@ -187,25 +126,15 @@
   backdrop-filter: blur(3px);
   pointer-events: none;
 }
-
 .scan-phone-icon {
-  width: 52px;
-  height: 80px;
-  border: 3px solid #4fc3f7;
-  border-radius: 10px;
-  position: relative;
+  width: 52px; height: 80px; border: 3px solid #4fc3f7; border-radius: 10px; position: relative;
   animation: scanMove 2.5s ease-in-out infinite;
 }
 @keyframes scanMove {
   0%, 100% { transform: rotate(-8deg) translateX(-10px); }
   50% { transform: rotate(8deg) translateX(10px); }
 }
-
-.webar-scan-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #7df9ff;
-}
+.webar-scan-title { font-size: 18px; font-weight: 700; color: #7df9ff; }
 
 /* ===== AI SPEECH PANEL ===== */
 .webar-ai-panel {
@@ -223,15 +152,8 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   z-index: 40;
 }
-
 .ai-avatar { font-size: 20px; }
-.ai-speech {
-  font-size: 12px;
-  font-weight: 600;
-  color: #e0f2fe;
-  font-family: 'Courier New', monospace;
-  white-space: nowrap;
-}
+.ai-speech { font-size: 12px; font-weight: 600; color: #e0f2fe; font-family: 'Courier New', monospace; white-space: nowrap; }
 
 /* ===== ACTION BAR (Kanan Bawah) ===== */
 .webar-action-bar {
@@ -243,67 +165,51 @@
   gap: 8px;
   z-index: 35;
 }
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background: rgba(11, 16, 37, 0.85);
-  border: 1px solid rgba(167, 139, 250, 0.5);
-  border-radius: 12px;
-  color: #ddd6fe;
-  font-size: 16px;
-  backdrop-filter: blur(8px);
-}
+.action-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; background: rgba(11, 16, 37, 0.85); border: 1px solid rgba(167, 139, 250, 0.5); border-radius: 12px; color: #ddd6fe; font-size: 16px; backdrop-filter: blur(8px); }
 .action-btn span { font-size: 10px; font-weight: 700; text-transform: uppercase; }
 
 /* ===== STEERING CONTROLS (RC CAR) ===== */
-.webar-steering {
+.webar-driving-controls {
   position: absolute;
-  bottom: 80px;
+  inset: 0;
+  pointer-events: none;
+  z-index: 35;
+}
+.steer-left-right {
+  position: absolute;
+  bottom: 60px;
   left: 16px;
   display: flex;
   gap: 12px;
-  z-index: 35;
+  pointer-events: auto;
 }
-
-.steer-btn {
-  width: 50px;
-  height: 50px;
-  background: rgba(79, 195, 247, 0.2);
-  border: 2px solid rgba(79, 195, 247, 0.5);
+.gas-pedal {
+  position: absolute;
+  bottom: 60px;
+  right: 16px;
+  pointer-events: auto;
+}
+.ctrl-btn {
+  width: 56px; height: 56px;
+  background: rgba(79, 195, 247, 0.15);
+  border: 2px solid rgba(79, 195, 247, 0.4);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  color: #7df9ff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: #7df9ff;
   backdrop-filter: blur(4px);
+  user-select: none; -webkit-user-select: none;
 }
-.steer-btn:active { background: rgba(79, 195, 247, 0.5); transform: scale(0.9); }
+.ctrl-btn.gas {
+  width: 64px; height: 64px;
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.6);
+  font-size: 26px; font-weight: bold;
+}
+.ctrl-btn:active { background: rgba(79, 195, 247, 0.5); transform: scale(0.9); }
 
 /* ===== SUCCESS POPUP ===== */
-.webar-success-popup {
-  position: absolute;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(5, 8, 22, 0.8);
-  backdrop-filter: blur(8px);
-}
-
-.webar-success-card {
-  background: linear-gradient(135deg, rgba(11, 16, 37, 0.95), rgba(5, 8, 22, 0.95));
-  border: 1px solid rgba(79, 195, 247, 0.4);
-  border-radius: 16px;
-  padding: 20px;
-  text-align: center;
-  width: 260px;
-}
+.webar-success-popup { position: absolute; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(5, 8, 22, 0.8); backdrop-filter: blur(8px); }
+.webar-success-card { background: linear-gradient(135deg, rgba(11, 16, 37, 0.95), rgba(5, 8, 22, 0.95)); border: 1px solid rgba(79, 195, 247, 0.4); border-radius: 16px; padding: 20px; text-align: center; width: 260px; }
 .success-icon { font-size: 32px; }
 .webar-success-card h2 { color: #7df9ff; font-size: 16px; margin: 8px 0; }
 .btn-primary { background: #0ea5e9; border: none; border-radius: 8px; color: #fff; padding: 10px; width: 100%; font-weight: bold; }

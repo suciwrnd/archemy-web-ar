@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ARCHEMY WEBAR PAGE v4.0 - True AR & UI Fixes
+   ARCHEMY WEBAR PAGE v5.0 - Driving & Grid
    ========================================================================== */
 
 import { MISI_DATA, AR_STATE, deteksiModeAR, mulaiSesiWebXR, mulaiSesiARjs, requestSensorPermission } from './webar.js';
@@ -91,10 +91,15 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         <button class="action-btn" id="btnCompress" data-tool="compress">&#128230;<span>Compress</span></button>
       </div>
 
-      <!-- Kiri Bawah: Steering -->
-      <div class="webar-steering" id="webarSteering" style="display:none">
-        <button class="steer-btn" id="btnSteerLeft">&#11013;</button>
-        <button class="steer-btn" id="btnSteerRight">&#10145;</button>
+      <!-- Bawah: Driving Controls -->
+      <div class="webar-driving-controls" id="webarDrivingControls" style="display:none">
+        <div class="steer-left-right">
+          <button class="ctrl-btn steer" id="btnSteerLeft">&#11013;</button>
+          <button class="ctrl-btn steer" id="btnSteerRight">&#10145;</button>
+        </div>
+        <div class="gas-pedal">
+          <button class="ctrl-btn gas" id="btnGas">&#9191;</button>
+        </div>
       </div>
 
       <div class="webar-success-popup" id="webarSuccessPopup" style="display:none">
@@ -120,7 +125,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   const aiPanel = container.querySelector('#webarAiPanel');
   const aiSpeech = container.querySelector('#webarAiSpeech');
   const actionBar = container.querySelector('#webarActionBar');
-  const steering = container.querySelector('#webarSteering');
+  const drivingCtrls = container.querySelector('#webarDrivingControls');
   const successPopup = container.querySelector('#webarSuccessPopup');
 
   let typeTimeout;
@@ -157,7 +162,7 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     }
 
     actionBar.style.display = (state === AR_STATE.EXPERIMENT) ? 'flex' : 'none';
-    steering.style.display = (state === AR_STATE.MOLECULAR_JOURNEY) ? 'flex' : 'none';
+    drivingCtrls.style.display = (state === AR_STATE.MOLECULAR_JOURNEY) ? 'block' : 'none';
     
     if (state === AR_STATE.REFLECTION) setTimeout(() => successPopup.style.display = 'flex', 1500);
   }
@@ -184,23 +189,28 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     if (btn) btn.addEventListener('click', () => { if (sesiARAktif?.triggerTool) sesiARAktif.triggerTool(tool); });
   });
 
-  // Steering buttons
+  // Driving buttons
   const btnL = container.querySelector('#btnSteerLeft');
   const btnR = container.querySelector('#btnSteerRight');
+  const btnGas = container.querySelector('#btnGas');
+  
   let steerDir = 0;
+  let isGassing = false;
   
-  const downL = (e) => { e.preventDefault(); steerDir = 1; }; // Turn Left is + rotation
-  const downR = (e) => { e.preventDefault(); steerDir = -1; };
-  const up = () => { steerDir = 0; };
-  
-  if (btnL) {
-    btnL.addEventListener('mousedown', downL); btnL.addEventListener('touchstart', downL);
-    btnR.addEventListener('mousedown', downR); btnR.addEventListener('touchstart', downR);
-    window.addEventListener('mouseup', up); window.addEventListener('touchend', up);
-  }
+  const bindBtn = (btn, downFn, upFn) => {
+    if(!btn) return;
+    const pd = (e) => { e.preventDefault(); downFn(); };
+    const pu = (e) => { e.preventDefault(); upFn(); };
+    btn.addEventListener('mousedown', pd); btn.addEventListener('touchstart', pd);
+    btn.addEventListener('mouseup', pu); btn.addEventListener('touchend', pu);
+    btn.addEventListener('mouseleave', pu); btn.addEventListener('touchcancel', pu);
+  };
 
-  // Inject steering state into window so webar.js can read it
-  window._getSteering = () => steerDir;
+  bindBtn(btnL, () => steerDir = 1, () => steerDir = 0);
+  bindBtn(btnR, () => steerDir = -1, () => steerDir = 0);
+  bindBtn(btnGas, () => isGassing = true, () => isGassing = false);
+
+  window._getDrivingInput = () => ({ steer: steerDir, gas: isGassing });
 
   container.querySelector('#btnClaimWebar').addEventListener('click', () => { hentikanSesiAR(); onKeluar(); });
   container.querySelector('#webarKeluar').addEventListener('click', () => { hentikanSesiAR(); onKeluar(); });
@@ -208,5 +218,5 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 
 export function hentikanSesiAR() {
   if (sesiARAktif) { sesiARAktif.hentikan(); sesiARAktif = null; }
-  window._updateHUDForm = null; window._updateHUDEq = null; window._getSteering = null;
+  window._updateHUDForm = null; window._updateHUDEq = null; window._getDrivingInput = null;
 }
