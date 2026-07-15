@@ -1,12 +1,10 @@
 import * as THREE from 'three';
 
 /* ==========================================================================
-   ARCHEMY WEBAR ENGINE v11.0 — THE IMMERSIVE PORTAL
-   - True Cinematic VR-in-AR Experience
-   - Zero UI during journey
-   - Third Person Fixed Camera
-   - Particle Flow (Energy) instead of roads
-   - Isolated Focus (YOU + 2 targets only, until Zoom Out)
+   ARCHEMY WEBAR ENGINE v11.1 — GLOSSY 3D & PROCEDURAL BEAUTY
+   - Realistic Ball-and-Stick Models
+   - Glossy PBR with Multi-Lighting (No GLB needed)
+   - Soft particles & bloom simulation
    ========================================================================== */
 
 export function requestSensorPermission() {
@@ -173,41 +171,45 @@ class SoundEngine {
 export const soundEngine = new SoundEngine();
 
 // ---------------------------------------------------------------------------
-// TRUE 3D PBR MOLECULE BUILDER
+// TRUE 3D PBR MOLECULE BUILDER (PROPER BALL-AND-STICK)
 // ---------------------------------------------------------------------------
 const ATOM_CFG = {
-  H: { color: 0xffffff, r: 0.12 },
-  I: { color: 0x8a2be2, r: 0.22 },
-  N: { color: 0x2563eb, r: 0.18 },
-  O: { color: 0xdc2626, r: 0.16 },
+  H: { color: 0xffffff, r: 0.18 },
+  I: { color: 0x8a2be2, r: 0.35 },
+  N: { color: 0x2563eb, r: 0.28 },
+  O: { color: 0xdc2626, r: 0.25 },
 };
 
+// Properly spaced coordinates for a realistic look
 const MOLECULE_DEF = {
-  H2:   [['H',-0.12,0,0],['H',0.12,0,0]],
-  I2:   [['I',-0.2,0,0],['I',0.2,0,0]],
-  HI:   [['H',-0.15,0,0],['I',0.15,0,0]],
-  N2:   [['N',-0.14,0,0],['N',0.14,0,0]],
-  NO2:  [['N',0,0,0],['O',-0.16,0.14,0],['O',0.16,0.14,0]],
-  N2O4: [['N',-0.12,0,0],['N',0.12,0,0],['O',-0.24,0.14,0],['O',-0.24,-0.14,0],['O',0.24,0.14,0],['O',0.24,-0.14,0]],
-  NH3:  [['N',0,0.1,0],['H',-0.13,-0.05,0.1],['H',0.13,-0.05,0.1],['H',0,-0.05,-0.15]],
+  H2:   [['H', -0.25, 0, 0], ['H', 0.25, 0, 0]],
+  I2:   [['I', -0.4, 0, 0], ['I', 0.4, 0, 0]],
+  HI:   [['H', -0.35, 0, 0], ['I', 0.35, 0, 0]],
+  N2:   [['N', -0.3, 0, 0], ['N', 0.3, 0, 0]],
+  NO2:  [['N', 0, 0, 0], ['O', -0.4, 0.4, 0], ['O', 0.4, 0.4, 0]],
+  N2O4: [['N', -0.35, 0, 0], ['N', 0.35, 0, 0], 
+         ['O', -0.6, 0.5, 0], ['O', -0.6, -0.5, 0], 
+         ['O', 0.6, 0.5, 0], ['O', 0.6, -0.5, 0]],
+  NH3:  [['N', 0, 0.2, 0], ['H', -0.35, -0.2, 0.2], ['H', 0.35, -0.2, 0.2], ['H', 0, -0.2, -0.4]],
 };
 
 const geoCache = {};
 function getSphereGeo(r) {
-  if (!geoCache[r]) geoCache[r] = new THREE.SphereGeometry(r, 32, 32);
+  if (!geoCache[r]) geoCache[r] = new THREE.SphereGeometry(r, 64, 64);
   return geoCache[r];
 }
 const matCache = {};
 function getAtomMat(colorHex) {
   if (!matCache[colorHex]) {
     matCache[colorHex] = new THREE.MeshPhysicalMaterial({
-      color: colorHex, metalness: 0.2, roughness: 0.1, clearcoat: 1.0, clearcoatRoughness: 0.1,
+      color: colorHex, metalness: 0.4, roughness: 0.2, clearcoat: 1.0, clearcoatRoughness: 0.1,
+      envMapIntensity: 2.0 // Makes it super glossy under lighting
     });
   }
   return matCache[colorHex];
 }
-const bondGeo = new THREE.CylinderGeometry(0.03, 0.03, 1, 16);
-const bondMat = new THREE.MeshPhysicalMaterial({ color: 0xcccccc, metalness: 0.6, roughness: 0.2, clearcoat: 0.8 });
+const bondGeo = new THREE.CylinderGeometry(0.06, 0.06, 1, 32);
+const bondMat = new THREE.MeshPhysicalMaterial({ color: 0xdddddd, metalness: 0.8, roughness: 0.2, clearcoat: 1.0 });
 
 export function makeMolecule(type) {
   const defs = MOLECULE_DEF[type];
@@ -228,7 +230,8 @@ export function makeMolecule(type) {
   for (let i = 0; i < pts.length; i++) {
     for (let j = i + 1; j < pts.length; j++) {
       const dist = pts[i].distanceTo(pts[j]);
-      if (dist < 0.45) {
+      // Connect atoms if they are close enough (threshold up to 1.5 units)
+      if (dist > 0.1 && dist < 1.3) {
         const bond = new THREE.Mesh(bondGeo, bondMat);
         bond.position.copy(pts[i]).lerp(pts[j], 0.5);
         bond.scale.y = dist;
@@ -238,6 +241,22 @@ export function makeMolecule(type) {
     }
   }
   return group;
+}
+
+// ---------------------------------------------------------------------------
+// UTILITIES: SOFT GLOW TEXTURE
+// ---------------------------------------------------------------------------
+function createSoftCircleTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128; canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grad.addColorStop(0, 'rgba(255,255,255,1)');
+  grad.addColorStop(0.5, 'rgba(255,255,255,0.3)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(canvas);
 }
 
 // ---------------------------------------------------------------------------
@@ -261,7 +280,6 @@ class GyroControls {
       THREE.MathUtils.degToRad(alpha || 0),
       -THREE.MathUtils.degToRad(gamma || 0), 'YXZ'
     );
-    // Apply rotation to the rig so the camera can still have a local offset
     this.rig.quaternion.setFromEuler(e).multiply(this.q1).multiply(this.q0.setFromAxisAngle(this.zee, -THREE.MathUtils.degToRad(this.sO)));
   }
 }
@@ -284,17 +302,21 @@ class CoreEngine {
     this.playerMol = makeMolecule(misi.jenis);
     this.player.add(this.playerMol);
     
-    // Add a very subtle "YOU" glow beneath player
-    const glowMat = new THREE.MeshBasicMaterial({ color: 0xffdd00, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false });
-    this.playerGlow = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.8), glowMat);
+    // Proper circular soft glow beneath player
+    const softTex = createSoftCircleTexture();
+    const glowMat = new THREE.MeshBasicMaterial({ 
+      map: softTex, color: 0x4fc3f7, transparent: true, opacity: 0.4, 
+      blending: THREE.AdditiveBlending, depthWrite: false 
+    });
+    this.playerGlow = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), glowMat);
     this.playerGlow.rotation.x = -Math.PI/2;
-    this.playerGlow.position.y = -0.3;
+    this.playerGlow.position.y = -0.5;
     this.player.add(this.playerGlow);
 
     // Flow particles (Arus Energi ✨✨✨)
     this.dust = new THREE.Group();
     const pGeo = new THREE.BufferGeometry();
-    const pCount = 300;
+    const pCount = 200;
     const pPos = new Float32Array(pCount * 3);
     for(let i=0; i<pCount*3; i+=3) {
       pPos[i] = (Math.random()-.5)*20;
@@ -302,7 +324,10 @@ class CoreEngine {
       pPos[i+2] = -Math.random()*50;
     }
     pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-    const pMat = new THREE.PointsMaterial({ color: 0x4fc3f7, size: 0.1, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending });
+    const pMat = new THREE.PointsMaterial({ 
+      map: softTex, color: 0x3b82f6, size: 0.4, 
+      transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false 
+    });
     this.dustPoints = new THREE.Points(pGeo, pMat);
     this.dust.add(this.dustPoints);
     this.scene.add(this.dust);
@@ -318,19 +343,19 @@ class CoreEngine {
       mol.position.copy(mol.userData.basePos);
       this.systemMols.add(mol);
     }
-    this.systemMols.visible = false; // Isolated focus initially
+    this.systemMols.visible = false;
     this.scene.add(this.systemMols);
 
     this.cp = CHECKPOINT.START;
     this.cpTime = 0;
-    this.forwardSpeed = 3.0;
+    this.forwardSpeed = 2.5;
     
     // Partner for collision choreo
     this.partner = makeMolecule(misi.pasangan);
     this.partner.position.set(0, 0, -100);
     this.scene.add(this.partner);
     
-    this.systemEqShift = 0; // For Le Chatelier
+    this.systemEqShift = 0;
   }
 
   startJourney() {
@@ -339,11 +364,12 @@ class CoreEngine {
       this.videoEl.srcObject.getTracks().forEach(t => t.stop());
       this.videoEl.srcObject = null;
     }
-    this.scene.background = new THREE.Color(0x02040a);
-    this.scene.fog = new THREE.FogExp2(0x02040a, 0.05);
+    // Deep dark blue-black void
+    this.scene.background = new THREE.Color(0x020308);
+    this.scene.fog = new THREE.FogExp2(0x020308, 0.04);
 
     // Setup 3rd Person Camera (fixed behind player)
-    this.camera.position.set(0, 1.2, 3.5);
+    this.camera.position.set(0, 1.2, 4.5);
     this.camera.lookAt(0, 0, -5);
 
     this.advanceTo(CHECKPOINT.START);
@@ -355,10 +381,12 @@ class CoreEngine {
     this.player.add(this.playerMol);
     if (toProd) {
       soundEngine.bondForm();
-      this.dustPoints.material.color.setHex(0xfbbf24); // Flow becomes golden
+      this.dustPoints.material.color.setHex(0xfbbf24); 
+      this.playerGlow.material.color.setHex(0xfbbf24);
     } else {
       soundEngine.bondBreak();
-      this.dustPoints.material.color.setHex(0x4fc3f7); // Flow back to blue
+      this.dustPoints.material.color.setHex(0x3b82f6);
+      this.playerGlow.material.color.setHex(0x4fc3f7);
     }
   }
 
@@ -382,9 +410,8 @@ class CoreEngine {
       
       // Move camera rig forward through space to simulate player movement
       this.rig.position.z -= this.forwardSpeed * dt;
-      this.player.position.z = this.rig.position.z - 2; // Player stays slightly ahead of rig
+      this.player.position.z = this.rig.position.z - 2;
     } else {
-      // Free look during zoom out
       this.playerMol.rotation.y += dt * 0.5;
     }
 
@@ -442,7 +469,7 @@ class CoreEngine {
         break;
       case CHECKPOINT.FAIL_BUMP:
         this.partner.position.z += 3 * dt;
-        if (this.partner.position.distanceTo(this.player.position) < 0.6) {
+        if (this.partner.position.distanceTo(this.player.position) < 0.8) {
           soundEngine.bounce();
           this.partner.position.x += 1;
           this.partner.position.z -= 100;
@@ -456,7 +483,7 @@ class CoreEngine {
         }
         if (this.cpTime > 3) {
            this.partner.position.z += 2 * dt;
-           if (this.partner.position.distanceTo(this.player.position) < 0.5) {
+           if (this.partner.position.distanceTo(this.player.position) < 0.8) {
              this.partner.position.z -= 100;
              this.morphPlayer(true);
              this.advanceTo(CHECKPOINT.BECOME_PROD);
@@ -464,23 +491,20 @@ class CoreEngine {
         }
         break;
       case CHECKPOINT.BECOME_PROD:
-        // Enjoy being a product for a bit
         if (this.cpTime > 6) {
           this.morphPlayer(false);
           this.advanceTo(CHECKPOINT.BREAK);
         }
         break;
       case CHECKPOINT.BREAK:
-        // Productive confusion. AI is silent.
         if (this.cpTime > 4) {
           this.advanceTo(CHECKPOINT.ZOOMOUT);
         }
         break;
       case CHECKPOINT.ZOOMOUT:
         if (this.cpTime === dt) {
-          this.forwardSpeed = 0; // Stop moving
-          this.systemMols.visible = true; // Reveal all other molecules!
-          // Fly camera backwards slowly
+          this.forwardSpeed = 0;
+          this.systemMols.visible = true; 
         }
         if (this.cpTime < 5) {
            this.camera.position.z += dt * 1.5;
@@ -520,23 +544,29 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, callbacks) {
   renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 
   const scene = new THREE.Scene();
-  const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+  
+  // Create beautiful multi-directional lighting for PBR reflections
+  const ambient = new THREE.AmbientLight(0x223344, 1.0);
   scene.add(ambient);
   
-  const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
-  dirLight.position.set(5, 8, 5);
-  scene.add(dirLight);
+  const mainLight = new THREE.DirectionalLight(0xffffff, 2.5);
+  mainLight.position.set(5, 10, 5);
+  scene.add(mainLight);
 
-  const fillLight = new THREE.DirectionalLight(0x88bbff, 1.5);
-  fillLight.position.set(-5, -2, -5);
+  const fillLight = new THREE.DirectionalLight(0x4fc3f7, 1.5); // Blue rim light
+  fillLight.position.set(-5, 0, -5);
   scene.add(fillLight);
+  
+  const backLight = new THREE.DirectionalLight(0xf87171, 1.5); // Red rim light
+  backLight.position.set(0, -5, -10);
+  scene.add(backLight);
 
   const cameraRig = new THREE.Group();
   scene.add(cameraRig);
   const camera = new THREE.PerspectiveCamera(70, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
   cameraRig.add(camera);
 
-  // Initial Reality State (Wait for Portal Entry)
+  // Initial Reality State
   let isTrueAR = false;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
@@ -544,7 +574,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, callbacks) {
     await videoEl.play().catch(() => {});
     isTrueAR = true;
   } catch {
-    scene.background = new THREE.Color(0x1a202c);
+    scene.background = new THREE.Color(0x020308);
   }
 
   const gyro = new GyroControls(cameraRig);
