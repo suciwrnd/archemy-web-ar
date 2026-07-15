@@ -412,8 +412,8 @@ function renderLogin() {
         <button class="role-tab ${state.role==='siswa'?'active':''}" onclick="window.setRole('siswa')">Siswa</button>
         <button class="role-tab ${state.role==='guru'?'active':''}" onclick="window.setRole('guru')">Guru</button>
       </div>
-      <div class="field"><label>Email</label><input id="loginEmail" class="input" value="${profile().email}" placeholder="email@archemy.id"></div>
-      <div class="field"><label>Password</label><input id="loginPass" class="input" type="password" value="${profile().password}" placeholder="Masukkan password"></div>
+      <div class="field"><label>Email</label><input id="loginEmail" class="input" placeholder="email@archemy.id"></div>
+      <div class="field"><label>Password</label><input id="loginPass" class="input" type="password" placeholder="Masukkan password"></div>
       <button class="btn full" onclick="window.submitLogin()">Login sebagai ${state.role==='siswa'?'Siswa':'Guru'}</button>
       <p class="small" style="text-align:center;margin:14px 0 0">Belum punya akun? <button class="link-btn" onclick="window.go('register')">Daftar</button></p>
     </div></section>`;
@@ -431,10 +431,10 @@ function renderRegister() {
         <button class="role-tab ${state.role==='siswa'?'active':''}" onclick="window.setRole('siswa')">Siswa</button>
         <button class="role-tab ${state.role==='guru'?'active':''}" onclick="window.setRole('guru')">Guru</button>
       </div>
-      <div class="field"><label>Nama lengkap</label><input id="regName" class="input" value="${profile().name}" placeholder="Nama lengkap"></div>
-      <div class="field"><label>Email</label><input id="regEmail" class="input" value="${profile().email}" placeholder="email@archemy.id"></div>
-      <div class="field"><label>Sekolah</label><input id="regSchool" class="input" value="${profile().school}" placeholder="Nama sekolah"></div>
-      <div class="field"><label>Password</label><input id="regPass" class="input" type="password" value="${profile().password}" placeholder="Buat password"></div>
+      <div class="field"><label>Nama lengkap</label><input id="regName" class="input" placeholder="Nama lengkap"></div>
+      <div class="field"><label>Email</label><input id="regEmail" class="input" placeholder="email@archemy.id"></div>
+      <div class="field"><label>Sekolah</label><input id="regSchool" class="input" placeholder="Nama sekolah"></div>
+      <div class="field"><label>Password</label><input id="regPass" class="input" type="password" placeholder="Buat password"></div>
       <button class="btn full" onclick="window.submitRegister()">Daftar</button>
       <p class="small" style="text-align:center;margin:14px 0 0">Sudah punya akun? <button class="link-btn" onclick="window.go('login')">Login</button></p>
     </div></section>`;

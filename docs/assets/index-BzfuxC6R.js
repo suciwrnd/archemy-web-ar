@@ -4224,8 +4224,8 @@ void main() {
         <button class="role-tab ${Z.role===`siswa`?`active`:``}" onclick="window.setRole('siswa')">Siswa</button>
         <button class="role-tab ${Z.role===`guru`?`active`:``}" onclick="window.setRole('guru')">Guru</button>
       </div>
-      <div class="field"><label>Email</label><input id="loginEmail" class="input" value="${kl().email}" placeholder="email@archemy.id"></div>
-      <div class="field"><label>Password</label><input id="loginPass" class="input" type="password" value="${kl().password}" placeholder="Masukkan password"></div>
+      <div class="field"><label>Email</label><input id="loginEmail" class="input" placeholder="email@archemy.id"></div>
+      <div class="field"><label>Password</label><input id="loginPass" class="input" type="password" placeholder="Masukkan password"></div>
       <button class="btn full" onclick="window.submitLogin()">Login sebagai ${Z.role===`siswa`?`Siswa`:`Guru`}</button>
       <p class="small" style="text-align:center;margin:14px 0 0">Belum punya akun? <button class="link-btn" onclick="window.go('register')">Daftar</button></p>
     </div></section>`}function Kl(){let e=document.getElementById(`loginEmail`).value.trim();if(!e)return El(`Email tidak boleh kosong`);Z.profile[Z.role].email=e,Q(),El(`Login berhasil `),Z.role===`siswa`?Ol(Z.joinedClass?`studentDashboard`:`joinClass`):Ol(`teacherClasses`)}function ql(){xl.innerHTML=`<section class="auth-screen">
@@ -4235,10 +4235,10 @@ void main() {
         <button class="role-tab ${Z.role===`siswa`?`active`:``}" onclick="window.setRole('siswa')">Siswa</button>
         <button class="role-tab ${Z.role===`guru`?`active`:``}" onclick="window.setRole('guru')">Guru</button>
       </div>
-      <div class="field"><label>Nama lengkap</label><input id="regName" class="input" value="${kl().name}" placeholder="Nama lengkap"></div>
-      <div class="field"><label>Email</label><input id="regEmail" class="input" value="${kl().email}" placeholder="email@archemy.id"></div>
-      <div class="field"><label>Sekolah</label><input id="regSchool" class="input" value="${kl().school}" placeholder="Nama sekolah"></div>
-      <div class="field"><label>Password</label><input id="regPass" class="input" type="password" value="${kl().password}" placeholder="Buat password"></div>
+      <div class="field"><label>Nama lengkap</label><input id="regName" class="input" placeholder="Nama lengkap"></div>
+      <div class="field"><label>Email</label><input id="regEmail" class="input" placeholder="email@archemy.id"></div>
+      <div class="field"><label>Sekolah</label><input id="regSchool" class="input" placeholder="Nama sekolah"></div>
+      <div class="field"><label>Password</label><input id="regPass" class="input" type="password" placeholder="Buat password"></div>
       <button class="btn full" onclick="window.submitRegister()">Daftar</button>
       <p class="small" style="text-align:center;margin:14px 0 0">Sudah punya akun? <button class="link-btn" onclick="window.go('login')">Login</button></p>
     </div></section>`}function Jl(){let e=Z.profile[Z.role];e.name=document.getElementById(`regName`).value.trim()||e.name,e.email=document.getElementById(`regEmail`).value.trim()||e.email,e.school=document.getElementById(`regSchool`).value.trim()||e.school,e.password=document.getElementById(`regPass`).value.trim()||e.password,Q(),El(`Akun berhasil dibuat `),Z.role===`siswa`?Ol(`joinClass`):Ol(`teacherClasses`)}function Yl(){Wl(`${Hl({coins:!1})}
