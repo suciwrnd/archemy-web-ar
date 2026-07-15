@@ -851,12 +851,22 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, callbacks) {
   });
   
   return {
+    startJourney: () => {
+      // Called by MULAI button — skip portal placement, go straight to journey
+      soundEngine.whoosh();
+      world.setVisible(true);
+      if (videoEl && videoEl.style) { videoEl.style.transition = 'opacity 1s'; videoEl.style.opacity = '0.3'; }
+      world.initPlayer(misi);
+      journey = new MolecularJourney(scene, world, misi, null);
+      camMgr.setFollowMode();
+      if (window._updateHUDForm) window._updateHUDForm(false, misi.jenis);
+      setState(AR_STATE.JOURNEY, misi.ai_journey);
+    },
     triggerTool: (tool) => {
       if (state !== AR_STATE.EXPERIMENT) return;
       
       let shift = 0;
       if (tool === misi.tool_correct) {
-        // Le Chatelier: correct tool shifts correctly
         shift = misi.deltaH === 'endoterm' ? 0.6 : -0.6;
         if (tool === 'compress') shift = 0.6;
         if (tool === 'add') shift = 0.6;
@@ -889,6 +899,7 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, callbacks) {
     }
   };
 }
+
 
 export async function deteksiModeAR() {
   if (navigator.xr) {

@@ -106,11 +106,12 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         <canvas id="webarCanvas"></canvas>
       </div>
 
-      <!-- Scan Overlay -->
+      <!-- Scan / Start Overlay -->
       <div class="scan-overlay" id="scanOverlay">
         <div class="scan-ring"></div>
-        <div class="scan-title">Arahkan kamera ke meja</div>
-        <div class="scan-subtitle">Tap untuk meletakkan portal</div>
+        <div class="scan-title">Dunia Molekul Siap</div>
+        <div class="scan-subtitle">Kamu akan menjadi molekul ${misi.jenis}</div>
+        <button class="scan-start-btn" id="btnMulaiAR">🔬 Mulai Perjalanan</button>
       </div>
 
       <!-- HUD Layer -->
@@ -349,6 +350,22 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   } catch(e) {
     console.error('AR session failed:', e);
     setAI('Gagal mengakses kamera. Coba refresh halaman.');
+  }
+
+  // MULAI button — skip portal tap, directly enter molecular world
+  const btnMulai = container.querySelector('#btnMulaiAR');
+  if (btnMulai) {
+    btnMulai.addEventListener('click', () => {
+      scanOvl.style.display = 'none';
+      hudLayer.style.display = '';
+      if (sesi?.startJourney) sesi.startJourney();
+    });
+    btnMulai.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      scanOvl.style.display = 'none';
+      hudLayer.style.display = '';
+      if (sesi?.startJourney) sesi.startJourney();
+    }, { passive: false });
   }
 }
 
