@@ -281,6 +281,24 @@
   font-family: 'Courier New', monospace;
 }
 
+/* Reaction Counter (right center) */
+.hud-counter {
+  position: absolute;
+  top: 50%; right: 16px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-dim);
+  border-radius: 10px;
+  padding: 8px 12px;
+  backdrop-filter: blur(10px);
+}
+.hud-counter-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+.hud-counter-val { font-size: 20px; font-weight: 700; color: var(--accent-cyan); }
+
 /* Equilibrium Bars (Bottom Center) */
 .hud-eq {
   position: absolute;
@@ -307,11 +325,15 @@
   gap: 8px;
   margin-bottom: 5px;
 }
-.hud-eq-label { font-size: 10px; color: var(--text-dim); width: 68px; flex-shrink: 0; }
+.hud-eq-label { font-size: 10px; color: var(--text-dim); width: 60px; flex-shrink: 0; }
 .hud-eq-track { flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
 .hud-eq-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(.4,0,.2,1); }
 .hud-eq-fill.fwd { background: linear-gradient(90deg, #3b82f6, #4fc3f7); box-shadow: 0 0 6px #4fc3f7; }
 .hud-eq-fill.rev { background: linear-gradient(90deg, #fbbf24, #f59e0b); box-shadow: 0 0 6px #fbbf24; }
+.hud-eq-pct { font-size: 10px; font-weight: 700; color: var(--text-dim); width: 30px; text-align: right; flex-shrink: 0; }
+
+/* Experiment panel label */
+.exp-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-gold); text-align: center; }
 
 /* ===========================
    SCAN OVERLAY

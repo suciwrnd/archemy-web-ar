@@ -1,11 +1,9 @@
 /* ==========================================================================
-   ARCHEMY WEBAR PAGE v8.0 — Pedagogically Sequenced Experience
-   
-   Flow: Hook → Pilih Misi → Portal AR → Journey → ZoomOut → Experiment → Challenge → Reflection
+   ARCHEMY WEBAR PAGE v9.0 — Phase-perfect educational journey
    ========================================================================== */
 
 import {
-  MISI_DATA, AR_STATE,
+  MISI_DATA, PHASE,
   deteksiModeAR, mulaiSesiARjs, mulaiSesiWebXR,
   requestSensorPermission, soundEngine
 } from './webar.js';
@@ -14,35 +12,26 @@ import './webar.css';
 let sesi = null;
 
 // ---------------------------------------------------------------------------
-// HOOK SCREEN — Pre-mission question to spark curiosity
+// HOOK SCREEN
 // ---------------------------------------------------------------------------
 export function renderHook(container, misiId, onContinue) {
   const misi = MISI_DATA[misiId];
   if (!misi) return;
 
-  // Floating dot positions
-  const dots = Array.from({length: 12}, (_, i) => {
-    const top = 5 + Math.random() * 85;
-    const left = 5 + Math.random() * 85;
-    const size = 6 + Math.random() * 12;
-    const delay = Math.random() * 4;
-    const dur = 4 + Math.random() * 4;
-    return `<div class="hook-float" style="
-      top:${top}%;left:${left}%;
-      width:${size}px;height:${size}px;
-      animation-delay:${delay}s;animation-duration:${dur}s;
-    "></div>`;
+  const dots = Array.from({length: 14}, () => {
+    const top = 5 + Math.random() * 85, left = 5 + Math.random() * 85;
+    const size = 5 + Math.random() * 10, delay = Math.random() * 5, dur = 4 + Math.random() * 4;
+    return `<div class="hook-float" style="top:${top}%;left:${left}%;width:${size}px;height:${size}px;animation-delay:${delay}s;animation-duration:${dur}s"></div>`;
   }).join('');
 
   container.innerHTML = `
     <div class="archemy-hook">
       ${dots}
-      <div class="hook-label">ARChemy Lab</div>
+      <div class="hook-label">ARChemy — ${misi.judul}</div>
+      <div class="hook-equation">${misi.persamaan}</div>
       <h2 class="hook-question">"${misi.hook}"</h2>
-      <p class="hook-hint">Masuki dunia mikroskopis dan temukan sendiri jawabannya.</p>
-      <button class="hook-btn" id="hookContinue">
-        <span>🔬</span> Selidiki
-      </button>
+      <p class="hook-hint">Masuki dunia molekul dan temukan sendiri jawabannya.</p>
+      <button class="hook-btn" id="hookContinue"><span>🔬</span> Selidiki</button>
     </div>`;
 
   container.querySelector('#hookContinue').addEventListener('click', () => {
@@ -59,17 +48,14 @@ export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
 
   const cards = Object.entries(MISI_DATA).map(([id, m]) => {
     const isDone = done.includes(id);
-    const isRec = recommendedIds.includes(id);
+    const isRec  = recommendedIds.includes(id);
     return `
-      <div class="misi-card" data-misi="${id}" tabindex="0" role="button">
+      <div class="misi-card" data-misi="${id}" tabindex="0" role="button" aria-label="${m.judul}">
         <div class="misi-card-header">
-          <div class="misi-number">${m.judul.split(':')[0]}</div>
-          <div>
-            ${isRec ? '<span class="misi-badge rec">AI Pick</span>' : ''}
-            ${isDone ? '<span class="misi-badge done">✓ Selesai</span>' : ''}
-          </div>
+          <div class="misi-number">${m.judul.split('—')[0].trim()}</div>
+          <div>${isRec ? '<span class="misi-badge rec">AI Pick</span>' : ''}${isDone ? '<span class="misi-badge done">✓ Selesai</span>' : ''}</div>
         </div>
-        <div class="misi-judul">${m.judul.split(':')[1]?.trim() || m.judul}</div>
+        <div class="misi-judul">${(m.judul.split('—')[1] || m.judul).trim()}</div>
         <code class="misi-persamaan">${m.persamaan}</code>
       </div>`;
   }).join('');
@@ -83,13 +69,13 @@ export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
       <div class="misi-grid">${cards}</div>
     </div>`;
 
-  container.querySelectorAll('.misi-card').forEach(card => {
-    card.addEventListener('click', () => onPilihMisi(card.dataset.misi));
+  container.querySelectorAll('.misi-card').forEach(c => {
+    c.addEventListener('click', () => onPilihMisi(c.dataset.misi));
   });
 }
 
 // ---------------------------------------------------------------------------
-// AR SESSION PAGE — Full experience
+// AR SESSION PAGE
 // ---------------------------------------------------------------------------
 export async function renderHalamanAR(container, misiId, onKeluar) {
   const misi = MISI_DATA[misiId];
@@ -99,59 +85,71 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 
   container.innerHTML = `
     <div class="webar-stage" id="webarStage">
-      
-      <!-- 3D Canvas -->
+
       <div class="webar-viewport">
         <video id="webarVideo" playsinline muted></video>
         <canvas id="webarCanvas"></canvas>
       </div>
 
-      <!-- Scan / Start Overlay -->
+      <!-- Start Overlay -->
       <div class="scan-overlay" id="scanOverlay">
         <div class="scan-ring"></div>
         <div class="scan-title">Dunia Molekul Siap</div>
-        <div class="scan-subtitle">Kamu akan menjadi molekul ${misi.jenis}</div>
+        <div class="scan-subtitle">Kamu akan menjadi molekul <strong>${misi.jenis}</strong></div>
         <button class="scan-start-btn" id="btnMulaiAR">🔬 Mulai Perjalanan</button>
       </div>
 
       <!-- HUD Layer -->
       <div class="hud-layer" id="hudLayer" style="display:none">
         <button class="hud-back" id="btnBack">← Keluar</button>
-        
-        <div class="hud-status" id="hudStatus">Menginisialisasi...</div>
-        
+
+        <!-- Phase indicator (top center) -->
+        <div class="hud-status" id="hudStatus">Persiapan...</div>
+
+        <!-- Current Form (left center) -->
         <div class="hud-form" id="hudForm" style="display:none">
-          <div class="hud-form-label">Current Form</div>
+          <div class="hud-form-label">Bentuk Saat Ini</div>
           <div class="hud-form-value reactant" id="hudFormVal">…</div>
         </div>
-        
+
+        <!-- Reaction counter (right side during journey) -->
+        <div class="hud-counter" id="hudCounter" style="display:none">
+          <div class="hud-counter-label">Perubahan</div>
+          <div class="hud-counter-val" id="hudCounterVal">0×</div>
+        </div>
+
+        <!-- AI Speech -->
         <div class="hud-ai" id="hudAI" style="display:none">
           <div class="hud-ai-avatar">🤖</div>
           <div class="hud-ai-text" id="hudAIText"></div>
         </div>
-        
+
+        <!-- Equilibrium bars (shows during zoom-out and experiment) -->
         <div class="hud-eq" id="hudEq" style="display:none">
-          <div class="hud-eq-title">⚖ Equilibrium</div>
+          <div class="hud-eq-title">⚖ Kesetimbangan Dinamis</div>
           <div class="hud-eq-row">
-            <span class="hud-eq-label">Forward →</span>
+            <span class="hud-eq-label">Maju →</span>
             <div class="hud-eq-track"><div class="hud-eq-fill fwd" id="eqFwd" style="width:50%"></div></div>
+            <span class="hud-eq-pct" id="eqFwdPct">50%</span>
           </div>
           <div class="hud-eq-row">
-            <span class="hud-eq-label">← Reverse</span>
+            <span class="hud-eq-label">← Balik</span>
             <div class="hud-eq-track"><div class="hud-eq-fill rev" id="eqRev" style="width:50%"></div></div>
+            <span class="hud-eq-pct" id="eqRevPct">50%</span>
           </div>
         </div>
       </div>
 
-      <!-- Experiment Panel (Right side, appears after zoom-out) -->
+      <!-- Experiment tools (right side, after quiz) -->
       <div class="exp-panel" id="expPanel" style="display:none">
-        <button class="exp-btn" data-tool="heat"><span class="exp-btn-icon">🔥</span>Heat</button>
-        <button class="exp-btn" data-tool="cool"><span class="exp-btn-icon">❄️</span>Cool</button>
-        <button class="exp-btn" data-tool="add"><span class="exp-btn-icon">➕</span>Add Reaktan</button>
-        <button class="exp-btn" data-tool="compress"><span class="exp-btn-icon">📦</span>Compress</button>
+        <div class="exp-label">Le Chatelier</div>
+        <button class="exp-btn" data-tool="heat"><span class="exp-btn-icon">🔥</span>Naikkan Suhu</button>
+        <button class="exp-btn" data-tool="cool"><span class="exp-btn-icon">❄️</span>Turunkan Suhu</button>
+        <button class="exp-btn" data-tool="add"><span class="exp-btn-icon">➕</span>Tambah Reaktan</button>
+        <button class="exp-btn" data-tool="compress"><span class="exp-btn-icon">📦</span>Naikkan Tekanan</button>
       </div>
 
-      <!-- Quiz Overlay (Eureka moment) -->
+      <!-- Quiz MCQ -->
       <div class="quiz-overlay" id="quizOverlay" style="display:none">
         <div class="quiz-card">
           <div class="quiz-header">
@@ -162,210 +160,210 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
           <div class="quiz-options">
             <button class="quiz-btn" data-ans="A">Reaksi belum selesai dan masih mencari bentuk akhirnya.</button>
             <button class="quiz-btn" data-ans="B">Molekul bergerak secara acak tanpa pola.</button>
-            <button class="quiz-btn" data-ans="C">Laju reaksi maju dan balik berlangsung secara bersamaan dengan kecepatan sama.</button>
-            <button class="quiz-btn" data-ans="D">Produk selalu lebih stabil daripada reaktan.</button>
+            <button class="quiz-btn" data-ans="C">Laju reaksi maju = laju reaksi balik, keduanya terjadi bersamaan.</button>
+            <button class="quiz-btn" data-ans="D">Produk selalu lebih stabil, tapi terus terurai karena energi rendah.</button>
           </div>
         </div>
       </div>
 
-      <!-- Challenge Panel (Game-like) -->
+      <!-- Challenge -->
       <div class="challenge-overlay" id="challengeOverlay" style="display:none">
         <div class="challenge-card">
-          <div class="challenge-label">🎯 Challenge</div>
-          <div class="challenge-text" id="challengeText">${misi.challenge_q}</div>
+          <div class="challenge-label">🎯 Challenge — Terapkan Le Chatelier</div>
+          <div class="challenge-text">${misi.challenge_q}</div>
           <div class="challenge-opts" id="challengeOpts">
-            ${misi.challenge_opts.map((o, i) => 
+            ${misi.challenge_opts.map((o, i) =>
               `<button class="challenge-opt-btn" data-idx="${i}" data-correct="${o.correct}">${o.text}</button>`
             ).join('')}
           </div>
-          <div class="reflection-explanation" id="challengeExplanation" style="display:none">${misi.challenge_explanation}</div>
+          <div class="reflection-explanation" id="challengeExp" style="display:none">${misi.challenge_explanation}</div>
         </div>
       </div>
 
-      <!-- Reflection (End screen) -->
+      <!-- Reflection -->
       <div class="reflection-overlay" id="reflectionOverlay" style="display:none">
         <div class="reflection-card">
           <div class="reflection-icon">✨</div>
-          <div class="reflection-title">Refleksi Akhir</div>
+          <div class="reflection-title">Refleksi — Balik ke Pertanyaan Awal</div>
           <div class="reflection-question">${misi.reflection_q}</div>
           <div class="reflection-answer-btns" id="reflectionOpts">
             ${misi.reflection_opts.map((o, i) =>
               `<button class="reflection-ans" data-idx="${i}" data-correct="${o.correct}">${o.text}</button>`
             ).join('')}
           </div>
-          <div class="reflection-explanation" id="reflectionExp">${misi.reflection_explanation}</div>
+          <div class="reflection-explanation" id="reflectionExp" style="display:none">${misi.reflection_explanation}</div>
           <button class="btn-finish" id="btnFinish" style="display:none">✓ Selesai & Klaim XP</button>
         </div>
       </div>
 
     </div>`;
 
-  // Get elements
-  const canvas    = container.querySelector('#webarCanvas');
-  const videoEl   = container.querySelector('#webarVideo');
-  const scanOvl   = container.querySelector('#scanOverlay');
-  const hudLayer  = container.querySelector('#hudLayer');
-  const hudStatus = container.querySelector('#hudStatus');
-  const hudForm   = container.querySelector('#hudForm');
-  const hudFormVal= container.querySelector('#hudFormVal');
-  const hudAI     = container.querySelector('#hudAI');
-  const hudAIText = container.querySelector('#hudAIText');
-  const hudEq     = container.querySelector('#hudEq');
-  const eqFwd     = container.querySelector('#eqFwd');
-  const eqRev     = container.querySelector('#eqRev');
-  const expPanel  = container.querySelector('#expPanel');
-  const quizOvl   = container.querySelector('#quizOverlay');
-  const challOvl  = container.querySelector('#challengeOverlay');
-  const reflOvl   = container.querySelector('#reflectionOverlay');
+  // DOM refs
+  const canvas     = container.querySelector('#webarCanvas');
+  const videoEl    = container.querySelector('#webarVideo');
+  const scanOvl    = container.querySelector('#scanOverlay');
+  const hudLayer   = container.querySelector('#hudLayer');
+  const hudStatus  = container.querySelector('#hudStatus');
+  const hudForm    = container.querySelector('#hudForm');
+  const hudFormVal = container.querySelector('#hudFormVal');
+  const hudCounter = container.querySelector('#hudCounter');
+  const hudCounterVal = container.querySelector('#hudCounterVal');
+  const hudAI      = container.querySelector('#hudAI');
+  const hudAIText  = container.querySelector('#hudAIText');
+  const hudEq      = container.querySelector('#hudEq');
+  const eqFwd      = container.querySelector('#eqFwd');
+  const eqRev      = container.querySelector('#eqRev');
+  const eqFwdPct   = container.querySelector('#eqFwdPct');
+  const eqRevPct   = container.querySelector('#eqRevPct');
+  const expPanel   = container.querySelector('#expPanel');
+  const quizOvl    = container.querySelector('#quizOverlay');
+  const challOvl   = container.querySelector('#challengeOverlay');
+  const reflOvl    = container.querySelector('#reflectionOverlay');
 
   // Resize canvas
-  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
   resize(); window.addEventListener('resize', resize);
 
-  // AI Typewriter
-  let typeTimer;
+  // AI typewriter
+  let typeTimer, reactionCount = 0;
   function setAI(text, show = true) {
     clearTimeout(typeTimer);
     if (!show || !text) { hudAI.style.display = 'none'; return; }
     hudAI.style.display = 'flex';
     hudAIText.textContent = '';
     let i = 0;
-    const type = () => {
-      if (i < text.length) { hudAIText.textContent += text[i++]; typeTimer = setTimeout(type, 25); }
-    };
+    const type = () => { if (i < text.length) { hudAIText.textContent += text[i++]; typeTimer = setTimeout(type, 22); } };
     type();
   }
 
-  // HUD updates (called by engine)
+  // Phase status labels
+  const PHASE_LABEL = {
+    [PHASE.ENTERING]:   '🚀 Memasuki Dunia Molekul...',
+    [PHASE.JOURNEY_1]:  '🔵 Perjalanan — Menuju Titik Tumbukan Pertama',
+    [PHASE.REACTION_1]: '⚡ Reaksi Terjadi!',
+    [PHASE.JOURNEY_2]:  '🔵 Perjalanan — Berlanjut...',
+    [PHASE.REACTION_2]: '💥 Ikatan Terputus!',
+    [PHASE.JOURNEY_3]:  '🔵 Perjalanan — Mendekati Akhir Rute',
+    [PHASE.REACTION_3]: '⚡ Reaksi Lagi!',
+    [PHASE.PAUSE]:      '⏸ Berhenti Sejenak...',
+    [PHASE.ZOOMOUT]:    '🌍 Melihat Sistem Secara Keseluruhan',
+    [PHASE.QUIZ]:       '🧠 Pertanyaan Pemahaman',
+    [PHASE.EXPERIMENT]: '🧪 Eksperimen Le Chatelier',
+    [PHASE.CHALLENGE]:  '🎯 Challenge',
+    [PHASE.REFLECTION]: '✨ Refleksi',
+    'TOOL_USED':        '⚗️ Pengamatan Efek',
+  };
+
+  // Global HUD update callbacks
   window._updateHUDForm = (isProduct, name) => {
     hudForm.style.display = 'flex';
-    hudFormVal.textContent = isProduct ? `🟡 Product (${name})` : `🔵 Reactant (${name})`;
+    hudFormVal.textContent = isProduct ? `🟡 ${name} (Produk)` : `🔵 ${name} (Reaktan)`;
     hudFormVal.className = 'hud-form-value ' + (isProduct ? 'product' : 'reactant');
+    // Update reaction counter
+    if (isProduct || !isProduct) {
+      reactionCount++;
+      hudCounterVal.textContent = reactionCount + '×';
+    }
   };
   window._updateHUDEq = (fwd, rev) => {
-    eqFwd.style.width = fwd + '%';
-    eqRev.style.width = rev + '%';
+    eqFwd.style.width = fwd + '%'; eqFwdPct.textContent = fwd + '%';
+    eqRev.style.width = rev + '%'; eqRevPct.textContent = rev + '%';
   };
 
-  // State-change handler from engine
-  function onState(state, aiMsg) {
-    scanOvl.style.display   = state === AR_STATE.SCAN ? 'flex' : 'none';
-    hudLayer.style.display  = state !== AR_STATE.SCAN ? '' : 'none';
+  // Phase callback from engine
+  function onPhase(phase, msg) {
+    hudStatus.textContent = PHASE_LABEL[phase] || phase;
+    hudStatus.classList.toggle('equilibrium', phase === PHASE.ZOOMOUT || phase === PHASE.EXPERIMENT);
 
-    if (state === AR_STATE.PORTAL) {
-      hudStatus.textContent = '🌀 Portal terbuka — Tap untuk masuk';
-      setAI(aiMsg);
+    // Show/hide HUD elements
+    const isJourney = [PHASE.JOURNEY_1, PHASE.JOURNEY_2, PHASE.JOURNEY_3, PHASE.ENTERING].includes(phase);
+    const isReaction = [PHASE.REACTION_1, PHASE.REACTION_2, PHASE.REACTION_3].includes(phase);
+    
+    hudForm.style.display = (isJourney || isReaction || phase === PHASE.PAUSE || phase === PHASE.ZOOMOUT) ? 'flex' : 'none';
+    hudCounter.style.display = (isJourney || isReaction || phase === PHASE.PAUSE) ? 'flex' : 'none';
+    hudEq.style.display = (phase === PHASE.ZOOMOUT || phase === PHASE.EXPERIMENT || phase === 'TOOL_USED') ? '' : 'none';
+    expPanel.style.display = (phase === PHASE.EXPERIMENT || phase === 'TOOL_USED') ? 'flex' : 'none';
+    challOvl.style.display = (phase === PHASE.CHALLENGE) ? 'flex' : 'none';
+
+    // AI message
+    if (msg) setAI(msg, true);
+    else if (isReaction && msg === null) setAI('', false); // Silent during reaction
+    else if (!msg) setAI('', false);
+
+    // Quiz trigger
+    if (phase === PHASE.QUIZ) {
+      setTimeout(() => { quizOvl.style.display = 'flex'; setAI(''); }, 500);
     }
-    if (state === AR_STATE.JOURNEY) {
-      hudStatus.textContent = 'Reaction Status: Loading...';
-      hudStatus.classList.remove('equilibrium');
-      setAI(aiMsg, true);
-    }
-    if (state === AR_STATE.ZOOMOUT) {
-      hudStatus.textContent = '⚖ Dynamic Equilibrium';
-      hudStatus.classList.add('equilibrium');
-      hudEq.style.display = '';
-      setAI(aiMsg, true);
-      // Show quiz after AI finishes speaking
-      setTimeout(() => { quizOvl.style.display = 'flex'; setAI(''); }, 5000);
-    }
-    if (state === AR_STATE.EXPERIMENT) {
-      setAI(aiMsg, true);
-      expPanel.style.display = 'flex';
-      // Show challenge after 3s of experiment
-      setTimeout(() => { challOvl.style.display = 'flex'; }, 4000);
-    }
-    if (state === AR_STATE.CHALLENGE) {
-      challOvl.style.display = 'flex';
-      expPanel.style.display = 'flex';
-    }
-    if (state === AR_STATE.REFLECTION) {
+
+    // Reflection
+    if (phase === PHASE.REFLECTION) {
       reflOvl.style.display = 'flex';
       challOvl.style.display = 'none';
     }
   }
 
-  // Quiz logic (MCQ — C is correct: "laju maju & balik sama")
+  // Quiz
   quizOvl.querySelectorAll('.quiz-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const correct = btn.dataset.ans === 'C';
       btn.classList.add(correct ? 'correct' : 'wrong');
       if (!correct) return;
-      setTimeout(() => {
-        quizOvl.style.display = 'none';
-        sesi?.onQuizAnswered();
-      }, 1200);
+      setTimeout(() => { quizOvl.style.display = 'none'; sesi?.onQuizAnswered(); }, 1200);
     });
   });
 
-  // Challenge logic
+  // Challenge
   container.querySelectorAll('.challenge-opt-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const correct = btn.dataset.correct === 'true';
       btn.classList.add(correct ? 'correct' : 'wrong');
-      const exp = container.querySelector('#challengeExplanation');
-      exp.style.display = 'block';
-      if (correct) {
-        soundEngine.success?.() || soundEngine.bondForm?.();
-        setTimeout(() => { sesi?.onChallengeAnswered(); }, 1500);
-      }
+      container.querySelector('#challengeExp').style.display = 'block';
+      if (correct) { soundEngine.success?.(); setTimeout(() => sesi?.onChallengeAnswered(), 1500); }
     });
   });
 
-  // Reflection logic
+  // Reflection
   container.querySelectorAll('.reflection-ans').forEach(btn => {
     btn.addEventListener('click', () => {
       const correct = btn.dataset.correct === 'true';
       btn.classList.add(correct ? 'correct' : 'wrong');
-      const exp = container.querySelector('#reflectionExp');
-      exp.style.display = 'block';
-      const finBtn = container.querySelector('#btnFinish');
-      finBtn.style.display = '';
+      container.querySelector('#reflectionExp').style.display = 'block';
+      container.querySelector('#btnFinish').style.display = '';
     });
   });
 
-  container.querySelector('#btnFinish').addEventListener('click', () => {
-    hentikanSesiAR();
-    onKeluar({ completed: true });
-  });
-  container.querySelector('#btnBack').addEventListener('click', () => {
-    hentikanSesiAR();
-    onKeluar({ completed: false });
-  });
+  container.querySelector('#btnFinish').addEventListener('click', () => { hentikanSesiAR(); onKeluar({ completed: true }); });
+  container.querySelector('#btnBack').addEventListener('click', () => { hentikanSesiAR(); onKeluar({ completed: false }); });
 
-  // Experiment buttons
+  // Experiment tools
   expPanel.querySelectorAll('.exp-btn').forEach(btn => {
-    btn.addEventListener('click', () => sesi?.triggerTool(btn.dataset.tool));
+    btn.addEventListener('click', () => { sesi?.triggerTool(btn.dataset.tool); });
   });
 
   // Launch engine
   const mode = await deteksiModeAR();
   try {
-    const callbacks = { onState, onChallenge: () => {}, onReflection: () => {} };
-    if (mode === 'webxr') {
-      sesi = await mulaiSesiWebXR(canvas, misiId, callbacks);
-    } else {
-      sesi = await mulaiSesiARjs(canvas, videoEl, misiId, callbacks);
-    }
+    const callbacks = { onPhase, onChallenge: () => {}, onReflection: () => {} };
+    sesi = mode === 'webxr'
+      ? await mulaiSesiWebXR(canvas, misiId, callbacks)
+      : await mulaiSesiARjs(canvas, videoEl, misiId, callbacks);
   } catch(e) {
     console.error('AR session failed:', e);
-    setAI('Gagal mengakses kamera. Coba refresh halaman.');
+    setAI('Gagal memuat dunia 3D. Coba refresh halaman.');
   }
 
-  // MULAI button — skip portal tap, directly enter molecular world
+  // MULAI button
   const btnMulai = container.querySelector('#btnMulaiAR');
   if (btnMulai) {
-    btnMulai.addEventListener('click', () => {
+    const startAR = (e) => {
+      if (e?.preventDefault) e.preventDefault();
       scanOvl.style.display = 'none';
       hudLayer.style.display = '';
-      if (sesi?.startJourney) sesi.startJourney();
-    });
-    btnMulai.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      scanOvl.style.display = 'none';
-      hudLayer.style.display = '';
-      if (sesi?.startJourney) sesi.startJourney();
-    }, { passive: false });
+      reactionCount = -1; // will increment on first form update
+      sesi?.startJourney();
+    };
+    btnMulai.addEventListener('click', startAR);
+    btnMulai.addEventListener('touchstart', startAR, { passive: false });
   }
 }
 
