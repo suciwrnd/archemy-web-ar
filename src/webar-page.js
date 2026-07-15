@@ -247,149 +247,63 @@ function resizeCanvasKeViewport(canvas) {
    -------------------------------------------------------------------------- */
 function renderPanelKontrol(container, misiId, hudTop, eqBadge, eqDot, eqText) {
   const misi = MISI_DATA[misiId];
-  const indikators = [
-    { id: 'suhu',        icon: '', label: 'Suhu' },
-    { id: 'volume',      icon: '', label: 'Volume' },
-    { id: 'tekanan',     icon: '', label: 'Tekanan' },
-    { id: 'konsentrasi', icon: '', label: 'Konsentrasi' }
-  ];
-
-  // Molekul reaktan & produk untuk ditampilkan
-  const produkJenis = new Set(['HI', 'N2O4', 'NH3', 'HCO3', 'CO2', 'CaO']);
-  const buildMolRow = (dekat) => {
-    const set = dekat ? misi.partikel.dekatTarget : misi.partikel.jauhTarget;
-    return set.map(s => {
-      const cls = produkJenis.has(s.jenis) ? 'produk' : 'reaktan';
-      return `<span class="mol-pill ${cls}">${s.jenis}<sub style="font-size:9px">${s.jumlah}×</sub></span>`;
-    }).join('');
-  };
 
   container.innerHTML = `
-    <!-- Cerita edukatif -->
-    <div class="webar-story-panel" id="panelStoryWrap">
-      <span class="story-text" id="panelStoryText">${misi.ceritaAwal}</span>
-      <button class="story-toggle" id="panelStoryToggle">▼</button>
+    <!-- AI Instruction Bubble -->
+    <div class="webar-ai-bubble" id="aiBubble">
+      <span id="aiBubbleText"><b>AI:</b> ${misi.ceritaAwal}</span>
     </div>
 
-    <!-- Molekul info: reaktan ⇌ produk -->
-    <div class="webar-mol-info" id="panelMolInfo">
-      <div id="molReaktan">${buildMolRow(false)}</div>
-      <span class="mol-arrow-txt" id="molArrowTxt">⇌</span>
-      <div id="molProduk"></div>
-    </div>
-
-    <!-- Legenda warna -->
-    <div class="webar-legend" style="margin-bottom:8px">
-      <div class="webar-legend-item"><span class="webar-legend-color reaktan"></span><span>Reaktan</span></div>
-      <div class="webar-legend-item"><span class="webar-legend-color produk"></span><span>Produk</span></div>
-    </div>
-
-    <!-- Semua Parameter (tabbed) -->
-    <div class="webar-tabs-section">
-      <div class="webar-tabs">
-        ${indikators.map((ind,i) => `<button class="webar-tab-btn ${i===0?'active':''}" data-tab="${ind.id}">${ind.label}</button>`).join('')}
-      </div>
-      <div class="webar-sliders-container">
-        ${indikators.map((ind,i) => {
-          const r = misi.rentang[ind.id];
-          return `<div class="webar-slider-panel ${i===0?'active':''}" id="panel-${ind.id}">
-            <div class="control-head"><b>${ind.label}</b><span id="val-${ind.id}">${r[3].toFixed(r[2]<1?1:0)} ${r[4]}</span></div>
-            <input type="range" id="slider-${ind.id}" min="${r[0]}" max="${r[1]}" step="${r[2]}" value="${r[3]}">
-          </div>`;
-        }).join('')}
-      </div>
+    <!-- Action Toolbar (Right Vertical) -->
+    <div class="webar-action-toolbar">
+      <button class="webar-action-btn" id="btn-heat" title="Heat">🔥</button>
+      <button class="webar-action-btn" id="btn-cool" title="Cool">❄</button>
+      <button class="webar-action-btn" id="btn-add" title="Add Reactant">➕</button>
+      <button class="webar-action-btn" id="btn-compress" title="Compress">📦</button>
+      <div style="height:1px;background:rgba(255,255,255,0.2);margin:4px 0;"></div>
+      <button class="webar-action-btn" id="btn-follow" title="Follow Mode">👁</button>
     </div>`;
 
-  // Refs
-  const storyText   = container.querySelector('#panelStoryText');
-  const storyToggle = container.querySelector('#panelStoryToggle');
-  const storyWrap   = container.querySelector('#panelStoryWrap');
-  const molArrow    = container.querySelector('#molArrowTxt');
-  const molProdukEl = container.querySelector('#molProduk');
-  const molRekEl    = container.querySelector('#molReaktan');
-
-  // Toggle story
-  storyToggle.addEventListener('click', () => {
-    const collapsed = storyWrap.classList.toggle('collapsed');
-    storyText.style.display = collapsed ? 'none' : '';
-    storyToggle.textContent = collapsed ? '▲' : '▼';
-  });
-
-  // Tab switching
-  const tabBtns = container.querySelectorAll('.webar-tab-btn');
-  const panels  = container.querySelectorAll('.webar-slider-panel');
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabBtns.forEach(b => b.classList.remove('active'));
-      panels.forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      container.querySelector('#panel-' + btn.dataset.tab).classList.add('active');
-    });
-  });
-
+  const aiText = container.querySelector('#aiBubbleText');
   let popupTimeout;
   let misiSelesai = false;
-  // Helper update semua visual
-  const doUpdate = (tercapai) => {
-    // Badge kesetimbangan
-    if (eqDot && eqText && eqBadge) {
-      eqDot.className = 'eq-dot' + (tercapai ? ' seimbang' : '');
-      eqBadge.className = 'webar-eq-badge' + (tercapai ? ' seimbang' : '');
-      eqText.textContent = tercapai ? 'Status: Setimbang!' : 'Belum Setimbang';
-    }
-    // Mol overlay
-    const set = tercapai ? misi.partikel.dekatTarget : misi.partikel.jauhTarget;
-    if (molRekEl) molRekEl.innerHTML = set.filter(s => !produkJenis.has(s.jenis))
-      .map(s => `<span class="mol-pill reaktan">${s.jenis}<sub style="font-size:9px">${s.jumlah}×</sub></span>`).join('');
-    if (molProdukEl) molProdukEl.innerHTML = set.filter(s => produkJenis.has(s.jenis))
-      .map(s => `<span class="mol-pill produk">${s.jenis}<sub style="font-size:9px">${s.jumlah}×</sub></span>`).join('');
-    if (molArrow) molArrow.className = 'mol-arrow-txt' + (tercapai ? ' seimbang' : '');
-    // HUD sukses
-    if (hudTop) hudTop.classList.toggle('sukses', tercapai);
-    // Cerita
-    if (storyText) {
-      storyText.textContent = tercapai ? misi.ceritaSukses : misi.ceritaAwal;
-    }
 
-    if (tercapai && !misiSelesai) {
+  const showSuccess = () => {
+    aiText.innerHTML = `<b>AI:</b> ${misi.ceritaSukses}`;
+    if (eqDot && eqText && eqBadge) {
+      eqDot.className = 'eq-dot seimbang';
+      eqBadge.className = 'webar-eq-badge seimbang';
+      eqText.textContent = 'Status: Setimbang!';
+    }
+    if (hudTop) hudTop.classList.add('sukses');
+    
+    if (!misiSelesai) {
       misiSelesai = true;
       popupTimeout = setTimeout(() => {
         const pop = document.getElementById('webarSuccessPopup');
         if (pop) pop.style.display = 'flex';
-      }, 2500); // Tunda 2.5 detik agar user bisa melihat ring hijau dulu
-    } else if (!tercapai && misiSelesai) {
-      misiSelesai = false;
-      clearTimeout(popupTimeout);
+      }, 3500); // Tunda agar user menikmati free exploration
     }
   };
 
-  const getParams = () => ({
-    vol: Number(container.querySelector('#slider-volume')?.value || 3.0),
-    tek: Number(container.querySelector('#slider-tekanan')?.value || 1.0),
-    kon: Number(container.querySelector('#slider-konsentrasi')?.value || 1.0),
-    suh: Number(container.querySelector('#slider-suhu')?.value || 40.0)
-  });
+  // Button Events mapping to new logic in webar.js
+  const tools = ['heat', 'cool', 'add', 'compress', 'follow'];
+  tools.forEach(tool => {
+    const btn = container.querySelector('#btn-' + tool);
+    if (btn) {
+      btn.addEventListener('click', () => {
+        // Toggle visual active state (optional)
+        tools.forEach(t => container.querySelector('#btn-'+t)?.classList.remove('active-tool'));
+        btn.classList.add('active-tool');
+        setTimeout(() => btn.classList.remove('active-tool'), 300);
 
-  // Slider events
-  indikators.forEach(ind => {
-    const sl  = container.querySelector('#slider-' + ind.id);
-    const vel = container.querySelector('#val-' + ind.id);
-    const r   = misi.rentang[ind.id];
-    sl.addEventListener('input', () => {
-      const val = Number(sl.value);
-      if (vel) vel.textContent = `${val.toFixed(r[2]<1?1:0)} ${r[4]}`;
-      const valK = Number(container.querySelector('#slider-' + misi.parameterKunci).value);
-      const terc = perbaruiVisualMisi(sesiARAktif, misiId, valK, getParams());
-      doUpdate(terc);
-    });
+        if (sesiARAktif && sesiARAktif.triggerAction) {
+          const tercapai = sesiARAktif.triggerAction(tool, misiId);
+          if (tercapai) showSuccess();
+        }
+      });
+    }
   });
-
-  // Init state
-  if (sesiARAktif) {
-    const valK = Number(container.querySelector('#slider-' + misi.parameterKunci).value);
-    const terc = perbaruiVisualMisi(sesiARAktif, misiId, valK, getParams());
-    doUpdate(terc);
-  }
 }
 
 /* --------------------------------------------------------------------------

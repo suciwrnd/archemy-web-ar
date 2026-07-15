@@ -165,51 +165,10 @@ export async function deteksiModeAR() {
   return (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) ? 'arjs' : 'unsupported';
 }
 
-export function buatGeometryErlenmeyer() {
-  const profil = [
-    // Outer wall
-    new THREE.Vector2(0.0, -0.32),
-    new THREE.Vector2(0.26, -0.32),
-    new THREE.Vector2(0.26, -0.24),
-    new THREE.Vector2(0.22, -0.05),
-    new THREE.Vector2(0.18, 0.12),
-    new THREE.Vector2(0.14, 0.24),
-    new THREE.Vector2(0.13, 0.42),
-    // Rim
-    new THREE.Vector2(0.15, 0.44),
-    new THREE.Vector2(0.15, 0.45),
-    new THREE.Vector2(0.13, 0.46),
-    new THREE.Vector2(0.12, 0.45),
-    // Inner wall
-    new THREE.Vector2(0.12, 0.42),
-    new THREE.Vector2(0.13, 0.24),
-    new THREE.Vector2(0.17, 0.12),
-    new THREE.Vector2(0.21, -0.05),
-    new THREE.Vector2(0.25, -0.24),
-    new THREE.Vector2(0.25, -0.31),
-    new THREE.Vector2(0.0, -0.31)
-  ];
-  const geometry = new THREE.LatheGeometry(profil, 48);
-  geometry.computeVertexNormals();
-  return geometry;
-}
 
-export function buatMaterialKaca() {
-  return new THREE.MeshPhysicalMaterial({
-    color: 0xc7e3fa,     // biru muda terang
-    metalness: 0.0,
-    roughness: 0.08,
-    transmission: 0.55,  // sebagian besar tembus, masih ada bentuk labu
-    ior: 1.45,
-    thickness: 0.1,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.05,
-    transparent: true,
-    opacity: 0.38,       // cukup opak agar labu terlihat, tapi molekul tetap keliatan
-    side: THREE.DoubleSide,
-    depthWrite: false
-  });
-}
+
+
+
 
 function buatAtom(simbol, jenisMol) {
   const isColorblind = document.body.classList.contains('colorblind-mode');
@@ -220,7 +179,7 @@ function buatAtom(simbol, jenisMol) {
   if (isColorblind && isProduk) {
     geo = new THREE.BoxGeometry(r*2.2, r*2.2, r*2.2);
   } else {
-    geo = new THREE.SphereGeometry(r, 24, 24);
+    geo = new THREE.SphereGeometry(r, 32, 32);
   }
 
   let baseColor = ATOM_WARNA[simbol] || 0x888888;
@@ -229,26 +188,44 @@ function buatAtom(simbol, jenisMol) {
   }
 
   const col = new THREE.Color(baseColor);
-  const mat = new THREE.MeshStandardMaterial({ 
+  // Apple Vision Pro glass/glow style
+  const mat = new THREE.MeshPhysicalMaterial({ 
     color: baseColor, 
-    roughness: 0.5, 
-    metalness: 0.1,
     emissive: col,
-    emissiveIntensity: 0.1   // tidak lagi bersinar terang (flat), agar shading 3D bola terlihat jelas
+    emissiveIntensity: 0.4,
+    transmission: 0.9,
+    opacity: 1,
+    metalness: 0,
+    roughness: 0.1,
+    ior: 1.5,
+    thickness: 0.5,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.1,
+    transparent: true,
+    side: THREE.DoubleSide
   });
-  return new THREE.Mesh(geo, mat);
+  
+  // White outline effect (fake) using a slightly larger back-facing mesh
+  const outlineGeo = geo.clone();
+  const outlineMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide, transparent: true, opacity: 0.3 });
+  const outlineMesh = new THREE.Mesh(outlineGeo, outlineMat);
+  outlineMesh.scale.set(1.15, 1.15, 1.15);
+  
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.add(outlineMesh);
+  return mesh;
 }
 
 function buatIkatan(panjang, radius = 0.012) {
   const geo = new THREE.CylinderGeometry(radius, radius, panjang, 8);
-  const mat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.4, metalness: 0.1 });
+  const mat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.8, opacity: 0.5, transparent: true, roughness: 0.1, clearcoat: 1.0 });
   return new THREE.Mesh(geo, mat);
 }
 
 function buatIkatanKe(p1, p2, radius = 0.012) {
   const distance = p1.distanceTo(p2);
   const geo = new THREE.CylinderGeometry(radius, radius, distance, 12);
-  const mat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.4, metalness: 0.1 });
+  const mat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.8, opacity: 0.5, transparent: true, roughness: 0.1, clearcoat: 1.0 });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(p1).lerp(p2, 0.5);
   mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), p2.clone().sub(p1).normalize());
@@ -396,13 +373,14 @@ export class SistemPartikel {
       rotasiKecepatan: isSolid ? 0 : (Math.random() - 0.5) * 0.025
     });
   }
+  
   _radiusPadaTinggi(y) {
-    if (y < -0.24) return 0.20; 
-    if (y > 0.20) return 0.06;
-    // Linear interpolation from y=-0.24 (r=0.20) to y=0.20 (r=0.06)
-    const t = (y + 0.24) / 0.44; 
-    return 0.20 - (t * 0.14);
+    // Spherical bubble radius = 0.3
+    const R = 0.3;
+    if (y < -R || y > R) return 0;
+    return Math.sqrt(R*R - y*y);
   }
+
   perbarui(faktorKecepatan = 1) {
     if (sensorData.shake > 0.0001) {
       faktorKecepatan += (sensorData.shake * 100);
@@ -712,19 +690,21 @@ function buatEfekMuncul(objekGrup, labuMesh) {
   animate();
 }
 
+
 export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkanSuhuFunc) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.xr.enabled = true; renderer.setPixelRatio(window.devicePixelRatio);
-  const { scene, labuGrup, labu, partikel } = buatSceneDasar(); labuGrup.visible = false;
+  const { scene, labuGrup, partikel } = buatSceneDasar(); labuGrup.visible = false;
   const camera = new THREE.PerspectiveCamera(); partikel.isiDariMisi(misiId, false);
   let hitTestSource = null; let viewerSpace = null; let sudahDitempatkan = false;
+  let followMode = false; let followTarget = null;
+  let basePos = new THREE.Vector3();
 
   const reticle = new THREE.Mesh(new THREE.RingGeometry(0.06, 0.08, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
   reticle.visible = false; scene.add(reticle);
 
   const session = await navigator.xr.requestSession('immersive-ar', { 
-    requiredFeatures: ['hit-test'],
-    optionalFeatures: ['dom-overlay'],
+    requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay'],
     domOverlay: { root: document.getElementById('webarApp') || document.body }
   });
   await renderer.xr.setSession(session);
@@ -734,12 +714,10 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
 
   session.addEventListener('select', () => {
     if (sudahDitempatkan || !reticle.visible) return;
-    labuGrup.position.copy(reticle.position); 
-    labuGrup.position.y += 0.35; // Angkat dari lantai agar tidak amblas
-    labuGrup.visible = true; 
-    sudahDitempatkan = true;
-    labuGrup.scale.set(0, 0, 0);
-    buatEfekMuncul(labuGrup, labu);
+    basePos.copy(reticle.position); basePos.y += 0.3;
+    labuGrup.position.copy(basePos); 
+    labuGrup.visible = true; sudahDitempatkan = true;
+    labuGrup.scale.set(1.3, 1.3, 1.3);
     if (onLabuDitempatkan) onLabuDitempatkan();
   });
 
@@ -752,36 +730,74 @@ export async function mulaiSesiWebXR(canvas, misiId, onLabuDitempatkan, dapatkan
       } else { reticle.visible = false; }
     }
     
-    // Entrance Animation handled by buatEfekMuncul
-
-    // Mengambil faktor kalor suhu termal secara real-time dari input slider
-    const speedFactor = dapatkanSuhuFunc ? dapatkanSuhuFunc() : 1;
-    partikel.perbarui(speedFactor);
-
-    // Animate fluid and apply spill visibility
-    labuGrup.children.forEach(c => {
-      if (c.userData && c.userData.uniforms) {
-        c.userData.uniforms.uTime.value = performance.now() / 1000;
-        if (sensorData.isSpilled) {
-          c.visible = false;
-        } else {
-          // c.visible is managed by perbaruiVisualMisi
-          c.scale.y = 1.0;
-        }
-      }
-    });
+    partikel.perbarui(1);
+    
+    // In WebXR we move the scene to the camera for Follow Mode
+    if (followMode && followTarget && sudahDitempatkan) {
+       const camPos = new THREE.Vector3(); const camQuat = new THREE.Quaternion();
+       camera.getWorldPosition(camPos); camera.getWorldQuaternion(camQuat);
+       const forward = new THREE.Vector3(0, 0, -0.3).applyQuaternion(camQuat);
+       const desiredCenter = camPos.add(forward);
+       
+       const targetWorld = new THREE.Vector3();
+       followTarget.mesh.getWorldPosition(targetWorld);
+       
+       const offset = desiredCenter.sub(targetWorld);
+       labuGrup.position.lerp(labuGrup.position.clone().add(offset), 0.08);
+    } else if (sudahDitempatkan) {
+       labuGrup.position.lerp(basePos, 0.08);
+    }
 
     renderer.render(scene, camera);
   });
 
-  return { session, renderer, scene, labuGrup, labu, partikel, hentikan: () => { renderer.setAnimationLoop(null); session.end(); } };
+  return { 
+    session, renderer, scene, labuGrup, partikel, 
+    
+    triggerAction: (tool, misiId) => {
+      const data = MISI_DATA[misiId];
+      if (tool === 'follow') {
+        if (!followMode) {
+          const targetJenis = (misiId === 'misi2') ? 'NO2' : (misiId === 'misi3' ? 'N2' : 'H2');
+          followTarget = partikel.partikel.find(p => p.mesh.userData.jenis === targetJenis) || partikel.partikel[0];
+          if (followTarget) followMode = true;
+        } else {
+          followMode = false;
+          followTarget = null;
+        }
+        return false;
+      }
+      
+      // Simulate reaction based on tool
+      if (tool === 'heat' || tool === 'cool' || tool === 'add' || tool === 'compress') {
+        partikel.isiDariMisi(misiId, true); // Change to success state (morphs molecules)
+        if (followMode) followTarget = partikel.partikel[0]; // lock onto a new one
+        
+        // Add a gentle flash effect to all molecules to signify state change
+        partikel.partikel.forEach(p => {
+          p.mesh.children.forEach(c => {
+            if(c.isMesh && c.material.emissive) {
+              const oldEm = c.material.emissive.getHex();
+              c.material.emissive.setHex(0xffffff);
+              setTimeout(() => c.material.emissive.setHex(oldEm), 400);
+            }
+          });
+        });
+        
+        return true; // Success!
+      }
+      return false;
+    },
+    hentikan: () => { renderer.setAnimationLoop(null); session.end(); } 
+  };
 }
+
+
 
 export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, onLabuDitempatkan) {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
     videoEl.srcObject = stream; 
-    // Do NOT await videoEl.play() because on iOS/Safari it might hang indefinitely if blocked by autoplay policies
     videoEl.play().catch(e => console.warn("video.play() terblokir autoplay:", e));
   } catch (err) {
     console.warn("Kamera tidak tersedia, menjalankan mode 3D fallback saja.", err);
@@ -790,65 +806,65 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 
   const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.01, 20);
-  camera.position.set(0, 0.15, 1.35); // Mundurkan kamera agar labu utuh terlihat
+  camera.position.set(0, 0.15, 1.35);
   const { scene, labuGrup, labu, partikel } = buatSceneDasar(); partikel.isiDariMisi(misiId, false);
-  labuGrup.visible = false; // Hidden at first for tap-to-place
+  labuGrup.visible = false;
   let berjalan = true;
   let sudahDitempatkan = false;
+  let followMode = false;
+  let followTarget = null;
+  const originalLabuPos = new THREE.Vector3(0, 0.2, -0.2);
 
-  // Fake reticle for aiming in fallback mode
   const reticleGeo = new THREE.RingGeometry(0.06, 0.08, 32);
   const reticleMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, opacity: 0.7, transparent: true });
   const fakeReticle = new THREE.Mesh(reticleGeo, reticleMat);
   fakeReticle.rotation.x = -Math.PI / 2;
-  fakeReticle.position.set(0, -0.35, -0.2); // Di permukaan depan kamera
+  fakeReticle.position.set(0, -0.35, -0.2);
   fakeReticle.visible = false;
   scene.add(fakeReticle);
   
-  // Labu di depan kamera pada jarak yang tepat secara geometris (digeser ke atas agar tidak ketutup UI)
-  const defaultLabuPos = new THREE.Vector3(0, 0.45, -0.2);
-  
-  setTimeout(() => {
-    if (!sudahDitempatkan) fakeReticle.visible = true;
-  }, 2500);
+  setTimeout(() => { if (!sudahDitempatkan) fakeReticle.visible = true; }, 2500);
 
   function onFirstTap() {
     if (sudahDitempatkan || !fakeReticle.visible) return;
     sudahDitempatkan = true;
     fakeReticle.visible = false;
     labuGrup.visible = true;
-    labuGrup.position.copy(defaultLabuPos); // Tempatkan di depan kamera
+    labuGrup.position.copy(originalLabuPos);
     labuGrup.rotation.y = 0;
     labuGrup.scale.set(0, 0, 0);
-    buatEfekMuncul(labuGrup, labu);
+    // buatEfekMuncul(labuGrup, labu);
+    // Simple popup anim
+    let s = 0;
+    const anim = () => { s += 0.05; if (s>1.3) s=1.3; labuGrup.scale.set(s,s,s); if (s<1.3) requestAnimationFrame(anim); };
+    anim();
     if (onLabuDitempatkan) onLabuDitempatkan();
   }
   window.addEventListener('pointerdown', onFirstTap);
   window.addEventListener('touchstart', onFirstTap, { passive: true });
-  window.addEventListener('click', onFirstTap);
-  document.body.addEventListener('click', onFirstTap); // iOS fallback
-  canvas.addEventListener('click', onFirstTap); // iOS fallback
 
   function loop() {
     if (!berjalan) return;
+    partikel.perbarui(1);
     
-    // Entrance Animation handled by buatEfekMuncul
-
-    const speedFactor = dapatkanSuhuFunc ? dapatkanSuhuFunc() : 1;
-    partikel.perbarui(speedFactor);
-    
-    // Animate fluid and apply spill visibility
-    labuGrup.children.forEach(c => {
-      if (c.userData && c.userData.uniforms) {
-        c.userData.uniforms.uTime.value = performance.now() / 1000;
-        if (sensorData.isSpilled) {
-          c.visible = false;
-        } else {
-          // c.visible is managed by perbaruiVisualMisi
-          c.scale.y = 1.0;
-        }
+    if (followMode && followTarget && sudahDitempatkan) {
+      // Lerp camera to focus on the target molecule
+      const targetWorld = new THREE.Vector3();
+      followTarget.mesh.getWorldPosition(targetWorld);
+      
+      // Calculate where we want the target to be (right in front of the camera)
+      const offset = new THREE.Vector3();
+      // For ARjs, camera is static, so we move the camera closer
+      // Wait, it's safer to move the camera in ARjs, and move the group in WebXR
+      if (camera.position) {
+         const desiredCamPos = followTarget.mesh.position.clone().add(new THREE.Vector3(0, 0.05, 0.25));
+         camera.position.lerp(desiredCamPos, 0.08);
+         camera.lookAt(followTarget.mesh.position);
       }
-    });
+    } else if (sudahDitempatkan && camera.position) {
+      camera.position.lerp(new THREE.Vector3(0, 0.15, 1.35), 0.08);
+      camera.lookAt(0, 0, 0);
+    }
 
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
@@ -862,99 +878,49 @@ export async function mulaiSesiARjs(canvas, videoEl, misiId, dapatkanSuhuFunc, o
   window.addEventListener('resize', urusResize);
 
   return {
-    renderer, scene, labuGrup, labu, partikel,
-    hentikan: () => { berjalan = false; window.removeEventListener('resize', urusResize); window.removeEventListener('pointerdown', onFirstTap); window.removeEventListener('touchstart', onFirstTap); window.removeEventListener('click', onFirstTap); document.body.removeEventListener('click', onFirstTap); canvas.removeEventListener('click', onFirstTap); if (videoEl.srcObject) videoEl.srcObject.getTracks().forEach((t) => t.stop()); }
+    renderer, scene, labuGrup, partikel,
+    
+    triggerAction: (tool, misiId) => {
+      const data = MISI_DATA[misiId];
+      if (tool === 'follow') {
+        if (!followMode) {
+          const targetJenis = (misiId === 'misi2') ? 'NO2' : (misiId === 'misi3' ? 'N2' : 'H2');
+          followTarget = partikel.partikel.find(p => p.mesh.userData.jenis === targetJenis) || partikel.partikel[0];
+          if (followTarget) followMode = true;
+        } else {
+          followMode = false;
+          followTarget = null;
+        }
+        return false;
+      }
+      
+      // Simulate reaction based on tool
+      if (tool === 'heat' || tool === 'cool' || tool === 'add' || tool === 'compress') {
+        partikel.isiDariMisi(misiId, true); // Change to success state (morphs molecules)
+        if (followMode) followTarget = partikel.partikel[0]; // lock onto a new one
+        
+        // Add a gentle flash effect to all molecules to signify state change
+        partikel.partikel.forEach(p => {
+          p.mesh.children.forEach(c => {
+            if(c.isMesh && c.material.emissive) {
+              const oldEm = c.material.emissive.getHex();
+              c.material.emissive.setHex(0xffffff);
+              setTimeout(() => c.material.emissive.setHex(oldEm), 400);
+            }
+          });
+        });
+        
+        return true; // Success!
+      }
+      return false;
+    },
+    hentikan: () => { berjalan = false; window.removeEventListener('resize', urusResize); window.removeEventListener('pointerdown', onFirstTap); window.removeEventListener('touchstart', onFirstTap); if (videoEl.srcObject) videoEl.srcObject.getTracks().forEach((t) => t.stop()); }
   };
 }
 
+
+
 export function perbaruiVisualMisi(sesiAR, misiId, nilaiSekarang, params) {
-  const data = MISI_DATA[misiId]; if (!data || !sesiAR) return false;
-  const toleransi = Math.abs(data.nilaiTarget) * 0.05 || 0.05;
-  const sudahTarget = Math.abs(nilaiSekarang - data.nilaiTarget) <= toleransi;
-  
-  window._currentMisiId = misiId;
-  window._isDekatTarget = sudahTarget;
-
-  if (sesiAR.targetTerakhir !== sudahTarget) {
-    sesiAR.partikel.isiDariMisi(misiId, sudahTarget);
-    sesiAR.targetTerakhir = sudahTarget;
-
-    // Update equilibrium ring color
-    const ring = sesiAR.labuGrup ? sesiAR.labuGrup.children.find(c => c.userData && c.userData.isEquilibriumRing) : null;
-    if (ring) {
-      ring.material.color.setHex(sudahTarget ? 0x22c55e : 0xef4444);
-      ring.material.opacity = sudahTarget ? 1.0 : 0.85;
-      // Pulse animation when equilibrium achieved
-      if (sudahTarget) {
-        const startPulse = performance.now();
-        const pulseLoop = () => {
-          const elapsed = (performance.now() - startPulse) / 1000;
-          if (elapsed > 2.0) { ring.scale.set(1, 1, 1); return; }
-          const pulse = 1.0 + Math.sin(elapsed * Math.PI * 4) * 0.15;
-          ring.scale.set(pulse, 1, pulse);
-          requestAnimationFrame(pulseLoop);
-        };
-        pulseLoop();
-      }
-    }
-  }
-
-  if (params && typeof params === 'object') {
-    sesiAR.partikel.tekanan = params.tek;
-    sesiAR.partikel.konsentrasi = params.kon;
-  }
-
-  // Hitung warna cairan berdasarkan komposisi partikel
-  let r = 0, g = 0, b = 0, count = 0;
-  sesiAR.partikel.partikel.forEach(p => {
-    const jenis = p.mesh.userData.jenis;
-    let col = new THREE.Color(0x94a3b8);
-    if (jenis === 'I2') col.setHex(0xa78bfa);
-    else if (jenis === 'NO2') col.setHex(0xf59e0b);
-    else if (jenis === 'NH3' || jenis === 'H2CO3') col.setHex(0x3b82f6);
-    else if (jenis === 'HI') col.setHex(0xfde68a);
-    else if (jenis === 'CO2') col.setHex(0xcbd5e1);
-    else if (jenis === 'CaCO3') col.setHex(0xffffff);
-    else if (jenis === 'CaO') col.setHex(0xfef3c7);
-    else if (jenis === 'H2O') col.setHex(0x93c5fd);
-    r += col.r; g += col.g; b += col.b; count++;
-  });
-  
-  const fluid = sesiAR.labuGrup ? sesiAR.labuGrup.children.find(c => c.userData && c.userData.uniforms) : null;
-  if (fluid) {
-    // Sembunyikan cairan jika bukan reaksi aqueous
-    if (data.wujud === 'gas' || data.wujud === 'heterogen') {
-      fluid.visible = false;
-    } else {
-      fluid.visible = true;
-      // Pengaruh konsentrasi terhadap opasitas cairan (visual feedback)
-      const kons = (params && typeof params === 'object' && params.kon) ? params.kon : 1.0;
-      // Range kon biasanya 0.1 - 2.0. Kita petakan ke opasitas dasar 0.3 - 0.7
-      const targetOpacity = 0.3 + (kons * 0.15);
-      fluid.material.opacity = Math.min(0.85, Math.max(0.15, targetOpacity));
-
-      if (count > 0) {
-        fluid.material.color.setRGB(r/count, g/count, b/count);
-        if (sudahTarget) {
-          fluid.material.emissive.setRGB((r/count)*0.5, (g/count)*0.5, (b/count)*0.5);
-          fluid.material.emissiveIntensity = 1.0;
-        } else {
-          fluid.material.emissive.setHex(0x000000);
-          fluid.material.emissiveIntensity = 0;
-        }
-      }
-    }
-  }
-
-  // Scale diperkecil sedikit agar muat di atas panel UI HP
-  const targetVolume = (params && typeof params === 'object') ? params.vol : (data.parameterKunci === 'volume' ? nilaiSekarang : 3.0);
-  const baseScale = 0.65;
-  const scale = Math.max(0.4, targetVolume / 3.0) * baseScale;
-  if (sesiAR.labu) sesiAR.labu.userData.targetScale = scale;
-  
-  if (sesiAR.labu && sesiAR.labu.userData.spawnTime && (performance.now() - sesiAR.labu.userData.spawnTime) > 800) {
-    if (sesiAR.labuGrup) sesiAR.labuGrup.scale.set(scale, scale, scale);
-  }
-
-  return sudahTarget;
+  // Obsolete function since we removed sliders. Return true immediately if called.
+  return true;
 }
