@@ -188,21 +188,21 @@ function buatAtom(simbol, jenisMol) {
   }
 
   const col = new THREE.Color(baseColor);
-  // Premium Apple Vision Pro glass/glow style
+  // Premium 3D Apple Vision Pro glass/glow style
   const mat = new THREE.MeshPhysicalMaterial({ 
     color: baseColor, 
     emissive: col,
-    emissiveIntensity: 0.15, // Subtle internal glow
-    transmission: 0.95, // High transmission for glass
+    emissiveIntensity: 0.2, // Subtle internal glow
+    transmission: 0.7, // Lower transmission so it looks solid 3D
     opacity: 1,
-    metalness: 0.1,
-    roughness: 0.1,
-    ior: 1.4,
+    metalness: 0.4, // Make it shiny like a marble
+    roughness: 0.1, // Smooth surface
+    ior: 1.5, // High refraction
     thickness: 0.5,
-    clearcoat: 1.0,
+    clearcoat: 1.0, // Extremely glossy
     clearcoatRoughness: 0.05,
     transparent: true,
-    side: THREE.FrontSide // Front side only prevents weird muddy overlapping
+    side: THREE.FrontSide
   });
   
   return new THREE.Mesh(geo, mat);
@@ -519,71 +519,24 @@ export function buatSceneDasar() {
   envTex.mapping = THREE.EquirectangularReflectionMapping;
   scene.environment = envTex;
   
-  // PointLight dari dalam labu agar menyatu
-  const innerLight = new THREE.PointLight(0x00e5ff, 0.5, 1.0);
-  innerLight.position.set(0, -0.1, 0);
+  // Strong 3D Lighting Setup
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  scene.add(ambientLight);
+
+  const mainLight = new THREE.DirectionalLight(0xffffff, 2.5);
+  mainLight.position.set(2, 5, 3);
+  scene.add(mainLight);
+  
+  const rimLight = new THREE.DirectionalLight(0xaabbff, 1.5);
+  rimLight.position.set(-3, 2, -2);
+  scene.add(rimLight);
+  
+  const innerLight = new THREE.PointLight(0x00e5ff, 1.0, 2.0);
+  innerLight.position.set(0, 0, 0);
   scene.add(innerLight);
 
   const labuGrup = new THREE.Group();
   scene.add(labuGrup);
-
-  // Soft shadow plane di bawah labu
-  const shadowGeo = new THREE.PlaneGeometry(0.8, 0.8);
-  const shadowMat = new THREE.MeshBasicMaterial({
-    color: 0x000000,
-    transparent: true,
-    opacity: 0.3,
-    depthWrite: false
-  });
-  const shadowCanvas = document.createElement('canvas');
-  shadowCanvas.width = 128; shadowCanvas.height = 128;
-  const shadowCtx = shadowCanvas.getContext('2d');
-  const shadowGrad = shadowCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
-  shadowGrad.addColorStop(0.2, 'rgba(0,0,0,1)');
-  shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
-  shadowCtx.fillStyle = shadowGrad; shadowCtx.fillRect(0, 0, 128, 128);
-  shadowMat.map = new THREE.CanvasTexture(shadowCanvas);
-  
-  const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
-  shadowPlane.rotation.x = -Math.PI / 2;
-  shadowPlane.position.y = -0.32; // Sedikit di bawah labu base (-0.31) untuk hindari Z-fighting
-  labuGrup.add(shadowPlane);
-
-  
-
-  // Cairan pelarut dengan bentuk mengikuti labu
-  const fluidPoints = [];
-  fluidPoints.push(new THREE.Vector2(0, -0.29)); // Bottom center
-  fluidPoints.push(new THREE.Vector2(0.24, -0.29)); // Bottom edge
-  fluidPoints.push(new THREE.Vector2(0.24, -0.2)); // Taper start
-  fluidPoints.push(new THREE.Vector2(0.16, 0.0)); // Taper end (surface)
-  fluidPoints.push(new THREE.Vector2(0, 0.0)); // Surface center
-  const fluidGeo = new THREE.LatheGeometry(fluidPoints, 32);
-  
-  const fluidMat = new THREE.MeshPhongMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.45, shininess: 90, specular: 0xffffff, side: THREE.DoubleSide });
-  // Add wave animation shader
-  const fluidUniforms = { uTime: { value: 0 } };
-  fluidMat.onBeforeCompile = (shader) => {
-    shader.uniforms.uTime = fluidUniforms.uTime;
-    shader.vertexShader = `
-      uniform float uTime;
-      ${shader.vertexShader}
-    `.replace(
-      `#include <begin_vertex>`,
-      `
-      #include <begin_vertex>
-      if (position.y >= -0.01) {
-        transformed.y += sin(position.x * 10.0 + uTime * 3.0) * 0.015 + cos(position.z * 10.0 + uTime * 2.5) * 0.015;
-      }
-      `
-    );
-  };
-
-
-  const fluid = new THREE.Mesh(fluidGeo, fluidMat);
-  fluid.userData.uniforms = fluidUniforms;
-  fluid.visible = false; // Sembunyikan secara default sampai perbaruiVisualMisi mengatur
-  labuGrup.add(fluid);
 
   const labu = new THREE.Group(); 
   labuGrup.add(labu);
@@ -597,7 +550,7 @@ export function buatSceneDasar() {
     }
   };
 
-  return { scene, labuGrup, labu, fluid, partikel: partikelSys };
+  return { scene, labuGrup, labu, partikel: partikelSys };
 }
 
 function buatEfekMuncul(objekGrup, labuMesh) {
