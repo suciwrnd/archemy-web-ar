@@ -188,32 +188,24 @@ function buatAtom(simbol, jenisMol) {
   }
 
   const col = new THREE.Color(baseColor);
-  // Apple Vision Pro glass/glow style
+  // Premium Apple Vision Pro glass/glow style
   const mat = new THREE.MeshPhysicalMaterial({ 
     color: baseColor, 
     emissive: col,
-    emissiveIntensity: 0.4,
-    transmission: 0.9,
+    emissiveIntensity: 0.15, // Subtle internal glow
+    transmission: 0.95, // High transmission for glass
     opacity: 1,
-    metalness: 0,
+    metalness: 0.1,
     roughness: 0.1,
-    ior: 1.5,
+    ior: 1.4,
     thickness: 0.5,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.1,
+    clearcoatRoughness: 0.05,
     transparent: true,
-    side: THREE.DoubleSide
+    side: THREE.FrontSide // Front side only prevents weird muddy overlapping
   });
   
-  // White outline effect (fake) using a slightly larger back-facing mesh
-  const outlineGeo = geo.clone();
-  const outlineMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide, transparent: true, opacity: 0.3 });
-  const outlineMesh = new THREE.Mesh(outlineGeo, outlineMat);
-  outlineMesh.scale.set(1.15, 1.15, 1.15);
-  
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.add(outlineMesh);
-  return mesh;
+  return new THREE.Mesh(geo, mat);
 }
 
 function buatIkatan(panjang, radius = 0.012) {
@@ -395,36 +387,11 @@ export class SistemPartikel {
         return;
       }
       
-      // Apply gravity/tilt
-      if (!sensorData.isSpilled) {
-        // Efek gravitasi/accelerometer dari HP
-        p.kecepatan.x += sensorData.gX;
-        p.kecepatan.z += sensorData.gZ;
-        p.kecepatan.y += sensorData.gY;
-        
-        // BROWNIAN MOTION (Sangat penting agar molekul tidak diam statis di laptop / saat HP diam)
-        // Hal ini juga memvisualisasikan SIFAT DINAMIS dari molekul (Kinetic Theory)
-        const gerakAcak = 0.003;
-        p.kecepatan.x += (Math.random() - 0.5) * gerakAcak;
-        p.kecepatan.z += (Math.random() - 0.5) * gerakAcak;
-        
-        if (this.wujud === 'gas' || this.wujud === 'heterogen') {
-          // Gas cenderung menyebar dan melayang
-          p.kecepatan.y += (Math.random() - 0.45) * gerakAcak;
-        } else {
-          // Cairan cenderung lebih berat tapi tetap bergerak acak
-          p.kecepatan.y += (Math.random() - 0.55) * gerakAcak;
-        }
-      } else {
-        // Spilled! Let them fall out using real gravity towards the mouth
-        p.kecepatan.x += sensorData.gX * 2;
-        p.kecepatan.y += sensorData.gY * 2;
-        p.kecepatan.z += sensorData.gZ * 2;
-        
-        // Spread out slightly
-        p.kecepatan.x *= 1.01;
-        p.kecepatan.z *= 1.01;
-      }
+      // Elegant Brownian motion (Floating Bubble)
+      const gerakAcak = 0.002;
+      p.kecepatan.x += (Math.random() - 0.5) * gerakAcak;
+      p.kecepatan.y += (Math.random() - 0.5) * gerakAcak;
+      p.kecepatan.z += (Math.random() - 0.5) * gerakAcak;
       
       // Apply drag
       p.kecepatan.multiplyScalar(0.98);
@@ -434,27 +401,17 @@ export class SistemPartikel {
       pos.y += p.kecepatan.y * faktorKecepatan;
       pos.z += p.kecepatan.z * faktorKecepatan;
 
-      if (!sensorData.isSpilled) {
-        const rLimit = this._radiusPadaTinggi(pos.y);
-        const rSekarang = Math.sqrt(pos.x * pos.x + pos.z * pos.z);
-        if (rSekarang > rLimit) { 
-          p.kecepatan.x *= -0.5; p.kecepatan.z *= -0.5;
-          if (rSekarang > 0) {
-            const scale = rLimit / rSekarang;
-            pos.x *= scale; pos.z *= scale;
-          }
-        }
+      // Keep particles inside the spherical bubble
+      const R = 0.3; // Bubble radius
+      const distFromCenter = pos.length();
+      if (distFromCenter > R) {
+        // Bounce back to center softly
+        const normal = pos.clone().normalize();
+        pos.copy(normal.multiplyScalar(R));
         
-        // Atas/Bawah
-        // Tekanan membatasi batas atas (yMax) untuk gas! (semakin tinggi tekanan, semakin rendah yMax)
-        const tekananFaktor = this.tekanan || 1.0;
-        const baseMaxY = 0.38;
-        // Misal tekanan range 0.1 - 2.0. Jika tekanan 2.0, yMax turun drastis.
-        const gasMaxY = baseMaxY - ((tekananFaktor - 1.0) * 0.1);
-        const yMax = (this.wujud === 'gas' || this.wujud === 'heterogen') ? gasMaxY : 0.0;
-        
-        if (pos.y > yMax) { pos.y = yMax; p.kecepatan.y *= -0.5; }
-        if (pos.y < -0.28) { pos.y = -0.28; p.kecepatan.y *= -0.5; }
+        const dot = p.kecepatan.dot(normal);
+        p.kecepatan.sub(normal.multiplyScalar(2 * dot));
+        p.kecepatan.multiplyScalar(0.8);
       }
       
       targetGrup.rotation.y += p.rotasiKecepatan * faktorKecepatan;
@@ -592,13 +549,7 @@ export function buatSceneDasar() {
   shadowPlane.position.y = -0.32; // Sedikit di bawah labu base (-0.31) untuk hindari Z-fighting
   labuGrup.add(shadowPlane);
 
-  // Indikator kesetimbangan: ring di bawah labu
-  const ringGeo = new THREE.RingGeometry(0.30, 0.34, 64);
-  const ringMat = new THREE.MeshBasicMaterial({ color: 0xef4444, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-  const ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.rotation.x = Math.PI / 2; ring.position.y = -0.315;
-  ring.userData.isEquilibriumRing = true;
-  labuGrup.add(ring);
+  
 
   // Cairan pelarut dengan bentuk mengikuti labu
   const fluidPoints = [];
