@@ -204,6 +204,7 @@ const defaultState = {
   teacherEditingQuestionId:null
 };
 
+let globalDB = { currentUser: null, users: {} };
 let state = loadState();
 const app = document.getElementById('app');
 const toastEl = document.getElementById('toast');
@@ -212,7 +213,6 @@ let toastTimer, quizInterval = null;
 /* --------------------------------------------------------------------------
    STATE MANAGEMENT
    -------------------------------------------------------------------------- */
-let globalDB = { currentUser: null, users: {} };
 
 function loadState() {
   try {
