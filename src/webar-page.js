@@ -270,33 +270,35 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     }
   }
 
-  // Quiz
-  quizOvl.querySelectorAll('.quiz-btn').forEach(btn => {
+  // Bind Quiz, Challenge & Reflection Buttons
+  const quizOvl = container.querySelector('#quizOverlay');
+  if (quizOvl) {
+    quizOvl.querySelectorAll('.quiz-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const correct = btn.dataset.ans === 'C';
+        btn.classList.add(correct ? 'correct' : 'wrong');
+        if (!correct) return;
+        setTimeout(() => { quizOvl.style.display = 'none'; sesi?.onQuizAnswered(); }, 1200);
+      });
+    });
+  }
+
+  challOvl.querySelectorAll('.challenge-opt-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const correct = btn.dataset.ans === 'C';
-      btn.classList.add(correct ? 'correct' : 'wrong');
-      if (!correct) return;
-      setTimeout(() => { quizOvl.style.display = 'none'; sesi?.onQuizAnswered(); }, 1200);
+      challOvl.querySelectorAll('.challenge-opt-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const isCorrect = btn.dataset.correct === 'true';
+      btn.classList.add(isCorrect ? 'correct' : 'wrong');
+      challOvl.querySelector('#challengeExp').style.display = 'block';
+      if (isCorrect) setTimeout(() => { sesi?.onChallengeAnswered(); }, 3500);
     });
   });
-
-  // Challenge
-  container.querySelectorAll('.challenge-opt-btn').forEach(btn => {
+  reflOvl.querySelectorAll('.reflection-ans').forEach(btn => {
     btn.addEventListener('click', () => {
-      const correct = btn.dataset.correct === 'true';
-      btn.classList.add(correct ? 'correct' : 'wrong');
-      container.querySelector('#challengeExp').style.display = 'block';
-      if (correct) { soundEngine.success?.(); setTimeout(() => sesi?.onChallengeAnswered(), 1500); }
-    });
-  });
-
-  // Reflection
-  container.querySelectorAll('.reflection-ans').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const correct = btn.dataset.correct === 'true';
-      btn.classList.add(correct ? 'correct' : 'wrong');
-      container.querySelector('#reflectionExp').style.display = 'block';
-      container.querySelector('#btnFinish').style.display = '';
+      const isCorrect = btn.dataset.correct === 'true';
+      btn.classList.add(isCorrect ? 'correct' : 'wrong');
+      reflOvl.querySelector('#reflectionExp').style.display = 'block';
+      if (isCorrect) container.querySelector('#btnFinish').style.display = 'flex';
     });
   });
 
@@ -308,6 +310,32 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     btn.addEventListener('click', () => { sesi?.triggerTool(btn.dataset.tool); });
   });
 
+  // ATTACH MULAI BUTTON SYNCHRONOUSLY BEFORE AWAIT
+  let journeyStarted = false;
+  const btnMulai = container.querySelector('#btnMulaiAR');
+  const startAR = (e) => {
+    if (e?.preventDefault) e.preventDefault();
+    if (journeyStarted) return;
+    journeyStarted = true;
+    scanOvl.style.display = 'none';
+    hudLayer.style.display = '';
+    reactionCount = -1; // will increment on first form update
+    if (sesi) sesi.startJourney();
+    else {
+      // If sesi is not ready yet, wait for it
+      const checkSesi = setInterval(() => {
+        if (sesi) {
+          clearInterval(checkSesi);
+          sesi.startJourney();
+        }
+      }, 200);
+    }
+  };
+  if (btnMulai) {
+    btnMulai.addEventListener('click', startAR);
+    btnMulai.addEventListener('touchstart', startAR, { passive: false });
+  }
+
   // Launch engine
   const mode = await deteksiModeAR();
   try {
@@ -318,20 +346,6 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   } catch(e) {
     console.error('AR session failed:', e);
     setAI('Gagal memuat dunia 3D. Coba refresh halaman.');
-  }
-
-  // MULAI button
-  const btnMulai = container.querySelector('#btnMulaiAR');
-  if (btnMulai) {
-    const startAR = (e) => {
-      if (e?.preventDefault) e.preventDefault();
-      scanOvl.style.display = 'none';
-      hudLayer.style.display = '';
-      reactionCount = -1; // will increment on first form update
-      sesi?.startJourney();
-    };
-    btnMulai.addEventListener('click', startAR);
-    btnMulai.addEventListener('touchstart', startAR, { passive: false });
   }
 }
 
