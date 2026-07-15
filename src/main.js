@@ -1044,9 +1044,10 @@ function renderStudentWebARPage() {
     pageWrap(`${header({back:true,titleBackPage:'studentDashboard',coins:false})}<div id="webarContainer"></div>`, {noNav:true});
     const container = document.getElementById('webarContainer');
     renderPilihMisi(container, (misiId) => {
-      state.webarHookMisi = misiId;
-      saveState(); render();
-    }, recMisiIds);
+      state.webarHookMisi = misiId; saveState(); render();
+    }, recMisiIds, () => {
+      window.go(state.role === 'siswa' ? (state.joinedClass ? 'studentDashboard' : 'joinClass') : 'teacherClasses');
+    });
   } else if (state.webarHookMisi && !state.webarMisiAktif) {
     // Step 2: Hook Screen (Curiosity Question)
     app.innerHTML = '';

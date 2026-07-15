@@ -4113,22 +4113,23 @@ void main() {
       <h2 class="hook-question">"${r.hook}"</h2>
       <p class="hook-hint">Masuki dunia molekul dan temukan sendiri jawabannya.</p>
       <button class="hook-btn" id="hookContinue"><span>🔬</span> Selidiki</button>
-    </div>`,e.querySelector(`#hookContinue`).addEventListener(`click`,()=>{qc.whoosh(),n()}))}function ll(e,t,n=[]){let r=window.state?.viewedMisi||[];e.innerHTML=`
+    </div>`,e.querySelector(`#hookContinue`).addEventListener(`click`,()=>{qc.whoosh(),n()}))}function ll(e,t,n=[],r){let i=window.state?.viewedMisi||[];e.innerHTML=`
     <div class="webar-pilih-misi">
       <div class="pilih-misi-header">
+        <button class="hud-back" id="btnBackPilih" style="position:relative; top:0; left:0; margin-bottom:16px;">← Keluar</button>
         <div class="pilih-misi-title">ARChemy Lab</div>
         <h1 class="pilih-misi-subtitle">Pilih Eksperimen</h1>
       </div>
-      <div class="misi-grid">${Object.entries(Kc).map(([e,t])=>{let i=r.includes(e),a=n.includes(e);return`
+      <div class="misi-grid">${Object.entries(Kc).map(([e,t])=>{let r=i.includes(e),a=n.includes(e);return`
       <div class="misi-card" data-misi="${e}" tabindex="0" role="button" aria-label="${t.judul}">
         <div class="misi-card-header">
           <div class="misi-number">${t.judul.split(`—`)[0].trim()}</div>
-          <div>${a?`<span class="misi-badge rec">AI Pick</span>`:``}${i?`<span class="misi-badge done">✓ Selesai</span>`:``}</div>
+          <div>${a?`<span class="misi-badge rec">AI Pick</span>`:``}${r?`<span class="misi-badge done">✓ Selesai</span>`:``}</div>
         </div>
         <div class="misi-judul">${(t.judul.split(`—`)[1]||t.judul).trim()}</div>
         <code class="misi-persamaan">${t.persamaan}</code>
       </div>`}).join(``)}</div>
-    </div>`,e.querySelectorAll(`.misi-card`).forEach(e=>{e.addEventListener(`click`,()=>t(e.dataset.misi))})}async function ul(e,t,n){let r=Kc[t];if(!r)return;Gc(),e.innerHTML=`
+    </div>`,e.querySelectorAll(`.misi-card`).forEach(e=>{e.addEventListener(`click`,()=>t(e.dataset.misi))}),r&&e.querySelector(`#btnBackPilih`).addEventListener(`click`,r)}async function ul(e,t,n){let r=Kc[t];if(!r)return;Gc(),e.innerHTML=`
     <div class="webar-stage" id="webarStage">
       
       <div class="webar-viewport">
@@ -4452,7 +4453,7 @@ void main() {
       <button class="btn ghost" onclick="window.resetQuiz()">Ulangi Kuis</button>
       ${p?`<button class="btn" onclick="window.go('studentAdaptivePath')">Jalur Belajar</button>`:``}
     </div>
-  `)}function Eu(){let e=(Z.aiRecommendations||[]).filter(e=>e.type===`misi`).map(e=>e.id);!Z.webarMisiAktif&&!Z.webarHookMisi?(Wl(`${Hl({back:!0,titleBackPage:`studentDashboard`,coins:!1})}<div id="webarContainer"></div>`,{noNav:!0}),ll(document.getElementById(`webarContainer`),e=>{Z.webarHookMisi=e,Q(),Qu()},e)):Z.webarHookMisi&&!Z.webarMisiAktif?(xl.innerHTML=``,cl(xl,Z.webarHookMisi,()=>{Z.webarMisiAktif=Z.webarHookMisi,Z.webarHookMisi=null,Z.viewedMisi||=[],Z.viewedMisi.includes(Z.webarMisiAktif)||Z.viewedMisi.push(Z.webarMisiAktif),Q(),Qu()})):(xl.innerHTML=``,ul(xl,Z.webarMisiAktif,e=>{e?.completed&&(Pl(50,`misi WebAR selesai`),Il(`ar`)),Z.webarMisiAktif=null,Z.webarHookMisi=null,Q(),Qu()}))}function Du(){Z.colorblind=!Z.colorblind,document.body.classList.toggle(`colorblind-mode`,Z.colorblind),Q(),Qu()}function Ou(){Wl(`
+  `)}function Eu(){let e=(Z.aiRecommendations||[]).filter(e=>e.type===`misi`).map(e=>e.id);!Z.webarMisiAktif&&!Z.webarHookMisi?(Wl(`${Hl({back:!0,titleBackPage:`studentDashboard`,coins:!1})}<div id="webarContainer"></div>`,{noNav:!0}),ll(document.getElementById(`webarContainer`),e=>{Z.webarHookMisi=e,Q(),Qu()},e,()=>{window.go(Z.role===`siswa`?Z.joinedClass?`studentDashboard`:`joinClass`:`teacherClasses`)})):Z.webarHookMisi&&!Z.webarMisiAktif?(xl.innerHTML=``,cl(xl,Z.webarHookMisi,()=>{Z.webarMisiAktif=Z.webarHookMisi,Z.webarHookMisi=null,Z.viewedMisi||=[],Z.viewedMisi.includes(Z.webarMisiAktif)||Z.viewedMisi.push(Z.webarMisiAktif),Q(),Qu()})):(xl.innerHTML=``,ul(xl,Z.webarMisiAktif,e=>{e?.completed&&(Pl(50,`misi WebAR selesai`),Il(`ar`)),Z.webarMisiAktif=null,Z.webarHookMisi=null,Q(),Qu()}))}function Du(){Z.colorblind=!Z.colorblind,document.body.classList.toggle(`colorblind-mode`,Z.colorblind),Q(),Qu()}function Ou(){Wl(`
     <div style="text-align:center;padding-top:20px;"><h1 class="page-title">Pilih Kelas</h1><p class="page-subtitle">Sistem Pemantauan Analitik Guru</p></div>
     <div class="coverflow-wrap">
       <button class="coverflow-btn prev" onclick="window.moveCoverflow(-1)">‹</button>

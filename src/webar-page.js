@@ -33,7 +33,7 @@ export function renderHook(container, misiId, onContinue) {
   });
 }
 
-export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
+export function renderPilihMisi(container, onPilihMisi, recommendedIds = [], onKeluar) {
   const done = window.state?.viewedMisi || [];
   const cards = Object.entries(MISI_DATA).map(([id, m]) => {
     const isDone = done.includes(id);
@@ -52,6 +52,7 @@ export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
   container.innerHTML = `
     <div class="webar-pilih-misi">
       <div class="pilih-misi-header">
+        <button class="hud-back" id="btnBackPilih" style="position:relative; top:0; left:0; margin-bottom:16px;">← Keluar</button>
         <div class="pilih-misi-title">ARChemy Lab</div>
         <h1 class="pilih-misi-subtitle">Pilih Eksperimen</h1>
       </div>
@@ -61,6 +62,10 @@ export function renderPilihMisi(container, onPilihMisi, recommendedIds = []) {
   container.querySelectorAll('.misi-card').forEach(c => {
     c.addEventListener('click', () => onPilihMisi(c.dataset.misi));
   });
+  
+  if (onKeluar) {
+    container.querySelector('#btnBackPilih').addEventListener('click', onKeluar);
+  }
 }
 
 export async function renderHalamanAR(container, misiId, onKeluar) {
