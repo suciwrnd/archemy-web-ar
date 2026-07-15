@@ -4146,7 +4146,7 @@ void main() {
       </div>
 
       <!-- HUD Layer -->
-      <div class="hud-layer" id="hudLayer" style="display:none">
+      <div class="hud-layer" id="hudLayer">
         <button class="hud-back" id="btnBack">← Keluar</button>
 
         <!-- Dynamic Equilibrium Chart (Appears only during ZoomOut & Experiment) -->
