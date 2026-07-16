@@ -118,6 +118,63 @@ export class UIManager {
   get missionSub() { return this.subEl; }
 
   // -------------------------------------------------------------------------
+  // Bottom Left: Legend
+  // -------------------------------------------------------------------------
+  _buildBottomLeft() {
+    this.bottomLeft = document.createElement('div');
+    this.bottomLeft.style.position = 'absolute';
+    this.bottomLeft.style.bottom = 'max(12px, env(safe-area-inset-bottom, 12px))';
+    this.bottomLeft.style.left = 'max(12px, env(safe-area-inset-left, 12px))';
+    this.bottomLeft.style.pointerEvents = 'auto';
+    this.bottomLeft.style.zIndex = '100';
+
+    // Legend Card
+    const legendCard = document.createElement('div');
+    legendCard.style.background = 'rgba(40, 40, 40, 0.6)';
+    legendCard.style.backdropFilter = 'blur(12px)';
+    legendCard.style.borderRadius = '12px';
+    legendCard.style.padding = '8px 12px';
+    legendCard.style.color = '#fff';
+    legendCard.style.fontSize = '12px';
+    legendCard.style.display = 'flex';
+    legendCard.style.flexDirection = 'column';
+    legendCard.style.gap = '8px';
+
+    // Shape-based legend (using standard CPK colors for accurate shape representation)
+    legendCard.innerHTML = `
+      <div style="display:flex; align-items:center; gap:8px;">
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          <circle cx="12" cy="10" r="4" fill="#3050f8" />
+          <circle cx="5" cy="16" r="4" fill="#ff2010" />
+          <circle cx="19" cy="16" r="4" fill="#ff2010" />
+          <line x1="12" y1="10" x2="5" y2="16" stroke="#94a3b8" stroke-width="2" />
+          <line x1="12" y1="10" x2="19" y2="16" stroke="#94a3b8" stroke-width="2" />
+        </svg>
+        <span>Reaktan (NO₂)</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          <circle cx="12" cy="8" r="3" fill="#3050f8" />
+          <circle cx="12" cy="16" r="3" fill="#3050f8" />
+          <circle cx="5" cy="4" r="3" fill="#ff2010" />
+          <circle cx="19" cy="4" r="3" fill="#ff2010" />
+          <circle cx="5" cy="20" r="3" fill="#ff2010" />
+          <circle cx="19" cy="20" r="3" fill="#ff2010" />
+          <line x1="12" y1="8" x2="12" y2="16" stroke="#94a3b8" stroke-width="2" />
+          <line x1="12" y1="8" x2="5" y2="4" stroke="#94a3b8" stroke-width="2" />
+          <line x1="12" y1="8" x2="19" y2="4" stroke="#94a3b8" stroke-width="2" />
+          <line x1="12" y1="16" x2="5" y2="20" stroke="#94a3b8" stroke-width="2" />
+          <line x1="12" y1="16" x2="19" y2="20" stroke="#94a3b8" stroke-width="2" />
+        </svg>
+        <span>Produk (N₂O₄)</span>
+      </div>
+    `;
+
+    this.bottomLeft.appendChild(legendCard);
+    this.uiLayer.appendChild(this.bottomLeft);
+  }
+
+  // -------------------------------------------------------------------------
   // Top Right: XP & Menu
   // -------------------------------------------------------------------------
   _buildTopRight() {
