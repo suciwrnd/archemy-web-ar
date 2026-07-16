@@ -128,7 +128,6 @@ export class UIManager {
     this.bottomLeft.style.pointerEvents = 'auto';
     this.bottomLeft.style.zIndex = '100';
 
-    // Legend Card
     const legendCard = document.createElement('div');
     legendCard.style.background = 'rgba(40, 40, 40, 0.6)';
     legendCard.style.backdropFilter = 'blur(12px)';
@@ -140,36 +139,101 @@ export class UIManager {
     legendCard.style.flexDirection = 'column';
     legendCard.style.gap = '8px';
 
-    // Shape-based legend (using standard CPK colors for accurate shape representation)
-    legendCard.innerHTML = `
-      <div style="display:flex; align-items:center; gap:8px;">
-        <svg width="24" height="24" viewBox="0 0 24 24">
-          <circle cx="12" cy="10" r="4" fill="#3050f8" />
-          <circle cx="5" cy="16" r="4" fill="#ff2010" />
-          <circle cx="19" cy="16" r="4" fill="#ff2010" />
-          <line x1="12" y1="10" x2="5" y2="16" stroke="#94a3b8" stroke-width="2" />
-          <line x1="12" y1="10" x2="19" y2="16" stroke="#94a3b8" stroke-width="2" />
-        </svg>
-        <span>Reaktan (NO₂)</span>
-      </div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <svg width="24" height="24" viewBox="0 0 24 24">
-          <circle cx="12" cy="8" r="3" fill="#3050f8" />
-          <circle cx="12" cy="16" r="3" fill="#3050f8" />
-          <circle cx="5" cy="4" r="3" fill="#ff2010" />
-          <circle cx="19" cy="4" r="3" fill="#ff2010" />
-          <circle cx="5" cy="20" r="3" fill="#ff2010" />
-          <circle cx="19" cy="20" r="3" fill="#ff2010" />
-          <line x1="12" y1="8" x2="12" y2="16" stroke="#94a3b8" stroke-width="2" />
-          <line x1="12" y1="8" x2="5" y2="4" stroke="#94a3b8" stroke-width="2" />
-          <line x1="12" y1="8" x2="19" y2="4" stroke="#94a3b8" stroke-width="2" />
-          <line x1="12" y1="16" x2="5" y2="20" stroke="#94a3b8" stroke-width="2" />
-          <line x1="12" y1="16" x2="19" y2="20" stroke="#94a3b8" stroke-width="2" />
-        </svg>
-        <span>Produk (N₂O₄)</span>
-      </div>
-    `;
+    let html = '';
+    const rId = this.config.id;
 
+    if (rId === 'NO2_N2O4') {
+      html = `
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="24" height="24" viewBox="0 0 24 24">
+            <circle cx="12" cy="10" r="4" fill="#3050f8" />
+            <circle cx="5" cy="16" r="4" fill="#ff2010" />
+            <circle cx="19" cy="16" r="4" fill="#ff2010" />
+            <line x1="12" y1="10" x2="5" y2="16" stroke="#94a3b8" stroke-width="2" />
+            <line x1="12" y1="10" x2="19" y2="16" stroke="#94a3b8" stroke-width="2" />
+          </svg>
+          <span>Reaktan (NO₂)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="24" height="24" viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="3" fill="#3050f8" />
+            <circle cx="12" cy="16" r="3" fill="#3050f8" />
+            <circle cx="5" cy="4" r="3" fill="#ff2010" />
+            <circle cx="19" cy="4" r="3" fill="#ff2010" />
+            <circle cx="5" cy="20" r="3" fill="#ff2010" />
+            <circle cx="19" cy="20" r="3" fill="#ff2010" />
+            <line x1="12" y1="8" x2="12" y2="16" stroke="#94a3b8" stroke-width="2" />
+            <line x1="12" y1="8" x2="5" y2="4" stroke="#94a3b8" stroke-width="2" />
+            <line x1="12" y1="8" x2="19" y2="4" stroke="#94a3b8" stroke-width="2" />
+            <line x1="12" y1="16" x2="5" y2="20" stroke="#94a3b8" stroke-width="2" />
+            <line x1="12" y1="16" x2="19" y2="20" stroke="#94a3b8" stroke-width="2" />
+          </svg>
+          <span>Produk (N₂O₄)</span>
+        </div>
+      `;
+    } else if (rId === 'FeSCN') {
+      html = `
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="24" height="24" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5" fill="#e06633" />
+          </svg>
+          <span>Fe³⁺</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" style="margin-left:4px">
+            <circle cx="6" cy="12" r="4" fill="#ffff30" />
+            <circle cx="12" cy="12" r="4" fill="#303030" />
+            <circle cx="18" cy="12" r="4" fill="#3050f8" />
+            <line x1="6" y1="12" x2="18" y2="12" stroke="#94a3b8" stroke-width="2" />
+          </svg>
+          <span>SCN⁻</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="32" height="24" viewBox="0 0 32 24">
+            <circle cx="6" cy="12" r="5" fill="#e06633" />
+            <circle cx="14" cy="12" r="3" fill="#ffff30" />
+            <circle cx="20" cy="12" r="3" fill="#303030" />
+            <circle cx="26" cy="12" r="3" fill="#3050f8" />
+            <line x1="6" y1="12" x2="26" y2="12" stroke="#94a3b8" stroke-width="2" />
+          </svg>
+          <span>FeSCN²⁺</span>
+        </div>
+      `;
+    } else if (rId === 'H2I2') {
+      html = `
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="20" height="24" viewBox="0 0 20 24">
+            <circle cx="6" cy="12" r="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+            <circle cx="14" cy="12" r="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+          </svg>
+          <span>H₂</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" style="margin-left:4px">
+            <circle cx="8" cy="12" r="5" fill="#940094" />
+            <circle cx="16" cy="12" r="5" fill="#940094" />
+          </svg>
+          <span>I₂</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="24" height="24" viewBox="0 0 24 24">
+            <circle cx="8" cy="12" r="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+            <circle cx="16" cy="12" r="5" fill="#940094" />
+          </svg>
+          <span>HI</span>
+        </div>
+      `;
+    } else {
+      // Fallback for AceticAcid or others
+      html = `
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:12px; height:12px; background:#fff; border-radius:50%"></div>
+          <span>Reaktan</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:12px; height:12px; background:#34d399; border-radius:50%"></div>
+          <span>Produk</span>
+        </div>
+      `;
+    }
+
+    legendCard.innerHTML = html;
     this.bottomLeft.appendChild(legendCard);
     this.uiLayer.appendChild(this.bottomLeft);
   }

@@ -139,16 +139,6 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
 
   container.innerHTML = `
     <div class="me-stage" id="meStage" style="background: #111;">
-      <!-- AR Legend -->
-      <div class="me-ar-legend" id="meLegend">
-        <div class="me-legend-item">
-          <span class="me-legend-color" style="background:#60a5fa"></span> Reaktan
-        </div>
-        <div class="me-legend-item">
-          <span class="me-legend-color" style="background:#34d399"></span> Produk
-        </div>
-      </div>
-      
       <div class="me-viewport">
         <video id="meVideo" playsinline muted></video>
         <canvas id="meCanvas"></canvas>
