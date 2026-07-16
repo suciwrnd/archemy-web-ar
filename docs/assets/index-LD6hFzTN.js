@@ -4165,6 +4165,16 @@ void main() {
     </div>
   `,e.querySelectorAll(`.me-misi-card`).forEach(e=>{e.addEventListener(`click`,()=>t(e.dataset.misi))}),r){let t=e.querySelector(`#btnBackPilih`);t&&t.addEventListener(`click`,r)}}async function bf(e,t,n){let r=wu(Du(t));if(!r)return;gf(),e.innerHTML=`
     <div class="me-stage" id="meStage" style="background: #111;">
+      <!-- AR Legend -->
+      <div class="me-ar-legend" id="meLegend">
+        <div class="me-legend-item">
+          <span class="me-legend-color" style="background:#60a5fa"></span> Reaktan
+        </div>
+        <div class="me-legend-item">
+          <span class="me-legend-color" style="background:#34d399"></span> Produk
+        </div>
+      </div>
+      
       <div class="me-viewport">
         <video id="meVideo" playsinline muted></video>
         <canvas id="meCanvas"></canvas>
