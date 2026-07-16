@@ -200,6 +200,7 @@ const defaultState = {
     guru:{ name:'', email:'', school:'', className:'', password:'' }
   },
   modules: defaultModules, questions: defaultQuestions, classes: defaultClasses,
+  teacherGeneratedQuizzes: [],
   teacherEditingQuestionId:null
 };
 
@@ -241,6 +242,7 @@ function loadState() {
     modules: saved.modules?.length ? saved.modules : defaultCopy.modules,
     questions: saved.questions?.length ? saved.questions : defaultCopy.questions,
     classes: saved.classes?.length ? saved.classes : defaultCopy.classes,
+    teacherGeneratedQuizzes: saved.teacherGeneratedQuizzes || [],
     badges: saved.badges || [],
     points: saved.points || 0,
     gems: saved.gems || 0,
@@ -1177,6 +1179,13 @@ function renderTeacherDashboard() {
         <div class="stat-mini"><b>${c.quiz} Soal</b><span>Kuis</span></div>
       </div>
     </div>
+    <div class="card" style="margin-top:14px; text-align:center; padding:18px;">
+      <h3 style="margin:0 0 6px;">Kemampuan Rata-rata Siswa</h3>
+      <div style="font-size:36px; font-weight:bold; color:var(--purple); margin-bottom:4px;">
+        ${Math.round(c.roster.reduce((sum, s) => sum + (s.score || 0), 0) / (c.roster.length || 1))}%
+      </div>
+      <p class="small muted" style="margin:0;">Keseluruhan progres pemahaman berdasarkan kuis diagnostik</p>
+    </div>
     <div class="two-stat" style="margin-top:14px;">
       <button class="stat-card" onclick="window.go('teacherClassDetail')"><strong>Siswa</strong><span>Daftar & Nilai</span></button>
       <button class="stat-card" onclick="window.go('teacherModules')"><strong>Modul</strong><span>Materi</span></button>
@@ -1301,10 +1310,70 @@ function deleteModule(id) {
    TEACHER QUIZ
    -------------------------------------------------------------------------- */
 function renderTeacherQuiz() {
+  const hasModules = state.modules && state.modules.length > 0;
+  
+  let aiSection = '';
+  if (hasModules) {
+    aiSection = `
+      <div class="card add-panel" style="margin-bottom: 18px;">
+        <h4 style="margin:0 0 12px; display:flex; align-items:center; gap:8px;">
+          <span style="background:var(--purple); color:white; padding:4px; border-radius:6px; display:flex;">${ICONS.brain}</span>
+          Buat Kuis Otomatis (AI-Powered)
+        </h4>
+        <p class="small muted" style="margin-bottom:12px;">Pilih modul materi yang sudah Anda unggah, dan AI akan merumuskan butir soal diagnostik secara otomatis.</p>
+        <div class="field">
+          <select id="aiQuizModule" class="select">
+            ${state.modules.map(m => `<option value="${m.id}">${escapeHtml(m.title)}</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn full" id="generateAIBtn" onclick="window.generateQuizFromAI()">🤖 Generate Kuis dari AI</button>
+        <div style="text-align:center; margin-top:12px;">
+          <span class="small muted">Atau gunakan </span>
+          <button class="link-btn" onclick="window.activateBuiltinQuiz()">Kuis Diagnostik Awal Bawaan Sistem</button>
+        </div>
+      </div>
+    `;
+  } else {
+    aiSection = `
+      <div class="card add-panel" style="margin-bottom: 18px; text-align:center; padding:24px 16px;">
+        <div style="color:var(--purple); width:48px; height:48px; margin:0 auto 12px;">${ICONS.brain}</div>
+        <h4 style="margin:0 0 8px;">Belum Ada Modul Materi</h4>
+        <p class="small muted" style="margin-bottom:16px;">Anda perlu mengunggah modul terlebih dahulu agar AI dapat merumuskan kuis diagnostik yang sesuai.</p>
+        <button class="btn full" onclick="window.go('teacherModules')">Unggah Modul Sekarang</button>
+        <div style="margin-top:16px; padding-top:12px; border-top:1px solid #eee;">
+          <p class="small muted" style="margin-bottom:8px;">Atau langsung mulai pengujian awal:</p>
+          <button class="btn ghost full" onclick="window.activateBuiltinQuiz()">Gunakan Kuis Diagnostik Bawaan Sistem</button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Render generated quizzes
+  const generatedHtml = state.teacherGeneratedQuizzes.map(q => `
+    <div class="card" style="padding:14px;margin-bottom:14px;border-radius:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+        <div style="flex:1;"><h4 style="margin:0;font-size:14px;color:var(--ink);">${escapeHtml(q.title)}</h4><span class="small muted">Bersumber dari modul: ${escapeHtml(q.moduleName)}</span></div>
+        <span class="badge paham" style="background:var(--purple);color:white;font-size:9px;padding:2px 8px;">Aktif</span>
+      </div>
+      <div class="tier-tabs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:10px;">${[1,2,3,4].map(n=>`<span style="background:var(--soft);text-align:center;font-size:10px;padding:3px;border-radius:4px;font-weight:600;color:var(--purple)">Tier ${n}</span>`).join('')}</div>
+      <div style="display:flex;justify-content:space-between;text-align:center;background:#fbfaff;padding:8px;border-radius:10px;margin-bottom:10px;border:1px solid #f0ecf8;">
+        <div><b style="font-size:15px;display:block;">0</b><span class="small muted">selesai</span></div>
+        <div><b style="font-size:15px;display:block;">${activeClass().students}</b><span class="small muted">belum</span></div>
+        <div><b style="font-size:15px;display:block;color:var(--muted);">-</b><span class="small muted">rata-rata</span></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;"><button class="btn ghost small-btn" onclick="window.toast('Menu edit soal dalam pengembangan')"> Edit Soal</button><span class="small" style="color:var(--danger);font-weight:600;">Baru Dibuat AI</span></div>
+    </div>
+  `).join('');
+
   pageWrap(`${header({coins:false,back:true,titleBackPage:'teacherDashboard'})}
-    <h1 class="page-title">Kelola Kuis</h1><p class="page-subtitle">Buat dan kelola kuis kognitif berjenjang.</p>
-    <button class="btn" style="min-height:36px;padding:0 14px;border-radius:999px;margin-bottom:18px;" onclick="window.newQuestion()"><span style="font-size:16px;font-weight:bold;">+</span> Aktifkan Kuis Baru</button>
+    <h1 class="page-title">Kelola Kuis</h1>
+    <p class="page-subtitle">Buat dan kelola kuis kognitif berjenjang.</p>
+    
+    ${aiSection}
+    
+    <h3 class="section-title">Daftar Kuis Aktif</h3>
     <div class="quiz-history-list">
+      ${generatedHtml}
       <div class="card" style="padding:14px;margin-bottom:14px;border-radius:18px;">
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;"><div style="flex:1;"><h4 style="margin:0;font-size:14px;color:var(--ink);">Kuis Diagnostik Topik 3</h4><span class="small muted">Karakteristik Sistem Homogen dan Heterogen</span></div><span class="badge paham" style="background:var(--purple);color:white;font-size:9px;padding:2px 8px;">Aktif</span></div>
         <div class="tier-tabs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:10px;">${[1,2,3,4].map(n=>`<span style="background:var(--soft);text-align:center;font-size:10px;padding:3px;border-radius:4px;font-weight:600;color:var(--purple)">Tier ${n}</span>`).join('')}</div>
@@ -1325,6 +1394,40 @@ function renderTeacherQuiz() {
         <button class="btn plain small-btn" style="width:100%" onclick="window.go('teacherAnalysis')"> Lihat Hasil Analisis</button>
       </div>
     </div>`);
+}
+
+function generateQuizFromAI() {
+  const modId = document.getElementById('aiQuizModule').value;
+  const mod = state.modules.find(m => m.id === modId);
+  if (!mod) return;
+
+  const btn = document.getElementById('generateAIBtn');
+  btn.textContent = '🧠 AI Sedang Merumuskan Soal...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    state.teacherGeneratedQuizzes.unshift({
+      id: `qg_${Date.now()}`,
+      title: `Kuis AI: ${mod.title}`,
+      moduleName: mod.title,
+      date: Date.now()
+    });
+    saveState();
+    toast('✨ Kuis baru berhasil di-generate oleh AI!');
+    renderTeacherQuiz(); // re-render inline
+  }, 2000);
+}
+
+function activateBuiltinQuiz() {
+  state.teacherGeneratedQuizzes.unshift({
+    id: `qg_${Date.now()}`,
+    title: `Kuis Diagnostik Awal Lengkap`,
+    moduleName: 'Bank Soal Sistem (10 Topik)',
+    date: Date.now()
+  });
+  saveState();
+  toast('✅ Kuis Diagnostik Awal berhasil diaktifkan!');
+  renderTeacherQuiz();
 }
 
 function newQuestion() { state.teacherEditingQuestionId = null; saveState(); go('teacherEditQuiz'); }
