@@ -63,14 +63,14 @@ export class ReactionSimulator {
 
     if (level === 1) {
       // Observe: Just 5 molecules, natural scale, very slow
-      await this._spawn(5, rDef, pDef, 0.25, 0.2);
+      await this._spawn(5, rDef, pDef, 0.5, 0.2);
     } else if (level === 2) {
       // Investigate: Start paused. 10 molecules.
-      await this._spawn(10, rDef, pDef, 0.25, 0.0);
+      await this._spawn(10, rDef, pDef, 0.5, 0.0);
     } else if (level === 3 || level === 4) {
       // Experiment/Challenge: 30 molecules
       this.isPlaying = false; // Must be started by user
-      await this._spawn(30, rDef, pDef, 0.2, 0.5);
+      await this._spawn(30, rDef, pDef, 0.4, 0.5);
     }
     
     this._emit('sceneReady', level);
@@ -81,7 +81,7 @@ export class ReactionSimulator {
     for (let i = 0; i < count; i++) {
       const isProd = i < Math.round(count * initialProductRatio);
       const def = isProd ? productDef : reactantDef;
-      const mesh = await createMoleculeAsset(def, isProd);
+      const mesh = await createMoleculeAsset(def);
       
       mesh.scale.setScalar(scale);
       
@@ -115,7 +115,7 @@ export class ReactionSimulator {
   }
 
   async swapParticle(p, newDef, isProduct) {
-    const newMesh = await createMoleculeAsset(newDef, isProduct);
+    const newMesh = await createMoleculeAsset(newDef);
     newMesh.position.copy(p.mesh.position);
     newMesh.rotation.copy(p.mesh.rotation);
     newMesh.scale.copy(p.mesh.scale);

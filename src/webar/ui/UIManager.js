@@ -25,6 +25,7 @@ export class UIManager {
 
     this._buildTopLeft();
     this._buildTopRight();
+    this._buildBottomLeft();
     this._buildBottomToolbar();
     this._buildContextPanel(); // For tapping 3D equipment
     this._buildInstructionToast(); // Now used as contextual hints
@@ -72,29 +73,7 @@ export class UIManager {
     this.missionCard.appendChild(this.titleEl);
     this.missionCard.appendChild(this.subEl);
 
-    // Legend Card
-    const legendCard = document.createElement('div');
-    legendCard.style.background = 'rgba(40, 40, 40, 0.6)';
-    legendCard.style.backdropFilter = 'blur(12px)';
-    legendCard.style.borderRadius = '12px';
-    legendCard.style.padding = '8px 12px';
-    legendCard.style.color = '#fff';
-    legendCard.style.fontSize = '11px';
-    legendCard.style.display = 'flex';
-    legendCard.style.flexDirection = 'column';
-    legendCard.style.gap = '4px';
-
-    legendCard.innerHTML = `
-      <div style="display:flex; align-items:center; gap:6px;">
-        <span style="width:10px; height:10px; border-radius:50%; background:#60a5fa; display:inline-block; border:1px solid rgba(255,255,255,0.3)"></span> Reaktan
-      </div>
-      <div style="display:flex; align-items:center; gap:6px;">
-        <span style="width:10px; height:10px; border-radius:50%; background:#34d399; display:inline-block; border:1px solid rgba(255,255,255,0.3)"></span> Produk
-      </div>
-    `;
-
     this.topLeft.appendChild(this.missionCard);
-    this.topLeft.appendChild(legendCard);
 
     // Mock Prediction Card (Visual only)
     const predCard = document.createElement('div');
@@ -118,6 +97,7 @@ export class UIManager {
     progCard.style.padding = '10px 14px';
     progCard.style.color = '#fff';
     progCard.style.width = '200px';
+    progCard.style.display = 'none'; // Hidden by default
     progCard.innerHTML = `
       <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:6px">
         <span>Progres</span>

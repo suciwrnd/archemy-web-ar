@@ -142,7 +142,7 @@ export class ARLaboratory {
     this.labPlaced = true;
     this.reticle.visible = false;
     this.labGroup.visible = true;
-    this.labGroup.scale.set(1, 1, 1);
+    this.labGroup.scale.set(0.5, 0.5, 0.5); // Shrink the entire lab by half!
     
     if (this.onLabPlaced) this.onLabPlaced(this.labGroup);
   }

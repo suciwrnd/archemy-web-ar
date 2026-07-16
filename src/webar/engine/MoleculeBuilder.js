@@ -56,50 +56,47 @@ function getSphereGeo(r) {
   return _geoCache.get(key);
 }
 
-function getAtomMat(element, isProduct) {
-  const cacheKey = element + (isProduct ? '_prod' : '_reac');
-  if (!_matCache.has(cacheKey)) {
-    // Pure vibrant color, no muddy blending!
-    const tintColor = isProduct ? new THREE.Color(0x34d399) : new THREE.Color(0x60a5fa); // Green vs Blue
-    
-    _matCache.set(cacheKey, new THREE.MeshPhysicalMaterial({
-      color:              tintColor,
-      emissive:           tintColor,
-      emissiveIntensity:  0.2, // slight glow so it pops!
-      metalness:          0.2,
-      roughness:          0.3,
+function getAtomMat(element) {
+  if (!_matCache.has(element)) {
+    const cfg = CPK[element] || CPK.X;
+    _matCache.set(element, new THREE.MeshPhysicalMaterial({
+      color:              cfg.color,
+      emissive:           cfg.emissive,
+      emissiveIntensity:  0.25,
+      metalness:          0.15,
+      roughness:          0.25,
       clearcoat:          1.0,
-      clearcoatRoughness: 0.1,
-      envMapIntensity:    1.5,
+      clearcoatRoughness: 0.05,
+      envMapIntensity:    1.8,
       reflectivity:       0.8,
     }));
   }
-  return _matCache.get(cacheKey);
+  return _matCache.get(element);
 }
 
-function getBondMat(isProduct) {
-  const cacheKey = isProduct ? 'bond_prod' : 'bond_reac';
-  if (!_matCache.has(cacheKey)) {
-    _matCache.set(cacheKey, new THREE.MeshPhysicalMaterial({
-      color:              isProduct ? 0x34d399 : 0x60a5fa,
-      metalness:          0.7,
-      roughness:          0.2,
-      clearcoat:          0.5,
+function getBondMat() {
+  if (!_bondMat) {
+    _bondMat = new THREE.MeshPhysicalMaterial({
+      color:              0xd0d8e0,
+      metalness:          0.85,
+      roughness:          0.15,
+      clearcoat:          0.9,
       clearcoatRoughness: 0.1,
-    }));
+      envMapIntensity:    1.5,
+    });
   }
-  return _matCache.get(cacheKey);
+  return _bondMat;
 }
 
 // ---------------------------------------------------------------------------
 // Bond helper — cylinder between two 3D points
 // ---------------------------------------------------------------------------
-function makeBond(from, to, isProduct) {
+function makeBond(from, to) {
   const dir  = new THREE.Vector3().subVectors(to, from);
   const len  = dir.length();
   if (len < 0.01) return null;
 
-  const bond = new THREE.Mesh(_bondGeo, getBondMat(isProduct));
+  const bond = new THREE.Mesh(_bondGeo, getBondMat());
   bond.scale.y = len;
   bond.position.copy(from).lerp(to, 0.5);
   bond.quaternion.setFromUnitVectors(
@@ -118,7 +115,7 @@ function makeBond(from, to, isProduct) {
  * @param {string} id       - Molecule identifier (for userData)
  * @returns {THREE.Group}
  */
-export function buildProceduralMolecule(atomDefs, id = 'MOL', isProduct = false) {
+export function buildProceduralMolecule(atomDefs, id = 'MOL') {
   const group = new THREE.Group();
   group.userData.moleculeId = id;
   group.userData.isProcedural = true;
@@ -128,7 +125,7 @@ export function buildProceduralMolecule(atomDefs, id = 'MOL', isProduct = false)
   // Build atoms
   atomDefs.forEach(([element, x, y, z]) => {
     const cfg  = CPK[element] || CPK.X;
-    const mesh = new THREE.Mesh(getSphereGeo(cfg.r), getAtomMat(element, isProduct).clone());
+    const mesh = new THREE.Mesh(getSphereGeo(cfg.r), getAtomMat(element).clone());
     mesh.position.set(x, y, z);
     mesh.castShadow    = true;
     mesh.receiveShadow = true;
@@ -149,7 +146,7 @@ export function buildProceduralMolecule(atomDefs, id = 'MOL', isProduct = false)
       const maxDist = (ri + rj) * BOND_SCALE + 0.3;
       const dist = a.pos.distanceTo(b.pos);
       if (dist > 0.01 && dist < maxDist) {
-        const bond = makeBond(a.pos, b.pos, isProduct);
+        const bond = makeBond(a.pos, b.pos);
         if (bond) {
           bond.castShadow = true;
           group.add(bond);
@@ -213,7 +210,7 @@ export async function loadGLBMolecule(path) {
  * @param {Object} asset - MoleculeAsset { id, glbPath?, atomDefs }
  * @returns {Promise<THREE.Group>}
  */
-export async function createMoleculeAsset(asset, isProduct = false) {
+export async function createMoleculeAsset(asset) {
   if (asset.glbPath) {
     try {
       const model = await loadGLBMolecule(asset.glbPath);
@@ -224,7 +221,7 @@ export async function createMoleculeAsset(asset, isProduct = false) {
       console.warn(`[MoleculeBuilder] GLB failed for ${asset.id}, using procedural fallback:`, err);
     }
   }
-  return buildProceduralMolecule(asset.atomDefs, asset.id, isProduct);
+  return buildProceduralMolecule(asset.atomDefs, asset.id);
 }
 
 /**
@@ -232,8 +229,8 @@ export async function createMoleculeAsset(asset, isProduct = false) {
  * @param {Object} asset - MoleculeAsset { id, atomDefs }
  * @returns {THREE.Group}
  */
-export function createMoleculeSync(asset, isProduct = false) {
-  return buildProceduralMolecule(asset.atomDefs, asset.id, isProduct);
+export function createMoleculeSync(asset) {
+  return buildProceduralMolecule(asset.atomDefs, asset.id);
 }
 
 // ---------------------------------------------------------------------------
