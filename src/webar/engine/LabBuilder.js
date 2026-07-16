@@ -14,6 +14,7 @@ const createMat = (color, transparent = false, opacity = 1.0) => {
     flatShading: true,
     transparent: transparent,
     opacity: opacity,
+    depthWrite: !transparent,
     side: transparent ? THREE.DoubleSide : THREE.FrontSide
   });
 };
