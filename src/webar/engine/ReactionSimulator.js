@@ -6,7 +6,7 @@
    ========================================================================== */
 
 import * as THREE from 'three';
-import { createMoleculeAsset, flashMolecule, addAura } from './MoleculeBuilder.js';
+import { createMoleculeAsset } from './MoleculeBuilder.js';
 import { soundEngine } from './SoundEngine.js';
 
 export class ParticleWrapper {
@@ -81,10 +81,7 @@ export class ReactionSimulator {
     for (let i = 0; i < count; i++) {
       const isProd = i < Math.round(count * initialProductRatio);
       const def = isProd ? productDef : reactantDef;
-      const mesh = await createMoleculeAsset(def);
-      if (isProd) {
-        addAura(mesh, 0x34d399); // Green aura for products
-      }
+      const mesh = await createMoleculeAsset(def, isProd);
       
       mesh.scale.setScalar(scale);
       
@@ -118,7 +115,7 @@ export class ReactionSimulator {
   }
 
   async swapParticle(p, newDef, isProduct) {
-    const newMesh = await createMoleculeAsset(newDef);
+    const newMesh = await createMoleculeAsset(newDef, isProduct);
     newMesh.position.copy(p.mesh.position);
     newMesh.rotation.copy(p.mesh.rotation);
     newMesh.scale.copy(p.mesh.scale);
@@ -133,12 +130,6 @@ export class ReactionSimulator {
     p.def = newDef;
     p.isProduct = isProduct;
     p.cooldown = 0.5; // Prevent immediate re-reaction
-    
-    if (isProduct) {
-      addAura(newMesh, 0x34d399);
-    }
-    
-    flashMolecule(newMesh, 0.3);
   }
 
   update(dt) {

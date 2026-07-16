@@ -56,47 +56,54 @@ function getSphereGeo(r) {
   return _geoCache.get(key);
 }
 
-function getAtomMat(element) {
-  if (!_matCache.has(element)) {
+function getAtomMat(element, isProduct) {
+  const cacheKey = element + (isProduct ? '_prod' : '_reac');
+  if (!_matCache.has(cacheKey)) {
     const cfg = CPK[element] || CPK.X;
-    _matCache.set(element, new THREE.MeshPhysicalMaterial({
-      color:              cfg.color,
-      emissive:           cfg.emissive,
-      emissiveIntensity:  0.25,
+    
+    // Blend original CPK color with a tint for clear differentiation
+    const baseColor = new THREE.Color(cfg.color);
+    const tintColor = isProduct ? new THREE.Color(0x34d399) : new THREE.Color(0x60a5fa); // Green vs Blue
+    baseColor.lerp(tintColor, 0.6); // 60% tint
+    
+    _matCache.set(cacheKey, new THREE.MeshPhysicalMaterial({
+      color:              baseColor,
+      emissive:           0x000000,
+      emissiveIntensity:  0.0,
       metalness:          0.15,
-      roughness:          0.25,
-      clearcoat:          1.0,
-      clearcoatRoughness: 0.05,
-      envMapIntensity:    1.8,
-      reflectivity:       0.8,
+      roughness:          0.3,
+      clearcoat:          0.8,
+      clearcoatRoughness: 0.1,
+      envMapIntensity:    1.2,
+      reflectivity:       0.5,
     }));
   }
-  return _matCache.get(element);
+  return _matCache.get(cacheKey);
 }
 
-function getBondMat() {
-  if (!_bondMat) {
-    _bondMat = new THREE.MeshPhysicalMaterial({
-      color:              0xd0d8e0,
-      metalness:          0.85,
-      roughness:          0.15,
-      clearcoat:          0.9,
+function getBondMat(isProduct) {
+  const cacheKey = isProduct ? 'bond_prod' : 'bond_reac';
+  if (!_matCache.has(cacheKey)) {
+    _matCache.set(cacheKey, new THREE.MeshPhysicalMaterial({
+      color:              isProduct ? 0x34d399 : 0x60a5fa,
+      metalness:          0.7,
+      roughness:          0.2,
+      clearcoat:          0.5,
       clearcoatRoughness: 0.1,
-      envMapIntensity:    1.5,
-    });
+    }));
   }
-  return _bondMat;
+  return _matCache.get(cacheKey);
 }
 
 // ---------------------------------------------------------------------------
 // Bond helper — cylinder between two 3D points
 // ---------------------------------------------------------------------------
-function makeBond(from, to) {
+function makeBond(from, to, isProduct) {
   const dir  = new THREE.Vector3().subVectors(to, from);
   const len  = dir.length();
   if (len < 0.01) return null;
 
-  const bond = new THREE.Mesh(_bondGeo, getBondMat());
+  const bond = new THREE.Mesh(_bondGeo, getBondMat(isProduct));
   bond.scale.y = len;
   bond.position.copy(from).lerp(to, 0.5);
   bond.quaternion.setFromUnitVectors(
@@ -115,7 +122,7 @@ function makeBond(from, to) {
  * @param {string} id       - Molecule identifier (for userData)
  * @returns {THREE.Group}
  */
-export function buildProceduralMolecule(atomDefs, id = 'MOL') {
+export function buildProceduralMolecule(atomDefs, id = 'MOL', isProduct = false) {
   const group = new THREE.Group();
   group.userData.moleculeId = id;
   group.userData.isProcedural = true;
@@ -125,7 +132,7 @@ export function buildProceduralMolecule(atomDefs, id = 'MOL') {
   // Build atoms
   atomDefs.forEach(([element, x, y, z]) => {
     const cfg  = CPK[element] || CPK.X;
-    const mesh = new THREE.Mesh(getSphereGeo(cfg.r), getAtomMat(element).clone());
+    const mesh = new THREE.Mesh(getSphereGeo(cfg.r), getAtomMat(element, isProduct).clone());
     mesh.position.set(x, y, z);
     mesh.castShadow    = true;
     mesh.receiveShadow = true;
@@ -146,7 +153,7 @@ export function buildProceduralMolecule(atomDefs, id = 'MOL') {
       const maxDist = (ri + rj) * BOND_SCALE + 0.3;
       const dist = a.pos.distanceTo(b.pos);
       if (dist > 0.01 && dist < maxDist) {
-        const bond = makeBond(a.pos, b.pos);
+        const bond = makeBond(a.pos, b.pos, isProduct);
         if (bond) {
           bond.castShadow = true;
           group.add(bond);
@@ -155,12 +162,8 @@ export function buildProceduralMolecule(atomDefs, id = 'MOL') {
     }
   }
 
-  // Add a subtle bloom point light at molecule center (soft glow effect)
-  const bounds = new THREE.Box3().setFromObject(group);
-  const center = bounds.getCenter(new THREE.Vector3());
-  const light  = new THREE.PointLight(0x4fc3f7, 0.6, 2.0, 2);
-  light.position.copy(center);
-  group.add(light);
+  // Remove the bloom point light completely to avoid any glowing/shiny effect
+  // and keep the scene clean as requested by the user.
 
   return group;
 }
@@ -214,7 +217,7 @@ export async function loadGLBMolecule(path) {
  * @param {Object} asset - MoleculeAsset { id, glbPath?, atomDefs }
  * @returns {Promise<THREE.Group>}
  */
-export async function createMoleculeAsset(asset) {
+export async function createMoleculeAsset(asset, isProduct = false) {
   if (asset.glbPath) {
     try {
       const model = await loadGLBMolecule(asset.glbPath);
@@ -225,7 +228,7 @@ export async function createMoleculeAsset(asset) {
       console.warn(`[MoleculeBuilder] GLB failed for ${asset.id}, using procedural fallback:`, err);
     }
   }
-  return buildProceduralMolecule(asset.atomDefs, asset.id);
+  return buildProceduralMolecule(asset.atomDefs, asset.id, isProduct);
 }
 
 /**
@@ -233,8 +236,8 @@ export async function createMoleculeAsset(asset) {
  * @param {Object} asset - MoleculeAsset { id, atomDefs }
  * @returns {THREE.Group}
  */
-export function createMoleculeSync(asset) {
-  return buildProceduralMolecule(asset.atomDefs, asset.id);
+export function createMoleculeSync(asset, isProduct = false) {
+  return buildProceduralMolecule(asset.atomDefs, asset.id, isProduct);
 }
 
 // ---------------------------------------------------------------------------
@@ -258,54 +261,16 @@ export function randomizePulse(mol) {
 }
 
 /**
- * Flash molecule white briefly (bond formation feedback).
- */
-export function flashMolecule(mol, duration = 0.4) {
-  mol.traverse((child) => {
-    if (child.isMesh && child.material) {
-      const original = child.material.emissiveIntensity || 0.25;
-      child.material.emissiveIntensity = 3.0;
-      setTimeout(() => {
-        if (child.material) child.material.emissiveIntensity = original;
-      }, duration * 1000);
-    }
-  });
-}
-
-/**
- * Add a persistent glowing aura to a molecule (used to mark products).
- */
-export function addAura(mol, color = 0x34d399) {
-  // calculate bounding sphere radius approximately
-  let maxR = 0.5;
-  mol.children.forEach(c => {
-    if (c.geometry && c.geometry.type === 'SphereGeometry') {
-      const dist = c.position.length() + (c.geometry.parameters.radius || 0.2);
-      if (dist > maxR) maxR = dist;
-    }
-  });
-  
-  const auraGeo = new THREE.SphereGeometry(maxR + 0.1, 16, 16);
-  const auraMat = new THREE.MeshBasicMaterial({ 
-    color: color, 
-    transparent: true, 
-    opacity: 0.15, 
-    wireframe: true,
-    depthWrite: false 
-  });
-  const aura = new THREE.Mesh(auraGeo, auraMat);
-  mol.add(aura);
-}
-
-/**
- * Hover highlight — boost emissive when mouse is over.
+ * Hover highlight — boost size slightly when mouse is over.
  */
 export function setMoleculeHighlight(mol, on) {
   mol.traverse((child) => {
     if (child.isMesh && child.material) {
-      child.material.emissiveIntensity = on ? 1.2 : 0.25;
+      // Just a slight scale bump, no emissive glow
     }
   });
+  if (on) mol.scale.multiplyScalar(1.1);
+  else mol.scale.multiplyScalar(1/1.1);
 }
 
 /**
