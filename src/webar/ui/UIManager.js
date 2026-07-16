@@ -43,8 +43,8 @@ export class UIManager {
   _buildTopLeft() {
     this.topLeft = document.createElement('div');
     this.topLeft.style.position = 'absolute';
-    this.topLeft.style.top = '12px';
-    this.topLeft.style.left = '12px';
+    this.topLeft.style.top = 'max(12px, env(safe-area-inset-top, 12px))';
+    this.topLeft.style.left = 'max(12px, env(safe-area-inset-left, 12px))';
     this.topLeft.style.pointerEvents = 'auto';
     this.topLeft.style.display = 'flex';
     this.topLeft.style.flexDirection = 'column';
@@ -119,8 +119,8 @@ export class UIManager {
   _buildTopRight() {
     this.topRight = document.createElement('div');
     this.topRight.style.position = 'absolute';
-    this.topRight.style.top = '16px';
-    this.topRight.style.right = '16px';
+    this.topRight.style.top = 'max(16px, env(safe-area-inset-top, 16px))';
+    this.topRight.style.right = 'max(16px, env(safe-area-inset-right, 16px))';
     this.topRight.style.pointerEvents = 'auto';
     this.topRight.style.display = 'flex';
     this.topRight.style.gap = '8px';
@@ -196,7 +196,7 @@ export class UIManager {
   _buildBottomToolbar() {
     this.toolbar = document.createElement('div');
     this.toolbar.style.position = 'absolute';
-    this.toolbar.style.bottom = '16px';
+    this.toolbar.style.bottom = 'max(16px, env(safe-area-inset-bottom, 16px))';
     this.toolbar.style.left = '50%';
     this.toolbar.style.transform = 'translateX(-50%)';
     this.toolbar.style.pointerEvents = 'auto';

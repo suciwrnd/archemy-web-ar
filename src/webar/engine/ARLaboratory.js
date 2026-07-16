@@ -69,11 +69,20 @@ export class ARLaboratory {
     }
 
     this.renderer.xr.enabled = true;
-    this.session = await navigator.xr.requestSession('immersive-ar', {
-      requiredFeatures: ['hit-test'],
-      optionalFeatures: ['dom-overlay'],
-      domOverlay: { root: document.body }
-    });
+    try {
+      this.session = await navigator.xr.requestSession('immersive-ar', {
+        requiredFeatures: ['hit-test'],
+        optionalFeatures: ['dom-overlay'],
+        domOverlay: { root: document.body }
+      });
+    } catch (err) {
+      console.warn('WebXR requestSession failed:', err);
+      alert('Gagal memulai kamera AR (mungkin izin ditolak atau tidak didukung). Menggunakan mode 3D standar.');
+      this.renderer.xr.enabled = false;
+      this.labGroup.position.set(0, -1, -3); 
+      this._activateLab();
+      return;
+    }
 
     this.session.addEventListener('end', () => {
       if (this.onSessionEnded) this.onSessionEnded();
