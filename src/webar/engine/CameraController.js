@@ -95,9 +95,13 @@ export class CameraController {
 
       if (e.touches.length === 1 && this._isDragging) {
         const dx = e.touches[0].clientX - this._prevX;
+        const dy = e.touches[0].clientY - this._prevY;
         this._prevX = e.touches[0].clientX;
+        this._prevY = e.touches[0].clientY;
         // Rotate the lab group (simulate orbit)
         this._labGroup.rotation.y += dx * 0.01;
+        this._labGroup.rotation.x += dy * 0.01;
+        this._labGroup.rotation.x = THREE.MathUtils.clamp(this._labGroup.rotation.x, -0.2, 1.2);
       } else if (e.touches.length === 2) {
         const newDist = this._getPinchDist(e);
         const delta   = (newDist - this._pinchDist) * 0.005;
@@ -137,8 +141,12 @@ export class CameraController {
 
       if (!this._labGroup || !this.allowRotation || !this._isDragging) return;
       const dx = e.clientX - this._prevX;
+      const dy = e.clientY - this._prevY;
       this._prevX = e.clientX;
+      this._prevY = e.clientY;
       this._labGroup.rotation.y += dx * 0.01;
+      this._labGroup.rotation.x += dy * 0.01;
+      this._labGroup.rotation.x = THREE.MathUtils.clamp(this._labGroup.rotation.x, -0.2, 1.2);
     });
 
     el.addEventListener('mouseup', () => {

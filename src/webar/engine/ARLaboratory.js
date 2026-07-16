@@ -63,7 +63,7 @@ export class ARLaboratory {
   async startSession(force3D = false) {
     if (!this.isARSupported || force3D) {
       // Fallback: Place immediately at origin (for Desktop/OrbitControls)
-      this.labGroup.position.set(0, -1, -3); 
+      this.labGroup.position.set(0, -0.3, -3); 
       this._activateLab();
       return;
     }
@@ -79,7 +79,7 @@ export class ARLaboratory {
       console.warn('WebXR requestSession failed:', err);
       alert('Gagal memulai kamera AR (mungkin izin ditolak atau tidak didukung). Menggunakan mode 3D standar.');
       this.renderer.xr.enabled = false;
-      this.labGroup.position.set(0, -1, -3); 
+      this.labGroup.position.set(0, -0.3, -3); 
       this._activateLab();
       return;
     }

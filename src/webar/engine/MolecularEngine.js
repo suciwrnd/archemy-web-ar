@@ -193,6 +193,7 @@ export class MolecularEngine {
 
   async startSession(force3D = false) {
     soundEngine.whoosh();
+    this._camCtrl.setARMode(!force3D);
     this._renderer.setAnimationLoop((time, frame) => this._tick(time, frame));
     await this._laboratory.startSession(force3D);
   }
