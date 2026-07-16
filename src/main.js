@@ -173,12 +173,12 @@ const TOPIC_ROUTING = {
    BADGE DEFINITIONS
    -------------------------------------------------------------------------- */
 const BADGE_DEFS = {
-  first_ar:     { emoji: '', name: 'Ilmuwan Pemula',      desc: 'Selesaikan misi WebAR pertama' },
-  le_chatelier: { emoji: '️', name: 'Ahli Le Chatelier',   desc: 'Jawab benar semua soal suhu, tekanan & konsentrasi' },
-  no_misconc:   { emoji: '', name: 'Bebas Miskonsepsi',   desc: 'Selesaikan kuis tanpa miskonsepsi' },
-  speed_demon:  { emoji: '', name: 'Kilat',               desc: 'Selesaikan kuis dalam waktu < 5 menit' },
-  perfect:      { emoji: '', name: 'Sempurna',            desc: 'Jawab semua soal dengan benar' },
-  ar_explorer:  { emoji: '', name: 'Penjelajah AR',       desc: 'Selesaikan semua misi WebAR' },
+  first_ar:     { emoji: ICONS.star, name: 'Ilmuwan Pemula',      desc: 'Selesaikan misi WebAR pertama' },
+  le_chatelier: { emoji: ICONS.star, name: 'Ahli Le Chatelier',   desc: 'Jawab benar semua soal suhu, tekanan & konsentrasi' },
+  no_misconc:   { emoji: ICONS.star, name: 'Bebas Miskonsepsi',   desc: 'Selesaikan kuis tanpa miskonsepsi' },
+  speed_demon:  { emoji: ICONS.star, name: 'Kilat',               desc: 'Selesaikan kuis dalam waktu < 5 menit' },
+  perfect:      { emoji: ICONS.star, name: 'Sempurna',            desc: 'Jawab semua soal dengan benar' },
+  ar_explorer:  { emoji: ICONS.star, name: 'Penjelajah AR',       desc: 'Selesaikan semua misi WebAR' },
 };
 
 /* --------------------------------------------------------------------------
@@ -189,7 +189,7 @@ const defaultState = {
   activeModuleFilter:'all', activeModule:null,
   webarMisiAktif:null, webarHookMisi:null, viewedMisi:[],
   currentSetIndex:0, currentTier:1, currentBloomLevel:1, quizResults:[], selectedOption:null, confidence:null,
-  quizTimeLeft:600, quizTimerActive:false, colorblind:false,
+  quizTimeLeft:600, quizTimerActive:false, colorblind:false, colorblindPreview:'normal',
   // Gamification
   points: 0, gems: 0,
   badges: [],
@@ -619,11 +619,10 @@ function renderStudentAdaptivePath() {
   };
 
   const MISI_LABEL = { misi1:'Gas Iodin Reversibel', misi2:'Operasi Smog Kota', misi3:'Amonia Gas', misi4:'Proses Haber' };
-  const MISI_EMOJI = { misi1:'', misi2:'', misi3:'', misi4:'' };
   const recMisiCard = (rec) => {
     const label = MISI_LABEL[rec.id] || rec.id;
     return `<div class="ap-rec-card priority-${rec.priority}" onclick="window.goToMisi('${rec.id}')">
-      <div class="ap-rec-icon">${MISI_EMOJI[rec.id]||''}</div>
+      <div class="ap-rec-icon"></div>
       <div>
         <b style="font-size:12px">Misi: ${label}</b>
         <span class="small muted" style="display:block">${escapeHtml(rec.reason)}</span>
@@ -660,7 +659,7 @@ function renderStudentAdaptivePath() {
 
     <!-- Analisis per kategori -->
     ${catSection('Sudah Paham', pahamTopics, '', 'paham')}
-    ${catSection('Perlu Diperhatikan', menebakTopics, '️', 'menebak')}
+    ${catSection('Perlu Diperhatikan', menebakTopics, '', 'menebak')}
     ${catSection('Ada Miskonsepsi', miskonsepsi, '', 'miskonsepsi')}
     ${catSection('Perlu Dipelajari', tidakPaham, '', 'tidak-paham')}
 
@@ -799,7 +798,6 @@ function renderStudentQuizPage() {
   const m=Math.floor(state.quizTimeLeft/60); const s=state.quizTimeLeft%60;
   const tierClasses=[1,2,3,4].map(t=>{ if(t<tier) return 'done'; if(t===tier) return 'active'; return ''; });
   const bloomLabel = set.bloomLabel || 'C1 - Mengingat';
-  const bloomColor = set.bloomLevel >= 4 ? '#ff6b6b' : set.bloomLevel >= 3 ? '#ffa500' : '#6b36cf';
 
   let questionContent='';
   if (tier===1||tier===3) {
@@ -1024,14 +1022,13 @@ function renderStudentResult() {
 
   const catBadge = (cat) => {
     const m = {'Paham Konsep':'paham','Menebak':'menebak','Miskonsepsi':'miskonsepsi','Tidak Paham':'tidak-paham'};
-    const icon = {'Paham Konsep':'','Menebak':'️','Miskonsepsi':'','Tidak Paham':''};
-    return `<span class="badge ${m[cat]||''}" style="font-size:9px;padding:2px 6px;">${icon[cat]||''} ${escapeHtml(cat||'-')}</span>`;
+    return `<span class="badge ${m[cat]||''}" style="font-size:9px;padding:2px 6px;"> ${escapeHtml(cat||'-')}</span>`;
   };
 
   const reviewHtml = results.map((r,i) => {
     const set = quizBank[r.setIndex]; if(!set) return '';
     const miskDetail = r.category === 'Miskonsepsi' ?
-      `<div class="misconception-detail">️ <b>Letak miskonsepsi:</b> Kamu yakin dengan jawaban yang salah. ${escapeHtml(set.tier3.options[set.tier3.answer].substring(0,80))}...</div>` : '';
+      `<div class="misconception-detail"> <b>Letak miskonsepsi:</b> Kamu yakin dengan jawaban yang salah. ${escapeHtml(set.tier3.options[set.tier3.answer].substring(0,80))}...</div>` : '';
     return `<div class="result-topic-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <b style="font-size:12px">${i+1}. ${escapeHtml(r.topic)}</b>
@@ -1133,6 +1130,7 @@ function renderStudentWebARPage() {
 }
 
 function toggleColorblind() { state.colorblind=!state.colorblind; document.body.classList.toggle('colorblind-mode', state.colorblind); saveState(); render(); }
+function setColorblindPreview(val) { state.colorblindPreview = val; saveState(); render(); }
 
 /* --------------------------------------------------------------------------
    GURU: KELAS
@@ -1326,7 +1324,7 @@ function renderTeacherQuiz() {
             ${state.modules.map(m => `<option value="${m.id}">${escapeHtml(m.title)}</option>`).join('')}
           </select>
         </div>
-        <button class="btn full" id="generateAIBtn" onclick="window.generateQuizFromAI()">🤖 Generate Kuis dari AI</button>
+        <button class="btn full" id="generateAIBtn" onclick="window.generateQuizFromAI()">Generate Kuis dari AI</button>
         <div style="text-align:center; margin-top:12px;">
           <span class="small muted">Atau gunakan </span>
           <button class="link-btn" onclick="window.activateBuiltinQuiz()">Kuis Diagnostik Awal Bawaan Sistem</button>
@@ -1402,7 +1400,7 @@ function generateQuizFromAI() {
   if (!mod) return;
 
   const btn = document.getElementById('generateAIBtn');
-  btn.textContent = '🧠 AI Sedang Merumuskan Soal...';
+  btn.textContent = 'AI Sedang Merumuskan Soal...';
   btn.disabled = true;
 
   setTimeout(() => {
@@ -1413,7 +1411,7 @@ function generateQuizFromAI() {
       date: Date.now()
     });
     saveState();
-    toast('✨ Kuis baru berhasil di-generate oleh AI!');
+    toast('Kuis baru berhasil di-generate oleh AI!');
     renderTeacherQuiz(); // re-render inline
   }, 2000);
 }
@@ -1426,7 +1424,7 @@ function activateBuiltinQuiz() {
     date: Date.now()
   });
   saveState();
-  toast('✅ Kuis Diagnostik Awal berhasil diaktifkan!');
+  toast('Kuis Diagnostik Awal berhasil diaktifkan!');
   renderTeacherQuiz();
 }
 
@@ -1681,7 +1679,6 @@ function renderProfile() {
     <div class="card info-list" style="margin-top:14px;">
       <div class="info-row"><b>Email</b><span>${escapeHtml(p.email)}</span></div>
       <div class="info-row"><b>Instansi</b><span>${escapeHtml(p.school)}</span></div>
-      <div class="info-row" style="cursor:pointer;" onclick="window.toggleColorblind()"><b>Mode Buta Warna</b><span>${state.colorblind?' Aktif':'Nonaktif'}</span></div>
     </div>
     ${state.role==='siswa' && (state.badges||[]).length > 0 ? `
     <h3 class="section-title">Badge Kamu </h3>
@@ -1730,7 +1727,7 @@ if (typeof window !== 'undefined') {
   window.startQuiz = startQuiz; window.selectOption = selectOption; window.selectConfidence = selectConfidence;
   window.saveAndNext = saveAndNext; window.resetQuiz = resetQuiz;
   window.jalankanLompatanAdaptif = jalankanLompatanAdaptif; window.executeQuizEnd = executeQuizEnd;
-  window.toggleColorblind = toggleColorblind;
+  window.toggleColorblind = toggleColorblind; window.setColorblindPreview = setColorblindPreview;
   window.moveCoverflow = moveCoverflow; window.selectCoverflowClass = selectCoverflowClass;
   window.showAddClassModal = showAddClassModal; window.addClass = addClass;
   window.addModuleWithAI = addModuleWithAI; window.deleteModule = deleteModule;

@@ -174,6 +174,19 @@ export class MolecularEngine {
   _onMoleculeSelected(particle) {
     const state = this._missionCtrl.state;
 
+    if (window.state && window.state.colorblind && this._worldLabels) {
+      const molId = particle.userData.moleculeId || 'Molekul';
+      const isProduct = particle.userData.isProduct ? 'Produk' : 'Reaktan';
+      const labelText = `<b>${molId}</b><br><span style="font-size:10px">${isProduct}</span>`;
+      const labelId = `lbl_${particle.uuid}`;
+      
+      this._worldLabels.addLabel(labelId, particle, labelText, 'webar-world-label', new THREE.Vector3(0, 0.8, 0));
+      
+      setTimeout(() => {
+        if (this._worldLabels) this._worldLabels.removeLabel(labelId);
+      }, 3000);
+    }
+
     if (state === MISSION_STATE.M1_LAB) {
       soundEngine.click();
       if (this._missionCtrl.onMission1MoleculeTap) {

@@ -51,7 +51,7 @@ export const H2I2 = {
   experiments: [
     {
       id:     'suhu_naik',
-      label:  '🔥 Naikkan Suhu',
+      label:  'Naikkan Suhu',
       effect: {
         targetRatioShift: +0.25, // endothermic → heating shifts right (more HI)
         speedMultiplier:   2.2,
@@ -59,7 +59,7 @@ export const H2I2 = {
     },
     {
       id:     'suhu_turun',
-      label:  '❄️ Turunkan Suhu',
+      label:  'Turunkan Suhu',
       effect: {
         targetRatioShift: -0.25,
         speedMultiplier:   0.45,
@@ -67,7 +67,7 @@ export const H2I2 = {
     },
     {
       id:     'tekanan_naik',
-      label:  '📦 Naikkan Tekanan',
+      label:  'Naikkan Tekanan',
       effect: {
         // 2 mol both sides — pressure has NO effect on this reaction
         targetRatioShift: 0,
@@ -82,7 +82,7 @@ export const H2I2 = {
       hook: 'Gurumu mengatakan reaksi sudah setimbang. Tapi... apakah reaksi benar-benar berhenti?',
       observe_prompt:
         'Amati sistem tertutup yang berisi gas H₂, I₂, dan HI. ' +
-        'Identifikasi ketiga jenis molekul. Perhatikan perbedaan ukuran dan warna antar molekul.',
+        'Identifikasi ketiga jenis molekul. Perhatikan perbedaan ukuran dan pola/warna antar molekul.',
       ai_questions: [
         'Berapa perbandingan HI dengan H₂ dan I₂ yang kamu lihat?',
         'Apakah molekul-molekul ini bergerak atau diam?',

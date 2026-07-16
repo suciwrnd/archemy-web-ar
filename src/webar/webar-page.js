@@ -188,6 +188,11 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   resize();
   window.addEventListener('resize', resize);
 
+  // Apply colorblind preview filter
+  if (window.state?.colorblind && window.state?.colorblindPreview && window.state.colorblindPreview !== 'normal') {
+    canvas.style.filter = `url(#${window.state.colorblindPreview})`;
+  }
+
   // Initialize engine (loads before user taps — ready immediately)
   const mode = await deteksiModeAR();
   let sesi = null;

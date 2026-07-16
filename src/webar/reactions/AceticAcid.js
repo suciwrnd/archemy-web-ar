@@ -74,7 +74,7 @@ export const AceticAcid = {
   experiments: [
     {
       id:     'encerkan',
-      label:  '💧 Encerkan (Tambah Air)',
+      label:  'Encerkan (Tambah Air)',
       effect: {
         targetRatioShift: +0.15, // dilution increases degree of dissociation
         boundaryScale:    1.35,
@@ -83,7 +83,7 @@ export const AceticAcid = {
     },
     {
       id:     'tambah_asam',
-      label:  '🧪 Tambah CH₃COOH',
+      label:  'Tambah CH₃COOH',
       effect: {
         targetRatioShift: +0.08,
         speedMultiplier:   1.2,
@@ -91,7 +91,7 @@ export const AceticAcid = {
     },
     {
       id:     'tambah_hcl',
-      label:  '🔬 Tambah HCl (H⁺)',
+      label:  'Tambah HCl (H⁺)',
       effect: {
         targetRatioShift: -0.04, // common ion effect: shifts left
         speedMultiplier:   1.1,

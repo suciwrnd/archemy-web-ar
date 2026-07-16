@@ -61,7 +61,7 @@ export const FeSCN = {
   experiments: [
     {
       id:     'fe_tambah',
-      label:  '➕ Tambah Fe³⁺',
+      label:  'Tambah Fe³⁺',
       effect: {
         targetRatioShift: +0.30, // Le Chatelier: more reactant → shift right
         speedMultiplier:   1.3,
@@ -69,7 +69,7 @@ export const FeSCN = {
     },
     {
       id:     'scn_tambah',
-      label:  '➕ Tambah SCN⁻',
+      label:  'Tambah SCN⁻',
       effect: {
         targetRatioShift: +0.28,
         speedMultiplier:   1.2,
@@ -77,7 +77,7 @@ export const FeSCN = {
     },
     {
       id:     'encerkan',
-      label:  '💧 Encerkan Larutan',
+      label:  'Encerkan Larutan',
       effect: {
         targetRatioShift: -0.25, // dilution shifts toward dissociation
         boundaryScale:    1.35,
@@ -103,7 +103,7 @@ export const FeSCN = {
       investigate_prompt:
         'Perhatikan—ada ion yang saling mendekat dan bergabung! ' +
         'Ketuk salah satu ion untuk mengamati proses asosiasi ion secara detail.',
-      event_label: 'Ion Fe³⁺ bertemu SCN⁻ dan membentuk kompleks FeSCN²⁺ berwarna merah tua!',
+      event_label: 'Ion Fe³⁺ bertemu SCN⁻ dan membentuk kompleks FeSCN²⁺ (warna merah/pola grid)!',
       ai_after:
         'Kamu melihat asosiasi ion: Fe³⁺ + SCN⁻ → FeSCN²⁺. ' +
         'Secara bersamaan, FeSCN²⁺ juga mengurai kembali: FeSCN²⁺ → Fe³⁺ + SCN⁻. ' +
@@ -124,14 +124,14 @@ export const FeSCN = {
           q: 'Ketika Fe³⁺ ditambahkan pada sistem Fe³⁺ + SCN⁻ ⇌ FeSCN²⁺, warna larutan menjadi lebih merah. Mengapa?',
           options: [
             {
-              text:        'Kesetimbangan bergeser ke kanan, menghasilkan lebih banyak FeSCN²⁺ yang berwarna merah',
+              text:        'Kesetimbangan bergeser ke kanan, menghasilkan lebih banyak FeSCN²⁺',
               correct:     true,
-              explanation: 'Tepat! Penambahan Fe³⁺ meningkatkan konsentrasinya, mendorong reaksi ke kanan menghasilkan lebih banyak FeSCN²⁺—kompleks berwarna merah tua.',
+              explanation: 'Tepat! Penambahan Fe³⁺ meningkatkan konsentrasinya, mendorong reaksi ke kanan menghasilkan lebih banyak FeSCN²⁺.',
             },
             {
-              text:        'Fe³⁺ sendiri yang berwarna merah',
+              text:        'Fe³⁺ sendiri yang memiliki warna merah',
               correct:     false,
-              explanation: 'Tidak tepat. Ion Fe³⁺ sendiri berwarna coklat kuning, bukan merah tua. Warna merah intens berasal dari kompleks FeSCN²⁺.',
+              explanation: 'Tidak tepat. Ion Fe³⁺ sendiri berwarna coklat kuning. Perubahan visual yang kuat berasal dari kompleks FeSCN²⁺.',
             },
           ],
         },

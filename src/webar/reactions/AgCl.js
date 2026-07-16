@@ -54,7 +54,7 @@ export const AgCl = {
   experiments: [
     {
       id:     'tambah_nacl',
-      label:  '🧂 Tambah NaCl (ion Cl⁻)',
+      label:  'Tambah NaCl (ion Cl⁻)',
       effect: {
         targetRatioShift: -0.04, // common ion effect: Ag⁺ + Cl⁻ → AgCl precipitates more
         speedMultiplier:   1.1,
@@ -62,7 +62,7 @@ export const AgCl = {
     },
     {
       id:     'tambah_agno3',
-      label:  '🔬 Tambah AgNO₃ (ion Ag⁺)',
+      label:  'Tambah AgNO₃ (ion Ag⁺)',
       effect: {
         targetRatioShift: -0.04,
         speedMultiplier:   1.1,
@@ -70,7 +70,7 @@ export const AgCl = {
     },
     {
       id:     'suhu_naik',
-      label:  '🔥 Naikkan Suhu',
+      label:  'Naikkan Suhu',
       effect: {
         targetRatioShift: +0.08, // slightly more dissolves at higher T (endothermic)
         speedMultiplier:   1.8,

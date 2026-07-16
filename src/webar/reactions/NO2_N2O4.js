@@ -62,7 +62,7 @@ export const NO2_N2O4 = {
   experiments: [
     {
       id:     'suhu_naik',
-      label:  '🔥 Naikkan Suhu',
+      label:  'Naikkan Suhu',
       effect: {
         targetRatioShift: -0.30,
         speedMultiplier:   2.0,
@@ -70,7 +70,7 @@ export const NO2_N2O4 = {
     },
     {
       id:     'suhu_turun',
-      label:  '❄️ Turunkan Suhu',
+      label:  'Turunkan Suhu',
       effect: {
         targetRatioShift: +0.30,
         speedMultiplier:   0.5,
@@ -78,7 +78,7 @@ export const NO2_N2O4 = {
     },
     {
       id:     'tekanan_naik',
-      label:  '📦 Naikkan Tekanan',
+      label:  'Naikkan Tekanan',
       effect: {
         targetRatioShift: +0.25,
         boundaryScale:     0.70,

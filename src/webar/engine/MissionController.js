@@ -136,12 +136,25 @@ export class MissionController {
     }
     else if (eqId === 'monitor') {
       const ratio = this.simulator.getCurrentRatio();
+      const isCb = window.state && window.state.colorblind;
+      
+      const reactBg = isCb ? 'repeating-linear-gradient(45deg, rgba(255,255,255,0.2), rgba(255,255,255,0.2) 10px, rgba(255,255,255,0) 10px, rgba(255,255,255,0) 20px)' : 'rgba(59, 130, 246, 0.8)';
+      const prodBg = isCb ? 'repeating-radial-gradient(circle, rgba(255,255,255,0.4), rgba(255,255,255,0.4) 4px, rgba(255,255,255,0) 4px, rgba(255,255,255,0) 8px)' : 'rgba(16, 185, 129, 0.8)';
+
       this.ui.showContextPanel('LAYAR MONITOR (INDIKATOR)', `
         <div style="font-size:12px; margin-bottom:8px;">Rasio Kesetimbangan Saat Ini:</div>
-        <div style="font-size:18px; font-weight:bold; color:#34d399; margin-bottom:12px; text-align:center;">
-          Reaktan: ${ratio.reactant}% <br>
-          Produk: ${ratio.product}%
+        
+        <div style="display:flex; width:200px; height:24px; border-radius:12px; overflow:hidden; border: 2px solid rgba(255,255,255,0.3); margin-bottom: 12px;">
+          <div style="width:${ratio.reactant}%; background:${reactBg}; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold;">${ratio.reactant}%</div>
+          <div style="width:${ratio.product}%; background:${prodBg}; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold;">${ratio.product}%</div>
         </div>
+        
+        <div style="font-size:12px; font-weight:bold; color:#cbd5e1; margin-bottom:12px; text-align:center;">
+          <span style="display:inline-block; width:12px; height:12px; background:${reactBg}; margin-right:4px; vertical-align:middle; border:1px solid #fff;"></span> Reaktan
+          &nbsp;&nbsp;
+          <span style="display:inline-block; width:12px; height:12px; background:${prodBg}; margin-right:4px; vertical-align:middle; border:1px solid #fff;"></span> Produk
+        </div>
+        
         <button id="meCloseCtx" style="padding:6px 12px; border-radius:12px; background:#c084fc; color:#fff; border:none; cursor:pointer;">Tutup</button>
       `);
       document.getElementById('meCloseCtx').onclick = () => this.ui.hideContextPanel();

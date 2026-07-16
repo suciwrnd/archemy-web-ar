@@ -139,6 +139,24 @@ export class UIManager {
     legendCard.style.flexDirection = 'column';
     legendCard.style.gap = '8px';
 
+    const isCb = window.state && window.state.colorblind;
+    const defs = isCb ? `
+      <defs>
+        <pattern id="lg-stripes" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="4" stroke="#fff" stroke-width="1.5" />
+        </pattern>
+        <pattern id="lg-dots" width="4" height="4" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="1.5" fill="#fff" />
+        </pattern>
+        <pattern id="lg-grid" width="4" height="4" patternUnits="userSpaceOnUse">
+          <path d="M 4 0 L 0 0 0 4" fill="none" stroke="#fff" stroke-width="1"/>
+        </pattern>
+        <pattern id="lg-cross" width="4" height="4" patternUnits="userSpaceOnUse">
+          <path d="M 0 0 L 4 4 M 4 0 L 0 4" fill="none" stroke="#fff" stroke-width="1"/>
+        </pattern>
+      </defs>
+    ` : '';
+
     let html = '';
     const rId = this.config.id;
 
@@ -146,9 +164,10 @@ export class UIManager {
       html = `
         <div style="display:flex; align-items:center; gap:8px;">
           <svg width="24" height="24" viewBox="0 0 24 24">
-            <circle cx="12" cy="10" r="4" fill="#3050f8" />
-            <circle cx="5" cy="16" r="4" fill="#ff2010" />
-            <circle cx="19" cy="16" r="4" fill="#ff2010" />
+            ${defs}
+            <circle cx="12" cy="10" r="4" fill="${isCb ? 'url(#lg-stripes)' : '#3050f8'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
+            <circle cx="5" cy="16" r="4" fill="${isCb ? 'url(#lg-stripes)' : '#ff2010'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
+            <circle cx="19" cy="16" r="4" fill="${isCb ? 'url(#lg-stripes)' : '#ff2010'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
             <line x1="12" y1="10" x2="5" y2="16" stroke="#94a3b8" stroke-width="2" />
             <line x1="12" y1="10" x2="19" y2="16" stroke="#94a3b8" stroke-width="2" />
           </svg>
@@ -156,12 +175,13 @@ export class UIManager {
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <svg width="24" height="24" viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="3" fill="#3050f8" />
-            <circle cx="12" cy="16" r="3" fill="#3050f8" />
-            <circle cx="5" cy="4" r="3" fill="#ff2010" />
-            <circle cx="19" cy="4" r="3" fill="#ff2010" />
-            <circle cx="5" cy="20" r="3" fill="#ff2010" />
-            <circle cx="19" cy="20" r="3" fill="#ff2010" />
+            ${defs}
+            <circle cx="12" cy="8" r="3" fill="${isCb ? 'url(#lg-dots)' : '#3050f8'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
+            <circle cx="12" cy="16" r="3" fill="${isCb ? 'url(#lg-dots)' : '#3050f8'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
+            <circle cx="5" cy="4" r="3" fill="${isCb ? 'url(#lg-dots)' : '#ff2010'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
+            <circle cx="19" cy="4" r="3" fill="${isCb ? 'url(#lg-dots)' : '#ff2010'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
+            <circle cx="5" cy="20" r="3" fill="${isCb ? 'url(#lg-dots)' : '#ff2010'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
+            <circle cx="19" cy="20" r="3" fill="${isCb ? 'url(#lg-dots)' : '#ff2010'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
             <line x1="12" y1="8" x2="12" y2="16" stroke="#94a3b8" stroke-width="2" />
             <line x1="12" y1="8" x2="5" y2="4" stroke="#94a3b8" stroke-width="2" />
             <line x1="12" y1="8" x2="19" y2="4" stroke="#94a3b8" stroke-width="2" />
@@ -175,23 +195,26 @@ export class UIManager {
       html = `
         <div style="display:flex; align-items:center; gap:8px;">
           <svg width="24" height="24" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="5" fill="#e06633" />
+            ${defs}
+            <circle cx="12" cy="12" r="5" fill="${isCb ? 'none' : '#e06633'}" stroke="#fff" stroke-width="${isCb ? 2 : 0}" stroke-dasharray="${isCb ? '2,2' : 'none'}" />
           </svg>
           <span>Fe³⁺</span>
           <svg width="24" height="24" viewBox="0 0 24 24" style="margin-left:4px">
-            <circle cx="6" cy="12" r="4" fill="#ffff30" />
-            <circle cx="12" cy="12" r="4" fill="#303030" />
-            <circle cx="18" cy="12" r="4" fill="#3050f8" />
+            ${defs}
+            <circle cx="6" cy="12" r="4" fill="${isCb ? 'none' : '#ffff30'}" stroke="#fff" stroke-width="${isCb ? 1 : 0}" />
+            <circle cx="12" cy="12" r="4" fill="${isCb ? 'none' : '#303030'}" stroke="#fff" stroke-width="${isCb ? 1 : 0}" />
+            <circle cx="18" cy="12" r="4" fill="${isCb ? 'none' : '#3050f8'}" stroke="#fff" stroke-width="${isCb ? 1 : 0}" />
             <line x1="6" y1="12" x2="18" y2="12" stroke="#94a3b8" stroke-width="2" />
           </svg>
           <span>SCN⁻</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <svg width="32" height="24" viewBox="0 0 32 24">
-            <circle cx="6" cy="12" r="5" fill="#e06633" />
-            <circle cx="14" cy="12" r="3" fill="#ffff30" />
-            <circle cx="20" cy="12" r="3" fill="#303030" />
-            <circle cx="26" cy="12" r="3" fill="#3050f8" />
+            ${defs}
+            <circle cx="6" cy="12" r="5" fill="${isCb ? 'url(#lg-grid)' : '#e06633'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
+            <circle cx="14" cy="12" r="3" fill="${isCb ? 'url(#lg-grid)' : '#ffff30'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
+            <circle cx="20" cy="12" r="3" fill="${isCb ? 'url(#lg-grid)' : '#303030'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
+            <circle cx="26" cy="12" r="3" fill="${isCb ? 'url(#lg-grid)' : '#3050f8'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
             <line x1="6" y1="12" x2="26" y2="12" stroke="#94a3b8" stroke-width="2" />
           </svg>
           <span>FeSCN²⁺</span>
@@ -201,33 +224,35 @@ export class UIManager {
       html = `
         <div style="display:flex; align-items:center; gap:8px;">
           <svg width="20" height="24" viewBox="0 0 20 24">
-            <circle cx="6" cy="12" r="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
-            <circle cx="14" cy="12" r="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+            ${defs}
+            <circle cx="6" cy="12" r="4" fill="${isCb ? 'url(#lg-cross)' : '#ffffff'}" stroke="#fff" stroke-width="1"/>
+            <circle cx="14" cy="12" r="4" fill="${isCb ? 'url(#lg-cross)' : '#ffffff'}" stroke="#fff" stroke-width="1"/>
           </svg>
           <span>H₂</span>
           <svg width="24" height="24" viewBox="0 0 24 24" style="margin-left:4px">
-            <circle cx="8" cy="12" r="5" fill="#940094" />
-            <circle cx="16" cy="12" r="5" fill="#940094" />
+            ${defs}
+            <circle cx="8" cy="12" r="5" fill="${isCb ? 'url(#lg-dots)' : '#940094'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
+            <circle cx="16" cy="12" r="5" fill="${isCb ? 'url(#lg-dots)' : '#940094'}" ${isCb ? 'stroke="#fff" stroke-width="1"' : ''} />
           </svg>
           <span>I₂</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <svg width="24" height="24" viewBox="0 0 24 24">
-            <circle cx="8" cy="12" r="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
-            <circle cx="16" cy="12" r="5" fill="#940094" />
+            ${defs}
+            <circle cx="8" cy="12" r="4" fill="${isCb ? 'url(#lg-stripes)' : '#ffffff'}" stroke="#fff" stroke-width="1"/>
+            <circle cx="16" cy="12" r="5" fill="${isCb ? 'url(#lg-stripes)' : '#940094'}" stroke="#fff" stroke-width="1"/>
           </svg>
           <span>HI</span>
         </div>
       `;
     } else {
-      // Fallback for AceticAcid or others
       html = `
         <div style="display:flex; align-items:center; gap:8px;">
-          <div style="width:12px; height:12px; background:#fff; border-radius:50%"></div>
+          <div style="width:12px; height:12px; background:${isCb ? 'repeating-linear-gradient(45deg, rgba(255,255,255,0.2), rgba(255,255,255,0.2) 2px, rgba(255,255,255,0) 2px, rgba(255,255,255,0) 4px)' : '#fff'}; border-radius:50%; ${isCb ? 'border:1px solid #fff' : ''}"></div>
           <span>Reaktan</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-          <div style="width:12px; height:12px; background:#34d399; border-radius:50%"></div>
+          <div style="width:12px; height:12px; background:${isCb ? 'repeating-radial-gradient(circle, rgba(255,255,255,0.5), rgba(255,255,255,0.5) 1px, rgba(255,255,255,0) 1px, rgba(255,255,255,0) 3px)' : '#34d399'}; border-radius:50%; ${isCb ? 'border:1px solid #fff' : ''}"></div>
           <span>Produk</span>
         </div>
       `;
@@ -308,11 +333,104 @@ export class UIManager {
     menuBtn.style.justifyContent = 'center';
     menuBtn.onclick = () => { if (this.onBack) this.onBack(); };
 
+    // Accessibility Settings Button
+    const a11yBtn = document.createElement('button');
+    a11yBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>'; // Eye/info icon
+    a11yBtn.style.background = 'rgba(255,255,255,0.1)';
+    a11yBtn.style.border = '1px solid rgba(255,255,255,0.2)';
+    a11yBtn.style.borderRadius = '50%';
+    a11yBtn.style.width = '32px';
+    a11yBtn.style.height = '32px';
+    a11yBtn.style.color = '#fff';
+    a11yBtn.style.cursor = 'pointer';
+    a11yBtn.style.display = 'flex';
+    a11yBtn.style.alignItems = 'center';
+    a11yBtn.style.justifyContent = 'center';
+    a11yBtn.onclick = () => {
+      this._showA11ySettings();
+    };
+
     this.topRight.appendChild(xpPill);
     this.topRight.appendChild(goldPill);
+    this.topRight.appendChild(a11yBtn);
     this.topRight.appendChild(fsBtn);
     this.topRight.appendChild(menuBtn);
     this.uiLayer.appendChild(this.topRight);
+  }
+
+  _showA11ySettings() {
+    const isCb = window.state && window.state.colorblind;
+    const preview = window.state && window.state.colorblindPreview ? window.state.colorblindPreview : 'normal';
+
+    const html = `
+      <div style="font-size:12px; margin-bottom:12px; color:#cbd5e1; text-align:center;">Pengaturan Aksesibilitas (Color Universal Design)</div>
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding:12px; background:rgba(255,255,255,0.05); border-radius:8px; width:100%; min-width: 250px;">
+        <b>Mode Buta Warna</b>
+        <button id="meToggleCb" style="background:${isCb ? '#10b981' : '#d97706'}; color:#fff; border:none; padding:4px 12px; border-radius:12px; cursor:pointer; font-weight:bold;">
+          ${isCb ? 'Aktif' : 'Nonaktif'}
+        </button>
+      </div>
+
+      ${isCb ? `
+      <div style="width:100%; text-align:left; padding:12px; background:rgba(0,0,0,0.2); border-radius:8px; margin-bottom:16px;">
+        <b style="font-size: 13px; display: block; margin-bottom: 8px;">Pratinjau Visi (Filter Kamera)</b>
+        <div style="display: flex; flex-direction:column; gap: 8px; font-size: 13px;">
+          <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+            <input type="radio" name="cbPreview" value="normal" ${preview==='normal'?'checked':''}> Normal
+          </label>
+          <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+            <input type="radio" name="cbPreview" value="protanopia" ${preview==='protanopia'?'checked':''}> Protanopia
+          </label>
+          <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+            <input type="radio" name="cbPreview" value="deuteranopia" ${preview==='deuteranopia'?'checked':''}> Deuteranopia
+          </label>
+          <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+            <input type="radio" name="cbPreview" value="tritanopia" ${preview==='tritanopia'?'checked':''}> Tritanopia
+          </label>
+        </div>
+      </div>
+      ` : ''}
+
+      <button id="meCloseA11y" style="padding:8px 24px; border-radius:16px; background:#c084fc; color:#fff; border:none; cursor:pointer; font-weight:bold;">Tutup</button>
+    `;
+
+    this.showContextPanel('AKSESIBILITAS', html);
+
+    document.getElementById('meToggleCb').onclick = () => {
+      if (window.state) {
+        window.state.colorblind = !window.state.colorblind;
+        if (window.saveState) window.saveState();
+        
+        // Re-render settings panel
+        this._showA11ySettings();
+        
+        // Re-render legend
+        this.bottomLeft.innerHTML = '';
+        this._buildBottomLeft();
+      }
+    };
+
+    const radios = document.querySelectorAll('input[name="cbPreview"]');
+    radios.forEach(r => {
+      r.onchange = (e) => {
+        if (window.state) {
+          window.state.colorblindPreview = e.target.value;
+          if (window.saveState) window.saveState();
+          
+          const canvas = document.getElementById('meCanvas');
+          if (canvas) {
+            if (e.target.value === 'normal') {
+              canvas.style.filter = 'none';
+            } else {
+              canvas.style.filter = `url(#${e.target.value})`;
+            }
+          }
+        }
+      };
+    });
+
+    document.getElementById('meCloseA11y').onclick = () => this.hideContextPanel();
   }
 
   // -------------------------------------------------------------------------

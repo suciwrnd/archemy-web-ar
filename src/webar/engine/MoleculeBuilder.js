@@ -56,10 +56,70 @@ function getSphereGeo(r) {
   return _geoCache.get(key);
 }
 
-function getAtomMat(element) {
-  if (!_matCache.has(element)) {
+function generatePatternTexture(moleculeId, baseColorHex) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64; canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  
+  // Fill base color
+  ctx.fillStyle = '#' + baseColorHex.toString(16).padStart(6, '0');
+  ctx.fillRect(0, 0, 64, 64);
+  
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; 
+  
+  if (moleculeId === 'NO2' || moleculeId === 'HI') {
+    // Diagonal stripes
+    for (let i = -64; i < 128; i += 16) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i + 64, 64);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.stroke();
+    }
+  } else if (moleculeId === 'N2O4' || moleculeId === 'I2') {
+    // Dots
+    for (let x = 8; x < 64; x += 16) {
+      for (let y = 8; y < 64; y += 16) {
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  } else if (moleculeId === 'NH3' || moleculeId === 'FeSCN' || moleculeId === 'CH3COOH') {
+    // Grid
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 64; i += 16) {
+      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 64); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(64, i); ctx.stroke();
+    }
+  } else if (moleculeId === 'H2' || moleculeId === 'N2' || moleculeId === 'AgCl') {
+    // Cross
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(64, 64); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(64, 0); ctx.lineTo(0, 64); ctx.stroke();
+  } else {
+    // Generic dash for others
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.fillRect(16, 28, 32, 8);
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2, 2);
+  return tex;
+}
+
+function getAtomMat(element, moleculeId = 'UNKNOWN') {
+  const isColorblind = typeof window !== 'undefined' && window.state && window.state.colorblind;
+  const key = isColorblind ? `${element}_${moleculeId}_cb` : element;
+
+  if (!_matCache.has(key)) {
     const cfg = CPK[element] || CPK.X;
-    _matCache.set(element, new THREE.MeshPhysicalMaterial({
+    const matOpts = {
       color:              cfg.color,
       emissive:           cfg.emissive,
       emissiveIntensity:  0.25,
@@ -69,9 +129,16 @@ function getAtomMat(element) {
       clearcoatRoughness: 0.05,
       envMapIntensity:    1.8,
       reflectivity:       0.8,
-    }));
+    };
+
+    if (isColorblind) {
+      matOpts.map = generatePatternTexture(moleculeId, cfg.color);
+      matOpts.color = 0xffffff; // Let the texture provide the base color
+    }
+
+    _matCache.set(key, new THREE.MeshPhysicalMaterial(matOpts));
   }
-  return _matCache.get(element);
+  return _matCache.get(key);
 }
 
 function getBondMat() {
@@ -125,7 +192,7 @@ export function buildProceduralMolecule(atomDefs, id = 'MOL') {
   // Build atoms
   atomDefs.forEach(([element, x, y, z]) => {
     const cfg  = CPK[element] || CPK.X;
-    const mesh = new THREE.Mesh(getSphereGeo(cfg.r), getAtomMat(element).clone());
+    const mesh = new THREE.Mesh(getSphereGeo(cfg.r), getAtomMat(element, id).clone());
     mesh.position.set(x, y, z);
     mesh.castShadow    = true;
     mesh.receiveShadow = true;
@@ -257,13 +324,40 @@ export function randomizePulse(mol) {
  * Hover highlight — boost size slightly when mouse is over.
  */
 export function setMoleculeHighlight(mol, on) {
-  mol.traverse((child) => {
-    if (child.isMesh && child.material) {
-      // Just a slight scale bump, no emissive glow
+  const isColorblind = typeof window !== 'undefined' && window.state && window.state.colorblind;
+  if (on) {
+    if (!mol.userData.isHighlighted) {
+      mol.userData.isHighlighted = true;
+      mol.scale.multiplyScalar(1.1);
+      
+      if (isColorblind) {
+        mol.traverse((child) => {
+          if (child.isMesh && child.geometry && child.userData.element) {
+            const edges = new THREE.EdgesGeometry(child.geometry);
+            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 }));
+            line.userData.isOutline = true;
+            child.add(line);
+          }
+        });
+      }
     }
-  });
-  if (on) mol.scale.multiplyScalar(1.1);
-  else mol.scale.multiplyScalar(1/1.1);
+  } else {
+    if (mol.userData.isHighlighted) {
+      mol.userData.isHighlighted = false;
+      mol.scale.multiplyScalar(1/1.1);
+      
+      mol.traverse((child) => {
+        if (child.isMesh) {
+          const outlines = child.children.filter(c => c.userData.isOutline);
+          outlines.forEach(o => {
+            if (o.geometry) o.geometry.dispose();
+            if (o.material) o.material.dispose();
+            child.remove(o);
+          });
+        }
+      });
+    }
+  }
 }
 
 /**
