@@ -225,6 +225,13 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
     // Must be called synchronously to satisfy WebXR requirements
     if (sesi) sesi.startSession();
 
+    // Auto fullscreen for better immersion (requires user gesture, which this click provides)
+    try {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } catch (e) {}
+
     // Fade out HTML portal
     portal.style.opacity = '0';
     portal.style.pointerEvents = 'none';

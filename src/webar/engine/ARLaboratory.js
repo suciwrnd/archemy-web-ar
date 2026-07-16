@@ -70,7 +70,9 @@ export class ARLaboratory {
 
     this.renderer.xr.enabled = true;
     this.session = await navigator.xr.requestSession('immersive-ar', {
-      requiredFeatures: ['hit-test']
+      requiredFeatures: ['hit-test'],
+      optionalFeatures: ['dom-overlay'],
+      domOverlay: { root: document.body }
     });
 
     this.session.addEventListener('end', () => {
@@ -104,22 +106,9 @@ export class ARLaboratory {
     this.labPlaced = true;
     this.reticle.visible = false;
     this.labGroup.visible = true;
-
-    // Intro animation: scale up
-    this.labGroup.scale.set(0.01, 0.01, 0.01);
-    let p = 0;
-    const animate = () => {
-      p += 0.05;
-      if (p >= 1) {
-        this.labGroup.scale.set(1, 1, 1);
-        if (this.onLabPlaced) this.onLabPlaced(this.labGroup);
-        return;
-      }
-      const ease = 1 - Math.pow(1 - p, 3);
-      this.labGroup.scale.set(ease, ease, ease);
-      requestAnimationFrame(animate);
-    };
-    animate();
+    this.labGroup.scale.set(1, 1, 1);
+    
+    if (this.onLabPlaced) this.onLabPlaced(this.labGroup);
   }
 
   setVolume(volume) {

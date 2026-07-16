@@ -168,8 +168,10 @@ export class UIManager {
     };
 
     const menuBtn = document.createElement('button');
-    menuBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
-    menuBtn.style.background = 'rgba(255,255,255,0.1)';
+    // Exit / Close Icon (X)
+    menuBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    menuBtn.style.background = 'rgba(239, 68, 68, 0.8)'; // Red background to make it obvious
+
     menuBtn.style.border = '1px solid rgba(255,255,255,0.2)';
     menuBtn.style.borderRadius = '50%';
     menuBtn.style.width = '32px';
