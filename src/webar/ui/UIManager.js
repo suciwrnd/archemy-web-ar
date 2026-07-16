@@ -43,29 +43,29 @@ export class UIManager {
   _buildTopLeft() {
     this.topLeft = document.createElement('div');
     this.topLeft.style.position = 'absolute';
-    this.topLeft.style.top = '16px';
-    this.topLeft.style.left = '16px';
+    this.topLeft.style.top = '12px';
+    this.topLeft.style.left = '12px';
     this.topLeft.style.pointerEvents = 'auto';
     this.topLeft.style.display = 'flex';
     this.topLeft.style.flexDirection = 'column';
-    this.topLeft.style.gap = '12px';
+    this.topLeft.style.gap = '8px';
 
     // Mission Card
     this.missionCard = document.createElement('div');
     this.missionCard.style.background = 'rgba(40, 40, 40, 0.6)';
     this.missionCard.style.backdropFilter = 'blur(12px)';
     this.missionCard.style.borderRadius = '12px';
-    this.missionCard.style.padding = '12px 16px';
+    this.missionCard.style.padding = '10px 14px';
     this.missionCard.style.color = '#fff';
-    this.missionCard.style.width = '240px';
+    this.missionCard.style.width = '200px';
 
     this.titleEl = document.createElement('div');
-    this.titleEl.style.fontSize = '14px';
+    this.titleEl.style.fontSize = '13px';
     this.titleEl.style.fontWeight = '700';
-    this.titleEl.innerText = `Mission 1`;
+    this.titleEl.innerText = `Misi 1`;
 
     this.subEl = document.createElement('div');
-    this.subEl.style.fontSize = '11px';
+    this.subEl.style.fontSize = '10px';
     this.subEl.style.color = '#cbd5e1';
     this.subEl.innerText = this.config.name;
 
@@ -77,13 +77,13 @@ export class UIManager {
     predCard.style.background = 'rgba(40, 40, 40, 0.6)';
     predCard.style.backdropFilter = 'blur(12px)';
     predCard.style.borderRadius = '12px';
-    predCard.style.padding = '12px 16px';
+    predCard.style.padding = '10px 14px';
     predCard.style.color = '#fff';
-    predCard.style.width = '240px';
+    predCard.style.width = '200px';
     predCard.innerHTML = `
-      <div style="font-size:11px; margin-bottom:12px">Observe the equipment in the laboratory. Tap each highlighted object to learn its function.</div>
-      <div style="font-size:10px; color:#cbd5e1; margin-bottom:4px">Your Action</div>
-      <div style="font-size:11px; font-weight:600">Explore the Lab</div>
+      <div style="font-size:10px; margin-bottom:8px">Amati peralatan lab. Ketuk setiap objek untuk mempelajarinya.</div>
+      <div style="font-size:9px; color:#cbd5e1; margin-bottom:2px">Aksi Anda</div>
+      <div style="font-size:11px; font-weight:600">Eksplorasi Lab</div>
     `;
 
     // Mock Progress Card (Visual only)
@@ -91,12 +91,12 @@ export class UIManager {
     progCard.style.background = 'rgba(40, 40, 40, 0.6)';
     progCard.style.backdropFilter = 'blur(12px)';
     progCard.style.borderRadius = '12px';
-    progCard.style.padding = '12px 16px';
+    progCard.style.padding = '10px 14px';
     progCard.style.color = '#fff';
-    progCard.style.width = '240px';
+    progCard.style.width = '200px';
     progCard.innerHTML = `
-      <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:8px">
-        <span>Progress</span>
+      <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:6px">
+        <span>Progres</span>
         <span>0/5</span>
       </div>
       <div style="height:6px; background:rgba(255,255,255,0.2); border-radius:3px">
@@ -141,11 +141,34 @@ export class UIManager {
       return pill;
     };
 
-    const xpPill = createPill('🔮', '1250', 'rgba(168, 85, 247, 0.5)'); // Purple
-    const goldPill = createPill('⭐', '230', 'rgba(234, 179, 8, 0.5)'); // Gold
+    const xpPill = createPill('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>', '1250', 'rgba(168, 85, 247, 0.5)'); // Purple
+    const goldPill = createPill('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', '230', 'rgba(234, 179, 8, 0.5)'); // Gold
+
+    // Fullscreen Button
+    const fsBtn = document.createElement('button');
+    fsBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
+    fsBtn.style.background = 'rgba(255,255,255,0.1)';
+    fsBtn.style.border = '1px solid rgba(255,255,255,0.2)';
+    fsBtn.style.borderRadius = '50%';
+    fsBtn.style.width = '32px';
+    fsBtn.style.height = '32px';
+    fsBtn.style.color = '#fff';
+    fsBtn.style.cursor = 'pointer';
+    fsBtn.style.display = 'flex';
+    fsBtn.style.alignItems = 'center';
+    fsBtn.style.justifyContent = 'center';
+    fsBtn.onclick = () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    };
 
     const menuBtn = document.createElement('button');
-    menuBtn.innerHTML = '☰';
+    menuBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
     menuBtn.style.background = 'rgba(255,255,255,0.1)';
     menuBtn.style.border = '1px solid rgba(255,255,255,0.2)';
     menuBtn.style.borderRadius = '50%';
@@ -153,10 +176,14 @@ export class UIManager {
     menuBtn.style.height = '32px';
     menuBtn.style.color = '#fff';
     menuBtn.style.cursor = 'pointer';
+    menuBtn.style.display = 'flex';
+    menuBtn.style.alignItems = 'center';
+    menuBtn.style.justifyContent = 'center';
     menuBtn.onclick = () => { if (this.onBack) this.onBack(); };
 
     this.topRight.appendChild(xpPill);
     this.topRight.appendChild(goldPill);
+    this.topRight.appendChild(fsBtn);
     this.topRight.appendChild(menuBtn);
     this.uiLayer.appendChild(this.topRight);
   }
@@ -276,13 +303,13 @@ export class UIManager {
     this.instructionToast.style.background = 'rgba(107, 70, 193, 0.8)'; // Purple from mockup
     this.instructionToast.style.backdropFilter = 'blur(8px)';
     this.instructionToast.style.color = '#fff';
-    this.instructionToast.style.padding = '10px 24px';
+    this.instructionToast.style.padding = '8px 20px';
     this.instructionToast.style.borderRadius = '24px';
-    this.instructionToast.style.fontSize = '13px';
+    this.instructionToast.style.fontSize = '12px';
     this.instructionToast.style.fontWeight = '600';
     this.instructionToast.style.pointerEvents = 'none';
     this.instructionToast.style.display = 'block'; // Show by default
-    this.instructionToast.innerText = 'Tap an object to interact';
+    this.instructionToast.innerText = 'Ketuk objek untuk berinteraksi';
     this.uiLayer.appendChild(this.instructionToast);
   }
 
@@ -291,7 +318,7 @@ export class UIManager {
   }
 
   hideInstruction() {
-    this.instructionToast.innerText = 'Tap an object to interact';
+    this.instructionToast.innerText = 'Ketuk objek untuk berinteraksi';
   }
 
   // -------------------------------------------------------------------------
