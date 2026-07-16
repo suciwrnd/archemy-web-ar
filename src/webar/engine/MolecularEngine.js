@@ -228,15 +228,16 @@ export class MolecularEngine {
 
   hentikan() {
     this._running = false;
-    this._renderer.setAnimationLoop(null);
+    try {
+      this._renderer.setAnimationLoop(null);
+    } catch (e) {}
 
-    this._env.dispose();
-    this._simulator.dispose();
-    this._raycaster.dispose();
-    this._ui.destroy();
-    this._worldLabels.dispose();
-    this._laboratory.dispose();
-
+    try { if (this._simulator) this._simulator.dispose(); } catch (e) {}
+    try { if (this._raycaster) this._raycaster.dispose(); } catch (e) {}
+    try { if (this._ui) this._ui.destroy(); } catch (e) {}
+    try { if (this._worldLabels) this._worldLabels.dispose(); } catch (e) {}
+    try { if (this._laboratory) this._laboratory.dispose(); } catch (e) {}
+    
     try {
       this._renderer.dispose();
       this._renderer.forceContextLoss();

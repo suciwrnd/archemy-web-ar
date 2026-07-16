@@ -311,7 +311,7 @@ export class UIManager {
     this.instructionToast.style.fontWeight = '600';
     this.instructionToast.style.pointerEvents = 'none';
     this.instructionToast.style.display = 'block'; // Show by default
-    this.instructionToast.innerText = 'Ketuk objek untuk berinteraksi';
+    this.instructionToast.innerText = 'Arahkan kamera ke area datar & ketuk saat target muncul';
     this.uiLayer.appendChild(this.instructionToast);
   }
 
