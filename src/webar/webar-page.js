@@ -164,7 +164,10 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
             <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
             <path d="M12 18h.01"/>
           </svg>
-          <div>Mohon putar layar HP Anda (Landscape)</div>
+          <div>
+            <div style="font-size:18px; margin-bottom:8px">Mohon putar HP Anda (Landscape)</div>
+            <div style="font-size:12px; color:#94a3b8; font-weight:400;">*Pastikan fitur "Auto-Rotate" / "Rotasi Otomatis" di HP Anda menyala</div>
+          </div>
         </div>
       </div>
     </div>
