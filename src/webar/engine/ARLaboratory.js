@@ -73,7 +73,7 @@ export class ARLaboratory {
       this.session = await navigator.xr.requestSession('immersive-ar', {
         requiredFeatures: ['hit-test'],
         optionalFeatures: ['dom-overlay'],
-        domOverlay: { root: document.body }
+        domOverlay: { root: document.getElementById('meStage') || document.body }
       });
     } catch (err) {
       console.warn('WebXR requestSession failed:', err);
