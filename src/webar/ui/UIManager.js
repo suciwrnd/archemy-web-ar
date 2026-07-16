@@ -72,6 +72,30 @@ export class UIManager {
     this.missionCard.appendChild(this.titleEl);
     this.missionCard.appendChild(this.subEl);
 
+    // Legend Card
+    const legendCard = document.createElement('div');
+    legendCard.style.background = 'rgba(40, 40, 40, 0.6)';
+    legendCard.style.backdropFilter = 'blur(12px)';
+    legendCard.style.borderRadius = '12px';
+    legendCard.style.padding = '8px 12px';
+    legendCard.style.color = '#fff';
+    legendCard.style.fontSize = '11px';
+    legendCard.style.display = 'flex';
+    legendCard.style.flexDirection = 'column';
+    legendCard.style.gap = '4px';
+
+    legendCard.innerHTML = `
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span style="width:10px; height:10px; border-radius:50%; background:#60a5fa; display:inline-block; border:1px solid rgba(255,255,255,0.3)"></span> Reaktan
+      </div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span style="width:10px; height:10px; border-radius:50%; background:#34d399; display:inline-block; border:1px solid rgba(255,255,255,0.3)"></span> Produk
+      </div>
+    `;
+
+    this.topLeft.appendChild(this.missionCard);
+    this.topLeft.appendChild(legendCard);
+
     // Mock Prediction Card (Visual only)
     const predCard = document.createElement('div');
     predCard.style.background = 'rgba(40, 40, 40, 0.6)';

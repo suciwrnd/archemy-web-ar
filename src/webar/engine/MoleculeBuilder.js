@@ -59,23 +59,19 @@ function getSphereGeo(r) {
 function getAtomMat(element, isProduct) {
   const cacheKey = element + (isProduct ? '_prod' : '_reac');
   if (!_matCache.has(cacheKey)) {
-    const cfg = CPK[element] || CPK.X;
-    
-    // Blend original CPK color with a tint for clear differentiation
-    const baseColor = new THREE.Color(cfg.color);
+    // Pure vibrant color, no muddy blending!
     const tintColor = isProduct ? new THREE.Color(0x34d399) : new THREE.Color(0x60a5fa); // Green vs Blue
-    baseColor.lerp(tintColor, 0.6); // 60% tint
     
     _matCache.set(cacheKey, new THREE.MeshPhysicalMaterial({
-      color:              baseColor,
-      emissive:           0x000000,
-      emissiveIntensity:  0.0,
-      metalness:          0.15,
+      color:              tintColor,
+      emissive:           tintColor,
+      emissiveIntensity:  0.2, // slight glow so it pops!
+      metalness:          0.2,
       roughness:          0.3,
-      clearcoat:          0.8,
+      clearcoat:          1.0,
       clearcoatRoughness: 0.1,
-      envMapIntensity:    1.2,
-      reflectivity:       0.5,
+      envMapIntensity:    1.5,
+      reflectivity:       0.8,
     }));
   }
   return _matCache.get(cacheKey);
