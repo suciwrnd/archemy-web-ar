@@ -233,6 +233,44 @@ export class ReactionSimulator {
     });
   }
 
+  getCurrentRatio() {
+    let pCount = 0;
+    this.particles.forEach(p => { if (p.isProduct) pCount++; });
+    const ratio = pCount / (this.particles.length || 1);
+    return {
+      reactant: Math.round((1 - ratio) * 100),
+      product: Math.round(ratio * 100)
+    };
+  }
+
+  async addMolecules(isProduct, count = 5) {
+    const rDef = this.config.reactants[0];
+    const pDef = this.config.products[0];
+    const def = isProduct ? pDef : rDef;
+    
+    // Gunakan scale yang sama dengan yang sudah ada, atau default 0.4
+    const scale = this.particles.length > 0 ? this.particles[0].mesh.scale.x : 0.4;
+    
+    for (let i = 0; i < count; i++) {
+      const mesh = await createMoleculeAsset(def);
+      mesh.scale.setScalar(scale);
+      
+      if (this.chamber) {
+        const b = this.chamber.getBounds();
+        mesh.position.set(
+          THREE.MathUtils.randFloat(b.minX + 0.5, b.maxX - 0.5),
+          THREE.MathUtils.randFloat(b.minY + 0.5, b.maxY - 0.5),
+          THREE.MathUtils.randFloat(b.minZ + 0.5, b.maxZ - 0.5)
+        );
+        this.chamber.chamberGroup.add(mesh);
+      } else {
+        this.scene.add(mesh);
+      }
+      this.particles.push(new ParticleWrapper(def, mesh, isProduct));
+    }
+    this._broadcastRatio();
+  }
+
   applyExperiment(experimentId) {
     // Legacy support, but we rely on setTemperature/setVolume now
   }

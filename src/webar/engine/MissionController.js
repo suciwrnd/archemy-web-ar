@@ -115,6 +115,37 @@ export class MissionController {
         this.cameraCtrl.exitInspectionMode();
       });
     }
+    else if (eqId === 'shelf') {
+      this.ui.showContextPanel('RAK REAGEN (KONSENTRASI)', `
+        <div style="font-size:12px; margin-bottom:8px;">Tambah Molekul:</div>
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <button id="meAddReactant" style="padding:8px 16px; border-radius:12px; background:rgba(48, 80, 248, 0.5); border:1px solid #3050f8; color:#fff; cursor:pointer;">+ Reaktan</button>
+          <button id="meAddProduct" style="padding:8px 16px; border-radius:12px; background:rgba(255, 32, 16, 0.5); border:1px solid #ff2010; color:#fff; cursor:pointer;">+ Produk</button>
+        </div>
+        <button id="meCloseCtx" style="padding:6px 12px; border-radius:12px; background:#c084fc; color:#fff; border:none; cursor:pointer;">Tutup</button>
+      `);
+      document.getElementById('meAddReactant').onclick = () => {
+        this.simulator.addMolecules(false, 5); // Add 5 reactants
+        soundEngine.whoosh();
+      };
+      document.getElementById('meAddProduct').onclick = () => {
+        this.simulator.addMolecules(true, 5);  // Add 5 products
+        soundEngine.whoosh();
+      };
+      document.getElementById('meCloseCtx').onclick = () => this.ui.hideContextPanel();
+    }
+    else if (eqId === 'monitor') {
+      const ratio = this.simulator.getCurrentRatio();
+      this.ui.showContextPanel('LAYAR MONITOR (INDIKATOR)', `
+        <div style="font-size:12px; margin-bottom:8px;">Rasio Kesetimbangan Saat Ini:</div>
+        <div style="font-size:18px; font-weight:bold; color:#34d399; margin-bottom:12px; text-align:center;">
+          Reaktan: ${ratio.reactant}% <br>
+          Produk: ${ratio.product}%
+        </div>
+        <button id="meCloseCtx" style="padding:6px 12px; border-radius:12px; background:#c084fc; color:#fff; border:none; cursor:pointer;">Tutup</button>
+      `);
+      document.getElementById('meCloseCtx').onclick = () => this.ui.hideContextPanel();
+    }
   }
 
   // -------------------------------------------------------------------------
