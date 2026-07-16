@@ -273,6 +273,31 @@ export function flashMolecule(mol, duration = 0.4) {
 }
 
 /**
+ * Add a persistent glowing aura to a molecule (used to mark products).
+ */
+export function addAura(mol, color = 0x34d399) {
+  // calculate bounding sphere radius approximately
+  let maxR = 0.5;
+  mol.children.forEach(c => {
+    if (c.geometry && c.geometry.type === 'SphereGeometry') {
+      const dist = c.position.length() + (c.geometry.parameters.radius || 0.2);
+      if (dist > maxR) maxR = dist;
+    }
+  });
+  
+  const auraGeo = new THREE.SphereGeometry(maxR + 0.1, 16, 16);
+  const auraMat = new THREE.MeshBasicMaterial({ 
+    color: color, 
+    transparent: true, 
+    opacity: 0.15, 
+    wireframe: true,
+    depthWrite: false 
+  });
+  const aura = new THREE.Mesh(auraGeo, auraMat);
+  mol.add(aura);
+}
+
+/**
  * Hover highlight — boost emissive when mouse is over.
  */
 export function setMoleculeHighlight(mol, on) {

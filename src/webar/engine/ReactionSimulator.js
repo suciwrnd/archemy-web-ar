@@ -6,7 +6,7 @@
    ========================================================================== */
 
 import * as THREE from 'three';
-import { createMoleculeAsset, flashMolecule } from './MoleculeBuilder.js';
+import { createMoleculeAsset, flashMolecule, addAura } from './MoleculeBuilder.js';
 import { soundEngine } from './SoundEngine.js';
 
 export class ParticleWrapper {
@@ -82,6 +82,9 @@ export class ReactionSimulator {
       const isProd = i < Math.round(count * initialProductRatio);
       const def = isProd ? productDef : reactantDef;
       const mesh = await createMoleculeAsset(def);
+      if (isProd) {
+        addAura(mesh, 0x34d399); // Green aura for products
+      }
       
       mesh.scale.setScalar(scale);
       
@@ -130,6 +133,10 @@ export class ReactionSimulator {
     p.def = newDef;
     p.isProduct = isProduct;
     p.cooldown = 0.5; // Prevent immediate re-reaction
+    
+    if (isProduct) {
+      addAura(newMesh, 0x34d399);
+    }
     
     flashMolecule(newMesh, 0.3);
   }
