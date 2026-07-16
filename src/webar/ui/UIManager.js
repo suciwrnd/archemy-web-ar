@@ -333,104 +333,11 @@ export class UIManager {
     menuBtn.style.justifyContent = 'center';
     menuBtn.onclick = () => { if (this.onBack) this.onBack(); };
 
-    // Accessibility Settings Button
-    const a11yBtn = document.createElement('button');
-    a11yBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>'; // Eye/info icon
-    a11yBtn.style.background = 'rgba(255,255,255,0.1)';
-    a11yBtn.style.border = '1px solid rgba(255,255,255,0.2)';
-    a11yBtn.style.borderRadius = '50%';
-    a11yBtn.style.width = '32px';
-    a11yBtn.style.height = '32px';
-    a11yBtn.style.color = '#fff';
-    a11yBtn.style.cursor = 'pointer';
-    a11yBtn.style.display = 'flex';
-    a11yBtn.style.alignItems = 'center';
-    a11yBtn.style.justifyContent = 'center';
-    a11yBtn.onclick = () => {
-      this._showA11ySettings();
-    };
-
     this.topRight.appendChild(xpPill);
     this.topRight.appendChild(goldPill);
-    this.topRight.appendChild(a11yBtn);
     this.topRight.appendChild(fsBtn);
     this.topRight.appendChild(menuBtn);
     this.uiLayer.appendChild(this.topRight);
-  }
-
-  _showA11ySettings() {
-    const isCb = window.state && window.state.colorblind;
-    const preview = window.state && window.state.colorblindPreview ? window.state.colorblindPreview : 'normal';
-
-    const html = `
-      <div style="font-size:12px; margin-bottom:12px; color:#cbd5e1; text-align:center;">Pengaturan Aksesibilitas (Color Universal Design)</div>
-      
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding:12px; background:rgba(255,255,255,0.05); border-radius:8px; width:100%; min-width: 250px;">
-        <b>Mode Buta Warna</b>
-        <button id="meToggleCb" style="background:${isCb ? '#10b981' : '#d97706'}; color:#fff; border:none; padding:4px 12px; border-radius:12px; cursor:pointer; font-weight:bold;">
-          ${isCb ? 'Aktif' : 'Nonaktif'}
-        </button>
-      </div>
-
-      ${isCb ? `
-      <div style="width:100%; text-align:left; padding:12px; background:rgba(0,0,0,0.2); border-radius:8px; margin-bottom:16px;">
-        <b style="font-size: 13px; display: block; margin-bottom: 8px;">Pratinjau Visi (Filter Kamera)</b>
-        <div style="display: flex; flex-direction:column; gap: 8px; font-size: 13px;">
-          <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
-            <input type="radio" name="cbPreview" value="normal" ${preview==='normal'?'checked':''}> Normal
-          </label>
-          <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
-            <input type="radio" name="cbPreview" value="protanopia" ${preview==='protanopia'?'checked':''}> Protanopia
-          </label>
-          <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
-            <input type="radio" name="cbPreview" value="deuteranopia" ${preview==='deuteranopia'?'checked':''}> Deuteranopia
-          </label>
-          <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
-            <input type="radio" name="cbPreview" value="tritanopia" ${preview==='tritanopia'?'checked':''}> Tritanopia
-          </label>
-        </div>
-      </div>
-      ` : ''}
-
-      <button id="meCloseA11y" style="padding:8px 24px; border-radius:16px; background:#c084fc; color:#fff; border:none; cursor:pointer; font-weight:bold;">Tutup</button>
-    `;
-
-    this.showContextPanel('AKSESIBILITAS', html);
-
-    document.getElementById('meToggleCb').onclick = () => {
-      if (window.state) {
-        window.state.colorblind = !window.state.colorblind;
-        if (window.saveState) window.saveState();
-        
-        // Re-render settings panel
-        this._showA11ySettings();
-        
-        // Re-render legend
-        this.bottomLeft.innerHTML = '';
-        this._buildBottomLeft();
-      }
-    };
-
-    const radios = document.querySelectorAll('input[name="cbPreview"]');
-    radios.forEach(r => {
-      r.onchange = (e) => {
-        if (window.state) {
-          window.state.colorblindPreview = e.target.value;
-          if (window.saveState) window.saveState();
-          
-          const canvas = document.getElementById('meCanvas');
-          if (canvas) {
-            if (e.target.value === 'normal') {
-              canvas.style.filter = 'none';
-            } else {
-              canvas.style.filter = `url(#${e.target.value})`;
-            }
-          }
-        }
-      };
-    });
-
-    document.getElementById('meCloseA11y').onclick = () => this.hideContextPanel();
   }
 
   // -------------------------------------------------------------------------

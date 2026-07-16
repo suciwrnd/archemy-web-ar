@@ -107,12 +107,40 @@ export function renderPilihMisi(container, onPilihMisi, recommendedIds = [], onK
 
   container.innerHTML = `
     <div class="me-pilih-misi">
-      <div class="me-pilih-header">
+      <div class="me-pilih-header" style="position:relative;">
         ${onKeluar ? '<button class="me-btn-back" id="btnBackPilih">← Keluar</button>' : ''}
+        
+        <div style="position:absolute; top:0; right:0;">
+          <button id="btnA11yPilih" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:50%; width:36px; height:36px; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          </button>
+        </div>
+
         <div class="me-pilih-brand">ARChemy Lab</div>
         <h1 class="me-pilih-title">Pilih Eksperimen</h1>
         <p class="me-pilih-sub">Setiap eksperimen mengikuti alur: Amati → Selidiki → Eksperimen → Refleksi</p>
       </div>
+      
+      <!-- Accessibility Settings Panel (Hidden by default) -->
+      <div id="a11yPanelPilih" style="display:none; position:absolute; top:60px; right:24px; background:rgba(30, 27, 75, 0.95); backdrop-filter:blur(10px); border:1px solid rgba(192, 132, 252, 0.3); border-radius:16px; padding:16px; z-index:100; width:300px; color:#fff; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+        <div style="font-size:14px; margin-bottom:12px; color:#c084fc; font-weight:bold;">Pengaturan Aksesibilitas (CUD)</div>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding:12px; background:rgba(255,255,255,0.05); border-radius:8px;">
+          <b style="font-size:13px;">Mode Buta Warna</b>
+          <button id="btnToggleCbPilih" style="border:none; padding:4px 12px; border-radius:12px; cursor:pointer; font-weight:bold; font-size:12px;"></button>
+        </div>
+
+        <div id="cbPreviewContainerPilih" style="display:none; width:100%; text-align:left; padding:12px; background:rgba(0,0,0,0.2); border-radius:8px; margin-bottom:8px;">
+          <b style="font-size: 13px; display: block; margin-bottom: 8px;">Pratinjau Visi (Filter Kamera)</b>
+          <div style="display: flex; flex-direction:column; gap: 8px; font-size: 13px;" id="cbRadiosPilih">
+            <label style="cursor:pointer; display:flex; align-items:center; gap:8px;"><input type="radio" name="cbPreviewPilih" value="normal"> Normal</label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:8px;"><input type="radio" name="cbPreviewPilih" value="protanopia"> Protanopia</label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:8px;"><input type="radio" name="cbPreviewPilih" value="deuteranopia"> Deuteranopia</label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:8px;"><input type="radio" name="cbPreviewPilih" value="tritanopia"> Tritanopia</label>
+          </div>
+        </div>
+      </div>
+
       <div class="me-misi-grid">${cards}</div>
     </div>
   `;
@@ -125,6 +153,52 @@ export function renderPilihMisi(container, onPilihMisi, recommendedIds = [], onK
     const backBtn = container.querySelector('#btnBackPilih');
     if (backBtn) backBtn.addEventListener('click', onKeluar);
   }
+
+  // A11y Settings Logic
+  const a11yPanel = container.querySelector('#a11yPanelPilih');
+  const btnA11y = container.querySelector('#btnA11yPilih');
+  const btnToggleCb = container.querySelector('#btnToggleCbPilih');
+  const previewContainer = container.querySelector('#cbPreviewContainerPilih');
+  const radios = container.querySelectorAll('input[name="cbPreviewPilih"]');
+
+  const updateA11yUI = () => {
+    const isCb = window.state?.colorblind || false;
+    const preview = window.state?.colorblindPreview || 'normal';
+    
+    btnToggleCb.style.background = isCb ? '#10b981' : '#d97706';
+    btnToggleCb.style.color = '#fff';
+    btnToggleCb.innerText = isCb ? 'Aktif' : 'Nonaktif';
+    previewContainer.style.display = isCb ? 'block' : 'none';
+
+    radios.forEach(r => {
+      r.checked = (r.value === preview);
+    });
+  };
+
+  btnA11y.addEventListener('click', () => {
+    a11yPanel.style.display = a11yPanel.style.display === 'none' ? 'block' : 'none';
+    if (a11yPanel.style.display === 'block') {
+      updateA11yUI();
+    }
+  });
+
+  btnToggleCb.addEventListener('click', () => {
+    if (window.state) {
+      window.state.colorblind = !window.state.colorblind;
+      if (window.saveState) window.saveState();
+      updateA11yUI();
+    }
+  });
+
+  radios.forEach(r => {
+    r.addEventListener('change', (e) => {
+      if (window.state) {
+        window.state.colorblindPreview = e.target.value;
+        if (window.saveState) window.saveState();
+      }
+    });
+  });
+
 }
 
 // ---------------------------------------------------------------------------
