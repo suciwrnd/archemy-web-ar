@@ -166,5 +166,11 @@ export class ARLaboratory {
     if (this.reticle) {
       this.scene.remove(this.reticle);
     }
+    if (this.session) {
+      try {
+        this.session.end();
+      } catch (e) {}
+      this.session = null;
+    }
   }
 }

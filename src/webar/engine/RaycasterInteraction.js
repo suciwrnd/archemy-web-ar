@@ -143,30 +143,33 @@ export class RaycasterInteraction {
   // ── Tap Handling ────────────────────────────────────────────────────────────
 
   _bindEvents() {
-    this.domElement.addEventListener('mousemove', (e) => {
-      const rect = this.domElement.getBoundingClientRect();
-      this._mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
-      this._mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+    const target = document.body;
+
+    target.addEventListener('mousemove', (e) => {
+      this._mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      this._mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
     });
 
-    this.domElement.addEventListener('click', (e) => {
+    target.addEventListener('click', (e) => {
       if (!this._enabled) return;
-      const rect = this.domElement.getBoundingClientRect();
-      this._mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
-      this._mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+      if (e.target.closest('button, .me-misi-card, .me-pilih-header')) return;
+      
+      this._mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      this._mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
       this._handleTap();
     });
 
-    this.domElement.addEventListener('touchend', (e) => {
+    target.addEventListener('touchend', (e) => {
       if (!this._enabled) return;
+      if (e.target.closest('button, .me-misi-card, .me-pilih-header')) return;
+      
       const touch = e.changedTouches[0];
-      const rect  = this.domElement.getBoundingClientRect();
-      this._mouse.x =  ((touch.clientX - rect.left) / rect.width)  * 2 - 1;
-      this._mouse.y = -((touch.clientY - rect.top)  / rect.height) * 2 + 1;
+      this._mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+      this._mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
 
       const now = Date.now();
       if (now - this._lastTap < 300) {
-        // Double tap → deselect
+        // Double tap -> deselect
         this._deselect();
       } else {
         this._handleTap();

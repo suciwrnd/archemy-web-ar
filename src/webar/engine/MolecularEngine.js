@@ -237,10 +237,14 @@ export class MolecularEngine {
     this._worldLabels.dispose();
     this._laboratory.dispose();
 
+    try {
+      this._renderer.dispose();
+      this._renderer.forceContextLoss();
+    } catch (e) {}
+
     window.removeEventListener('resize', this._onResize);
 
-    this._composer.dispose();
-    this._renderer.dispose();
+    if (this._composer) this._composer.dispose();
   }
 }
 
