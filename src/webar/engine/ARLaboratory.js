@@ -60,8 +60,8 @@ export class ARLaboratory {
     return this.isARSupported;
   }
 
-  async startSession() {
-    if (!this.isARSupported) {
+  async startSession(force3D = false) {
+    if (!this.isARSupported || force3D) {
       // Fallback: Place immediately at origin (for Desktop/OrbitControls)
       this.labGroup.position.set(0, -1, -3); 
       this._activateLab();

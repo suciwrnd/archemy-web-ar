@@ -191,10 +191,10 @@ export class MolecularEngine {
 
   // ── Public API ─────────────────────────────────────────────────────────
 
-  async startSession() {
+  async startSession(force3D = false) {
     soundEngine.whoosh();
     this._renderer.setAnimationLoop((time, frame) => this._tick(time, frame));
-    await this._laboratory.startSession();
+    await this._laboratory.startSession(force3D);
   }
 
   startJourney() {
@@ -263,7 +263,7 @@ export async function mulaiSesiARjs(canvas, videoEl, reactionId, callbacks) {
   const engine    = new MolecularEngine(canvas, container, reactionId, callbacks);
 
   return {
-    startSession: () => engine.startSession(),
+    startSession: (force3D = false) => engine.startSession(force3D),
     hentikan:     () => engine.hentikan(),
   };
 }

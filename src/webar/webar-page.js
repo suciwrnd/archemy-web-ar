@@ -154,7 +154,8 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
         </div>
         <div class="me-portal-title">${config.equation}</div>
         <p class="me-portal-sub">Sistem Kesetimbangan Molekuler</p>
-        <button class="me-portal-btn" id="btnMasuk">Masuk ke Dunia Molekul</button>
+        <button class="me-portal-btn" id="btnMasuk">Masuk ke Dunia Molekul (AR)</button>
+        <button class="me-portal-btn" id="btnMasuk3D" style="margin-top: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); box-shadow: none;">Masuk Mode 3D (Tanpa Kamera)</button>
       </div>
 
       <!-- Landscape Lock for Mobile -->
@@ -244,6 +245,33 @@ export async function renderHalamanAR(container, misiId, onKeluar) {
   if (btn) {
     btn.addEventListener('click',      enterAR);
     btn.addEventListener('touchstart', enterAR, { passive: false });
+  }
+
+  const enter3D = (e) => {
+    if (e?.preventDefault) e.preventDefault();
+    if (started) return;
+    if (!sesi) {
+      alert('Sesi belum siap atau gagal dimuat.');
+      return;
+    }
+    started = true;
+    if (sesi) sesi.startSession(true); // true = force3D
+    try {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } catch (e) {}
+    portal.style.opacity = '0';
+    portal.style.pointerEvents = 'none';
+    setTimeout(() => {
+      portal.style.display = 'none';
+    }, 500);
+  };
+
+  const btn3D = container.querySelector('#btnMasuk3D');
+  if (btn3D) {
+    btn3D.addEventListener('click',      enter3D);
+    btn3D.addEventListener('touchstart', enter3D, { passive: false });
   }
 }
 
