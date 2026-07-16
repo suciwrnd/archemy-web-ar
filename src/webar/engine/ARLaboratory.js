@@ -91,17 +91,44 @@ export class ARLaboratory {
     this.renderer.xr.setReferenceSpaceType('local');
     await this.renderer.xr.setSession(this.session);
 
-    // Tap to place
+    // Tap to place via WebXR select event
     const controller = this.renderer.xr.getController(0);
     controller.addEventListener('select', () => this._onTap());
     this.scene.add(controller);
+
+    // Fallback: Manual DOM click in case WebXR select is swallowed by dom-overlay
+    const stage = document.getElementById('meStage');
+    if (stage) {
+      stage.addEventListener('click', (e) => {
+        if (e.target.closest('button')) return; // ignore UI buttons
+        this._onTap();
+      });
+      stage.addEventListener('touchend', (e) => {
+        if (e.target.closest('button')) return;
+        this._onTap();
+      });
+    }
   }
 
   _onTap() {
-    if (this.labPlaced || !this.reticle.visible) return;
+    if (this.labPlaced) return;
     
-    // Set lab position to reticle position
-    this.labGroup.position.setFromMatrixPosition(this.reticle.matrix);
+    if (this.reticle.visible) {
+      // Set lab position to reticle position
+      this.labGroup.position.setFromMatrixPosition(this.reticle.matrix);
+    } else {
+      // Fallback: force spawn 1.5 meters in front of the camera, slightly lower
+      const dir = new THREE.Vector3(0, 0, -1);
+      dir.applyQuaternion(this.camera.quaternion);
+      dir.y = 0; // keep horizontal
+      if (dir.lengthSq() < 0.01) dir.set(0, 0, -1);
+      dir.normalize();
+
+      this.labGroup.position.copy(this.camera.position);
+      this.labGroup.position.addScaledVector(dir, 1.5);
+      this.labGroup.position.y -= 0.5; // place 0.5m below camera height
+    }
+
     // Point lab towards user
     const lookAtPos = new THREE.Vector3();
     this.camera.getWorldPosition(lookAtPos);
