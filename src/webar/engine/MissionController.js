@@ -1,0 +1,218 @@
+/* ==========================================================================
+   MissionController.js — Educational Flow Manager
+   ========================================================================== */
+
+import { soundEngine } from './SoundEngine.js';
+
+export const MISSION_STATE = {
+  INIT: 'INIT',
+  M1_LAB: 'M1_LAB',
+  M2_COLLISION: 'M2_COLLISION',
+  M3_DYNAMIC: 'M3_DYNAMIC',
+  M4_LE_CHAT: 'M4_LE_CHAT'
+};
+
+export class MissionController {
+  constructor(simulator, config) {
+    this.simulator = simulator;
+    this.config = config;
+    
+    this.state = MISSION_STATE.INIT;
+    this.ui = null;
+    this.worldLabels = null;
+    this.cameraCtrl = null;
+    
+    this._listeners = {};
+
+    this._m1Progress = new Set();
+  }
+
+  init(deps) {
+    this.ui = deps.ui;
+    this.worldLabels = deps.worldLabels;
+    this.cameraCtrl = deps.cameraCtrl;
+
+    this.simulator.on('stepComplete', () => this._onStepComplete());
+    this.simulator.on('reactionEvent', (data) => this._onReactionEvent(data));
+    this.simulator.on('equilibriumUpdate', (data) => this._onEquilUpdate(data));
+    this.simulator.on('collision', (data) => this._onCollision(data));
+  }
+
+  // -------------------------------------------------------------------------
+  // Mission 1: Know Your Lab
+  // -------------------------------------------------------------------------
+  async startMission1() {
+    this._setState(MISSION_STATE.M1_LAB);
+    this.ui.missionTitle.innerText = `Misi 1: Kenali Lab Anda`;
+    this.ui.missionSub.innerText = this.config.name;
+
+    await this.simulator.setMissionLevel(1);
+    this.simulator.setTemperature(0.2); 
+    this.simulator.play();
+
+    this.ui.showInstruction('👉 Sentuh berbagai peralatan di meja untuk mengenalinya.');
+    this._m1Progress.clear();
+  }
+
+  _onEquipmentTap(eqId) {
+    soundEngine.click();
+
+    // M1 Logic
+    if (this.state === MISSION_STATE.M1_LAB) {
+      this._m1Progress.add(eqId);
+      
+      const names = {
+        'heater': 'Pemanas',
+        'piston': 'Piston Tekanan',
+        'monitor': 'Layar Monitor',
+        'shelf': 'Rak Reagen',
+        'notebook': 'Buku Misi',
+        'chamber': 'Wadah Reaksi'
+      };
+
+      this.ui.showInstruction(`Itu adalah ${names[eqId] || eqId}.`);
+
+      if (eqId === 'chamber') {
+        this.cameraCtrl.enterInspectionMode(this.simulator.chamber.chamberGroup);
+        this.ui.showInspectionMode(() => {
+          this.cameraCtrl.exitInspectionMode();
+          if (this._m1Progress.size >= 3) {
+            this.startMission2();
+          } else {
+            this.ui.showInstruction('Terus eksplorasi peralatan lainnya.');
+          }
+        });
+      }
+      return;
+    }
+
+    // Equipment Interactions (for all other missions)
+    if (eqId === 'heater') {
+      this.ui.showContextPanel('HEATER', `
+        <div style="font-size:12px; margin-bottom:8px;">Atur Suhu Reaksi:</div>
+        <input type="range" id="meTempSlider" min="0.5" max="2.0" step="0.1" value="${this.simulator.temperature}">
+        <button id="meCloseCtx" style="margin-top:12px; padding:6px 12px; border-radius:12px; background:#c084fc; color:#fff; border:none;">Tutup</button>
+      `);
+      document.getElementById('meTempSlider').oninput = (e) => {
+        this.simulator.setTemperature(parseFloat(e.target.value));
+      };
+      document.getElementById('meCloseCtx').onclick = () => this.ui.hideContextPanel();
+    }
+    else if (eqId === 'piston') {
+      this.ui.showContextPanel('PISTON (VOLUME)', `
+        <div style="font-size:12px; margin-bottom:8px;">Atur Volume Wadah:</div>
+        <input type="range" id="meVolSlider" min="0.5" max="1.5" step="0.1" value="${this.simulator.chamber.currentVolume}">
+        <button id="meCloseCtx" style="margin-top:12px; padding:6px 12px; border-radius:12px; background:#c084fc; color:#fff; border:none;">Tutup</button>
+      `);
+      document.getElementById('meVolSlider').oninput = (e) => {
+        this.simulator.chamber.setVolume(parseFloat(e.target.value));
+      };
+      document.getElementById('meCloseCtx').onclick = () => this.ui.hideContextPanel();
+    }
+    else if (eqId === 'chamber') {
+      this.cameraCtrl.enterInspectionMode(this.simulator.chamber.chamberGroup);
+      this.ui.showInspectionMode(() => {
+        this.cameraCtrl.exitInspectionMode();
+      });
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Mission 2: Collision Theory
+  // -------------------------------------------------------------------------
+  async startMission2() {
+    this._setState(MISSION_STATE.M2_COLLISION);
+    if (this.worldLabels) this.worldLabels.clearAll();
+    this.ui.missionTitle.innerText = `Misi 2: Teori Tumbukan`;
+    
+    await this.simulator.setMissionLevel(2);
+    this.simulator.play();
+    this.simulator.setTemperature(0.2); // Start very slow
+
+    this.ui.showInstruction('👉 Sentuh Heater untuk menaikkan suhu agar molekul bertumbukan.');
+    this._m2CollisionCount = 0;
+  }
+
+  _onCollision(data) {
+    if (this.state === MISSION_STATE.M2_COLLISION) {
+      if (this.simulator.temperature > 0.5) {
+        this._m2CollisionCount++;
+        if (this._m2CollisionCount === 5) {
+          this.ui.showInstruction('Bagus! Suhu tinggi meningkatkan energi kinetik dan jumlah tumbukan.');
+          setTimeout(() => this.startMission3(), 5000);
+        }
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Mission 3: Dynamic Equilibrium
+  // -------------------------------------------------------------------------
+  async startMission3() {
+    this._setState(MISSION_STATE.M3_DYNAMIC);
+    this.ui.missionTitle.innerText = `Misi 3: Kesetimbangan Dinamis`;
+    
+    await this.simulator.setMissionLevel(3);
+    this.simulator.setTemperature(1.0);
+    this.simulator.play();
+
+    this.ui.showInstruction('👉 Biarkan reaksi berjalan. Sentuh Monitor untuk melihat grafik.');
+    this._m3EquilTimer = 0;
+    this._m3Asked = false;
+  }
+
+  _onEquilUpdate(data) {
+    if (this.state === MISSION_STATE.M3_DYNAMIC && this.simulator.isPlaying) {
+      this._m3EquilTimer += 0.016; 
+      if (this._m3EquilTimer > 10.0 && !this._m3Asked) {
+        this._m3Asked = true;
+        this.ui.showInstruction('Kesetimbangan tercapai. Reaksi maju dan mundur berjalan dengan laju yang sama.');
+        setTimeout(() => this.startMission4(), 5000);
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Mission 4: Le Chatelier
+  // -------------------------------------------------------------------------
+  async startMission4() {
+    this._setState(MISSION_STATE.M4_LE_CHAT);
+    this.ui.missionTitle.innerText = `Misi 4: Asas Le Chatelier`;
+    
+    await this.simulator.setMissionLevel(4);
+    this.simulator.play();
+
+    this.ui.showInstruction('👉 Gunakan Heater dan Piston untuk mengganggu kesetimbangan!');
+  }
+
+  _onReactionEvent(data) {
+    // We can add effects here if needed
+  }
+
+  _onStepComplete() {}
+
+  // -------------------------------------------------------------------------
+  // Utils
+  // -------------------------------------------------------------------------
+  update(dt) {
+    if (this.state === MISSION_STATE.M3_DYNAMIC && this.simulator.isPlaying) {
+      this._onEquilUpdate(); 
+    }
+  }
+
+  _setState(newState) {
+    this.state = newState;
+    this._emit('missionChange', { next: newState });
+  }
+
+  on(event, cb) {
+    if (!this._listeners[event]) this._listeners[event] = [];
+    this._listeners[event].push(cb);
+  }
+
+  _emit(event, data) {
+    if (this._listeners[event]) {
+      this._listeners[event].forEach(fn => fn(data));
+    }
+  }
+}

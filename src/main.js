@@ -4,8 +4,7 @@
    → evaluasi → analitik guru) tersambung.
    ========================================================================== */
 
-import { renderPilihMisi, renderHalamanAR, renderHook, hentikanSesiAR } from './webar-page.js';
-import { MISI_DATA } from './webar.js';
+import { renderPilihMisi, renderHalamanAR, renderHook, hentikanSesiAR, MISI_DATA } from './webar/webar-page.js';
 
 /* --------------------------------------------------------------------------
    ICON LIBRARY
